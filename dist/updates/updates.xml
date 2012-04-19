@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!DOCTYPE module_updates PUBLIC "-//NetBeans//DTD Autoupdate Catalog 2.6//EN" "http://www.netbeans.org/dtds/autoupdate-catalog-2_6.dtd">
-<module_updates timestamp="17/52/12/19/04/2012">
+<module_updates timestamp="59/00/13/19/04/2012">
 
 
 <module_group name="Issue Tracker">
 
-<module codenamebase="com.kenai.redmineNB" distribution="com-kenai-redmineNB.nbm" downloadsize="179213" homepage="http://redminenb.kenai.com" license="AE2BED43" moduleauthor="Mykolas Molis, Anchialas" needsrestart="false" releasedate="2012/04/19">
-    <manifest AutoUpdate-Show-In-Client="true" OpenIDE-Module="com.kenai.redmineNB" OpenIDE-Module-Display-Category="Issue Tracker" OpenIDE-Module-Implementation-Version="5" OpenIDE-Module-Java-Dependencies="Java &gt; 1.6" OpenIDE-Module-Long-Description="&lt;p&gt;Support for Redmine issue tracker and project management. Redmine version 1.3.0+ is recommended for best compatibility.&lt;/p&gt;" OpenIDE-Module-Module-Dependencies="com.kenai.redminenb.api &gt; 1.9, org.apache.commons.lang &gt; 2.4.0, org.apache.commons.logging &gt; 1.1.0, org.netbeans.api.progress/1 &gt; 1.20.2, org.netbeans.modules.autoupdate.services &gt; 1.28.2, org.netbeans.modules.bugtracking = 201203012225, org.netbeans.modules.options.api/1 &gt; 1.18.1, org.openide.awt &gt; 7.39.1, org.openide.dialogs &gt; 7.15.1, org.openide.loaders &gt; 7.32.1, org.openide.nodes &gt; 7.16.1, org.openide.util &gt; 8.6.1, org.openide.util.lookup &gt; 8.3.1" OpenIDE-Module-Name="redminenb" OpenIDE-Module-Requires="org.openide.modules.ModuleFormat1" OpenIDE-Module-Short-Description="A NetBeans plugin for integration with Redmine." OpenIDE-Module-Specification-Version="1.0.5"/>
+<module codenamebase="com.kenai.redmineNB" distribution="com-kenai-redmineNB.nbm" downloadsize="179206" homepage="http://redminenb.kenai.com" license="AE2BED43" moduleauthor="Mykolas Molis, Anchialas" needsrestart="false" releasedate="2012/04/19">
+    <manifest AutoUpdate-Show-In-Client="true" OpenIDE-Module="com.kenai.redmineNB" OpenIDE-Module-Display-Category="Issue Tracker" OpenIDE-Module-Implementation-Version="6" OpenIDE-Module-Java-Dependencies="Java &gt; 1.6" OpenIDE-Module-Long-Description="&lt;p&gt;Support for Redmine issue tracker and project management. Redmine version 1.3.0+ is recommended for best compatibility.&lt;/p&gt;" OpenIDE-Module-Module-Dependencies="com.kenai.redminenb.api &gt; 1.9, org.apache.commons.lang &gt; 2.4.0, org.apache.commons.logging &gt; 1.1.0, org.netbeans.api.progress/1 &gt; 1.20.2, org.netbeans.modules.autoupdate.services &gt; 1.28.2, org.netbeans.modules.bugtracking = 201203012225, org.netbeans.modules.options.api/1 &gt; 1.18.1, org.openide.awt &gt; 7.39.1, org.openide.dialogs &gt; 7.15.1, org.openide.loaders &gt; 7.32.1, org.openide.nodes &gt; 7.16.1, org.openide.util &gt; 8.6.1, org.openide.util.lookup &gt; 8.3.1" OpenIDE-Module-Name="RedmineNB" OpenIDE-Module-Requires="org.openide.modules.ModuleFormat1" OpenIDE-Module-Short-Description="A NetBeans plugin for integration with Redmine." OpenIDE-Module-Specification-Version="1.0.6"/>
     
 </module>
 

@@ -92,7 +92,7 @@ public class Defaults {
          if (value instanceof IssueCategory) {
             value = ((IssueCategory) value).getName();
          } else if (value == null) {
-            value = "";
+            value = " ";
          }
          return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       }
@@ -107,7 +107,7 @@ public class Defaults {
          if (value instanceof Version) {
             value = ((Version) value).getName();
          } else if (value == null) {
-            value = "";
+            value = " ";
          }
          return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       }

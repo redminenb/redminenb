@@ -14,6 +14,7 @@ import java.awt.Image;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -105,7 +106,10 @@ public class RedmineRepository extends Repository {
 
    public boolean isReachable() throws IOException {
       URL url = new URL(getUrl());
-      return InetAddress.getByName(url.getHost()).isReachable(300);
+      //URLConnection conn = url.openConnection();
+      //return InetAddress.getByName(url.getHost()).isReachable(1000);
+      // TODO InetAddress#isReachable does not work with some systems
+      return true;
    }
 
 

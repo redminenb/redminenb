@@ -206,16 +206,20 @@
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="targetVersionLabel" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      </Group>
+                      <Group type="102" alignment="0" attributes="0">
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="descriptionLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="statusLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="priorityLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="assigneeLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="categoryLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="subjectLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="subjectLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="seenButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="categoryLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
@@ -227,48 +231,54 @@
                                       <Group type="102" alignment="0" attributes="0">
                                           <Group type="103" groupAlignment="1" attributes="0">
                                               <Component id="targetVersionComboBox" min="-2" pref="233" max="-2" attributes="0"/>
-                                              <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                                                  <Component id="categoryComboBox" alignment="0" pref="233" max="32767" attributes="0"/>
+                                              <Group type="103" groupAlignment="1" attributes="0">
                                                   <Component id="statusComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
                                                   <Component id="priorityComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
-                                                  <Component id="assigneeComboBox" alignment="0" max="32767" attributes="0"/>
+                                                  <Component id="assigneeComboBox" alignment="0" min="-2" pref="233" max="-2" attributes="0"/>
                                               </Group>
                                           </Group>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Group type="103" groupAlignment="0" attributes="0">
-                                              <Component id="categoryAddButton" min="-2" pref="18" max="-2" attributes="0"/>
-                                              <Component id="versionAddButton" alignment="0" min="-2" pref="18" max="-2" attributes="0"/>
-                                          </Group>
+                                          <Component id="versionAddButton" min="-2" pref="18" max="-2" attributes="0"/>
+                                      </Group>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="categoryComboBox" min="-2" pref="233" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="categoryAddButton" min="-2" pref="18" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                                   <EmptySpace pref="105" max="32767" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="dueDateLabel" min="-2" max="-2" attributes="0"/>
-                                      <Component id="startDateLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="parentIdLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="estimateTimeLabel" min="-2" max="-2" attributes="0"/>
-                                      <Component id="subjectLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="doneLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                      <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
-                                      <Component id="startDateChooser" alignment="0" pref="138" max="32767" attributes="0"/>
-                                      <Component id="dueDateChooser" alignment="0" max="32767" attributes="0"/>
-                                      <Component id="parentTaskTextField" min="-2" pref="74" max="-2" attributes="0"/>
+                                      <Group type="102" alignment="1" attributes="0">
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Component id="dueDateLabel" min="-2" max="-2" attributes="0"/>
+                                              <Component id="startDateLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="parentIdLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="subjectLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="doneLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          </Group>
+                                          <EmptySpace min="-2" pref="24" max="-2" attributes="0"/>
+                                      </Group>
                                       <Group type="102" alignment="0" attributes="0">
+                                          <Component id="estimateTimeLabel" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
+                                      </Group>
+                                  </Group>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Group type="102" attributes="0">
                                           <Component id="estimateTimeTextField" min="-2" pref="93" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="estimateTimeLabel1" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <Component id="projectNameButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                          <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
+                                          <Component id="startDateChooser" alignment="0" pref="138" max="32767" attributes="0"/>
+                                          <Component id="dueDateChooser" alignment="0" max="32767" attributes="0"/>
+                                          <Component id="parentTaskTextField" min="-2" pref="74" max="-2" attributes="0"/>
+                                          <Component id="projectNameButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      </Group>
                                   </Group>
                               </Group>
                           </Group>
-                      </Group>
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="targetVersionLabel" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -326,18 +336,20 @@
                       </Group>
                       <Component id="dueDateChooser" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="categoryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="categoryComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="estimateTimeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="estimateTimeTextField" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="estimateTimeLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="categoryAddButton" pref="23" max="32767" attributes="0"/>
-                  </Group>
-                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="versionAddButton" alignment="0" pref="24" max="32767" attributes="0"/>
+                      <Component id="categoryAddButton" alignment="1" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="categoryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="categoryComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="estimateTimeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="estimateTimeTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="estimateTimeLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="versionAddButton" alignment="1" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="targetVersionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="targetVersionComboBox" alignment="3" min="-2" max="-2" attributes="0"/>

@@ -70,6 +70,7 @@ import org.openide.util.ImageUtilities;
  * @author Anchialas <anchialas@gmail.com>
  */
 public class RedmineQueryPanel extends JPanel implements FocusListener {
+   private static final long serialVersionUID = 8364291628284121318L;
 
    final ExpandablePanel byText;
    final ExpandablePanel byDetails;

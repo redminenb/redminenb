@@ -26,7 +26,6 @@ import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import org.redmine.ta.AuthenticationException;
 import org.redmine.ta.NotFoundException;
 import org.redmine.ta.RedmineException;
 import org.redmine.ta.RedmineManager;
@@ -223,12 +222,6 @@ public class RedmineRepository extends Repository {
    public Collection<RepositoryUser> getUsers() {
       try {
          return RedmineUser.getUsers(getManager().getUsers());
-      } catch (IOException ex) {
-         // TODO Notify user that it is not possible to connect to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Users", ex);
-      } catch (AuthenticationException ex) {
-         // TODO Notify user that it is not possible to login to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Users", ex);
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
          Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Users", ex);
@@ -243,12 +236,6 @@ public class RedmineRepository extends Repository {
    public Collection<Tracker> getTrackers() {
       try {
          return getManager().getTrackers();
-      } catch (IOException ex) {
-         // TODO Notify user that it is not possible to connect to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
-      } catch (AuthenticationException ex) {
-         // TODO Notify user that it is not possible to login to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
          Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
@@ -343,12 +330,6 @@ public class RedmineRepository extends Repository {
    public Collection<Version> getVersions() {
       try {
          return getManager().getVersions(project.getId());
-      } catch (IOException ex) {
-         // TODO Notify user that it is not possible to connect to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't get Versions for Redmine Project " + project.getName(), ex);
-      } catch (AuthenticationException ex) {
-         // TODO Notify user that it is not possible to login to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't get Versions for Redmine Project " + project.getName(), ex);
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
          Redmine.LOG.log(Level.SEVERE, "Can't get Versions for Redmine Project " + project.getName(), ex);
@@ -394,12 +375,7 @@ public class RedmineRepository extends Repository {
 
          return RedmineIssue.getIssues(this, issuesByID, getManager().getIssuesBySummary(
                  project.getIdentifier(), "*" + string + "*"));
-      } catch (IOException ex) {
-         // TODO Notify user that it is not possible to connect to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);
-      } catch (AuthenticationException ex) {
-         // TODO Notify user that it is not possible to login to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);
+
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
          Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);

@@ -4,13 +4,11 @@ import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.util.ActionListenerPanel;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.openide.util.NbBundle;
-import org.redmine.ta.AuthenticationException;
 import org.redmine.ta.NotFoundException;
 import org.redmine.ta.RedmineException;
 import org.redmine.ta.beans.Project;
@@ -107,12 +105,6 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
       try {
          repository.getManager().createProject(project);
          return true;
-      } catch (IOException ex) {
-         errorMessage = NbBundle.getMessage(Redmine.class, "MSG_CONNECTION_ERROR", ex.getLocalizedMessage());
-         Redmine.LOG.log(Level.INFO, errorMessage, ex);
-      } catch (AuthenticationException ex) {
-         errorMessage = NbBundle.getMessage(Redmine.class, "MSG_AUTHENTICATION_ERROR", ex.getLocalizedMessage());
-         Redmine.LOG.log(Level.INFO, errorMessage, ex);
       } catch (NotFoundException ex) {
          errorMessage = ex.getLocalizedMessage();
          Redmine.LOG.log(Level.INFO, errorMessage, ex);

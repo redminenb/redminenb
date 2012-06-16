@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
 OpenIDE-Module: com.kenai.redminenb.api
-OpenIDE-Module-Implementation-Version: 0
 OpenIDE-Module-Localizing-Bundle: com/kenai/redminenb/api/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.11.0
 

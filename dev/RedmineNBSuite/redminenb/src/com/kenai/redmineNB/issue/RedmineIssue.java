@@ -188,9 +188,6 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       } catch (IOException ex) {
          // TODO Notify user that it is not possible to connect to Redmine
          Redmine.LOG.log(Level.SEVERE, "Can't refresh Redmine issue", ex);
-      } catch (AuthenticationException ex) {
-         // TODO Notify user that it is not possible to login to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't refresh Redmine issue", ex);
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
          Redmine.LOG.log(Level.SEVERE, "Can't refresh Redmine issue", ex);
@@ -219,12 +216,6 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
          }
          return;
          
-      } catch (IOException ex) {
-         // TODO Notify user that it is not possible to connect to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't add comment for a Redmine issue", ex);
-      } catch (AuthenticationException ex) {
-         // TODO Notify user that it is not possible to login to Redmine
-         Redmine.LOG.log(Level.SEVERE, "Can't add comment for a Redmine issue", ex);
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
          Redmine.LOG.log(Level.SEVERE, "Can't add comment for a Redmine issue", ex);

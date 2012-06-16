@@ -9,8 +9,6 @@ import com.kenai.redmineNB.util.RedmineUtil;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
@@ -30,7 +28,6 @@ import org.netbeans.modules.bugtracking.spi.BugtrackingController;
 import org.openide.util.*;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor.Task;
-import org.redmine.ta.AuthenticationException;
 import org.redmine.ta.RedmineException;
 import org.redmine.ta.beans.Project;
 import org.redmine.ta.beans.User;
@@ -368,10 +365,6 @@ public class RedmineRepositoryController extends BugtrackingController implement
 
                   });
 
-               } catch (AuthenticationException ex) {
-                  //errorMessage = Redmine.getMessage("MSG_AUTHENTICATION_ERROR", ex.getLocalizedMessage());
-                  errorMessage = ex.getLocalizedMessage();
-                  Redmine.LOG.log(Level.INFO, errorMessage);
                } catch (RedmineException ex) {
                   errorMessage = Redmine.getMessage("MSG_REDMINE_ERROR",
                                                     ex.getLocalizedMessage());
@@ -404,14 +397,7 @@ public class RedmineRepositoryController extends BugtrackingController implement
          try {
             panel.projectComboBox.setProjects(repository.getManager().getProjects());
             panel.projectComboBox.setSelectedIndex(-1);
-         } catch (IOException ex) {
-            errorMessage = NbBundle.getMessage(Redmine.class,
-                                               "MSG_CONNECTION_ERROR", ex.getLocalizedMessage());
-            Redmine.LOG.log(Level.INFO, errorMessage, ex);
-         } catch (AuthenticationException ex) {
-            errorMessage = NbBundle.getMessage(Redmine.class,
-                                               "MSG_AUTHENTICATION_ERROR", ex.getLocalizedMessage());
-            Redmine.LOG.log(Level.INFO, errorMessage, ex);
+
          } catch (RedmineException ex) {
             errorMessage = NbBundle.getMessage(Redmine.class,
                                                "MSG_REDMINE_ERROR", ex.getLocalizedMessage());

@@ -33,7 +33,6 @@ import org.openide.util.lookup.ServiceProvider;
  * @author Anchialas <anchialas@gmail.com>
  */
 @NbBundle.Messages({
-   "LBL_ConnectorName=Redmine",
    "LBL_ConnectorTooltip=NetBeans plugin for integration with Redmine"
 })
 @ServiceProvider(service = BugtrackingConnector.class, position = 1)
@@ -67,7 +66,7 @@ public class RedmineConnector extends BugtrackingConnector {
 
 
    public static String getConnectorName() {
-      return Bundle.LBL_ConnectorName();
+      return "Redmine";
    }
 
 
@@ -100,4 +99,5 @@ public class RedmineConnector extends BugtrackingConnector {
                                        Collection<Repository> newRepositories) {
       super.fireRepositoriesChanged(oldRepositories, newRepositories);
    }
+
 }

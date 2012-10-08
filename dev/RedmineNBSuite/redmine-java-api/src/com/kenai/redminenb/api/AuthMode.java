@@ -16,7 +16,7 @@
 package com.kenai.redminenb.api;
 
 /**
- * Authentication Mode against the Redmine REST interface.
+ * Authentication modes against the Redmine REST interface.
  * 
  * @author Anchialas <anchialas@gmail.com>
  */

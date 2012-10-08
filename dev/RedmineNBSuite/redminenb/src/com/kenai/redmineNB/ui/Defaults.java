@@ -22,7 +22,7 @@ import java.awt.Component;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import javax.swing.*;
-import org.netbeans.modules.bugtracking.spi.RepositoryUser;
+import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
 import org.openide.util.ImageUtilities;
 import org.redmine.ta.beans.IssueCategory;
 import org.redmine.ta.beans.IssueStatus;
@@ -37,10 +37,11 @@ import org.redmine.ta.beans.Version;
  */
 public class Defaults {
 
+   public static final String TOGGLE_BUTTON_KEY = "isToggleButton";
+   //
    public static final Color COLOR_ERROR = new Color(153, 0, 0);
-   private final static Color COLOR_TOP = new Color(198, 211, 223);
-   private final static Color COLOR_BOTTOM = new Color(235, 235, 235);
-
+   private static final  Color COLOR_TOP = new Color(198, 211, 223);
+   private static final Color COLOR_BOTTOM = new Color(235, 235, 235);
 
    private Defaults() {
       // suppressed for non-instantiability

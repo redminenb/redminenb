@@ -15,89 +15,64 @@
  */
 package com.kenai.redmineNB;
 
+import com.kenai.redmineNB.issue.RedmineTaskListProvider;
 import com.kenai.redmineNB.repository.RedmineRepository;
-import java.awt.Image;
-import java.util.Collection;
-import javax.swing.JOptionPane;
+import org.netbeans.modules.bugtracking.api.Repository;
 import org.netbeans.modules.bugtracking.spi.BugtrackingConnector;
-import org.netbeans.modules.bugtracking.spi.Repository;
-import org.openide.util.Lookup;
+import org.netbeans.modules.bugtracking.spi.IssueFinder;
+import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
+import org.netbeans.modules.bugtracking.spi.TaskListIssueProvider;
 import org.openide.util.NbBundle;
-import org.openide.util.lookup.Lookups;
-import org.openide.util.lookup.ServiceProvider;
 
 
 /**
+ * RedmineNB {@link BugtrackingConnector connector to NetBeans Bugtracking SPI}.
  *
- * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
 @NbBundle.Messages({
+   "LBL_ConnectorName=Redmine",
    "LBL_ConnectorTooltip=NetBeans plugin for integration with Redmine"
 })
-@ServiceProvider(service = BugtrackingConnector.class, position = 1)
+@BugtrackingConnector.Registration(id = RedmineConnector.ID,
+                                   displayName = "#LBL_ConnectorName",
+                                   tooltip = "#LBL_ConnectorTooltip")
 public class RedmineConnector extends BugtrackingConnector {
 
-   private static final String ID = "com.kenai.redmineNB";
-
-
-   @Override
-   public String getID() {
-      return ID;
-   }
-
-
-   @Override
-   public Image getIcon() {
-      return Redmine.getIconImage();
-   }
-
-
-   @Override
-   public String getDisplayName() {
-      return getConnectorName();
-   }
-
-
-   @Override
-   public String getTooltip() {
-      return Bundle.LBL_ConnectorTooltip();
-   }
-
+   public static final String ID = "com.kenai.redmineNB";
 
    public static String getConnectorName() {
-      return "Redmine";
+      return Bundle.LBL_ConnectorName();
    }
 
+   @Override
+   public Repository createRepository(RepositoryInfo info) {
+      RedmineRepository redmineRepository = new RedmineRepository(info);
+      return Redmine.getInstance().getBugtrackingFactory().createRepository(
+              redmineRepository,
+              Redmine.getInstance().getRepositoryProvider(),
+              Redmine.getInstance().getQueryProvider(),
+              Redmine.getInstance().getIssueProvider());
+   }
 
    @Override
    public Repository createRepository() {
-      return new RedmineRepository(true);
+      RedmineRepository redmineRepository = new RedmineRepository();
+      return Redmine.getInstance().getBugtrackingFactory().createRepository(
+              redmineRepository,
+              Redmine.getInstance().getRepositoryProvider(),
+              Redmine.getInstance().getQueryProvider(),
+              Redmine.getInstance().getIssueProvider());
    }
 
+//   @Override
+//   public IssueFinder getIssueFinder() {
+//      return BugzillaIssueFinder.getInstance();
+//   }
 
    @Override
-   public Repository[] getRepositories() {
-      try {
-         return Redmine.getInstance().getRepositories().toArray(new Repository[0]);
-      } catch (RedmineException ex) {
-         JOptionPane.showMessageDialog(null, ex.getLocalizedMessage());
-      }
-
-      return new Repository[0];
-   }
-
-
-   @Override
-   public Lookup getLookup() {
-      return Lookups.singleton(this);
-   }
-
-
-   @Override
-   public void fireRepositoriesChanged(Collection<Repository> oldRepositories,
-                                       Collection<Repository> newRepositories) {
-      super.fireRepositoriesChanged(oldRepositories, newRepositories);
+   public TaskListIssueProvider getTasklistProvider() {
+      return RedmineTaskListProvider.getInstance();
    }
 
 }

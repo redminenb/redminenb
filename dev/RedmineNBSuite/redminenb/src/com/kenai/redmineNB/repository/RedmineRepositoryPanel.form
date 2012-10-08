@@ -25,52 +25,60 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="0" attributes="0">
-              <Component id="authLabel" min="-2" max="-2" attributes="0"/>
+          <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-          </Group>
-          <Group type="102" alignment="0" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="hostLabel" min="-2" max="-2" attributes="0"/>
-                  <Component id="nameLabel" min="-2" max="-2" attributes="0"/>
-                  <Component id="projectLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Group type="102" attributes="0">
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="rbCredentials" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="userLabel" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Component id="rbAccessKey" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Group type="102" attributes="0">
-                              <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
-                              <Component id="pwdLabel" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
-                  </Group>
-              </Group>
-              <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="hostTextField" alignment="0" max="32767" attributes="1"/>
-                  <Component id="nameTextField" alignment="0" max="32767" attributes="1"/>
-                  <Component id="accessKeyTextField" alignment="0" max="32767" attributes="2"/>
                   <Group type="102" alignment="0" attributes="0">
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="projectComboBox" alignment="0" min="-2" pref="178" max="-2" attributes="1"/>
-                          <Component id="userField" alignment="0" min="-2" pref="178" max="-2" attributes="1"/>
-                          <Component id="pwdField" alignment="0" min="-2" pref="178" max="-2" attributes="1"/>
-                      </Group>
-                      <EmptySpace max="32767" attributes="0"/>
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="connectButton" min="-2" max="-2" attributes="0"/>
-                          <Component id="createNewProjectButton" alignment="1" min="-2" max="-2" attributes="0"/>
-                      </Group>
+                      <Component id="authLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
-                  <Group type="102" alignment="1" attributes="0">
-                      <Component id="progressPanel" pref="296" max="32767" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="cancelButton" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="103" alignment="0" groupAlignment="1" attributes="0">
+                              <Group type="102" attributes="0">
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="rbCredentials" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="userLabel" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                      <Component id="rbAccessKey" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Group type="102" attributes="0">
+                                          <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
+                                          <Component id="pwdLabel" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                  </Group>
+                              </Group>
+                              <Component id="hostLabel" min="-2" pref="83" max="-2" attributes="0"/>
+                              <Component id="nameLabel" min="-2" pref="83" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="projectLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Component id="projectComboBox" min="-2" pref="178" max="-2" attributes="1"/>
+                              <EmptySpace max="32767" attributes="0"/>
+                              <Component id="createNewProjectButton" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="urlTextField" alignment="0" max="32767" attributes="1"/>
+                          <Component id="nameTextField" alignment="0" max="32767" attributes="1"/>
+                          <Component id="accessKeyTextField" alignment="0" max="32767" attributes="2"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Group type="103" groupAlignment="1" attributes="0">
+                                  <Component id="userField" alignment="0" min="-2" pref="178" max="-2" attributes="1"/>
+                                  <Component id="pwdField" alignment="0" min="-2" pref="178" max="-2" attributes="1"/>
+                              </Group>
+                              <EmptySpace pref="116" max="32767" attributes="0"/>
+                              <Component id="connectButton" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="progressPanel" pref="292" max="32767" attributes="0"/>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                              <Component id="cancelButton" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
                   </Group>
               </Group>
           </Group>
@@ -85,7 +93,7 @@
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="hostTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="urlTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="hostLabel" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -102,29 +110,26 @@
                   <Component id="userLabel" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="pwdLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="pwdField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="connectButton" alignment="3" min="-2" max="-2" attributes="1"/>
+              </Group>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="projectComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="projectLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="createNewProjectButton" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="1" attributes="0">
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="pwdLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="pwdField" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="projectComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="projectLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="createNewProjectButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="progressPanel" max="32767" attributes="1"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" attributes="0">
-                      <Component id="connectButton" min="-2" max="-2" attributes="1"/>
-                      <EmptySpace min="-2" pref="59" max="-2" attributes="0"/>
+                  <Component id="progressPanel" max="32767" attributes="1"/>
+                  <Group type="102" alignment="0" attributes="0">
                       <Component id="cancelButton" min="-2" max="-2" attributes="1"/>
-                      <EmptySpace min="18" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
+              <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -161,10 +166,10 @@
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
       </AuxValues>
     </Component>
-    <Component class="javax.swing.JTextField" name="hostTextField">
+    <Component class="javax.swing.JTextField" name="urlTextField">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="com/kenai/redmineNB/repository/Bundle.properties" key="RedmineRepositoryPanel.hostTextField.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="com/kenai/redmineNB/repository/Bundle.properties" key="RedmineRepositoryPanel.urlTextField.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <AuxValues>
@@ -217,6 +222,9 @@
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
     </Container>
     <Component class="com.kenai.redmineNB.project.ProjectComboBox" name="projectComboBox">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="projectComboBoxActionPerformed"/>
+      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
       </AuxValues>

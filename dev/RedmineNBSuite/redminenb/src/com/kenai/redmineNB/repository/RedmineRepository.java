@@ -1,13 +1,32 @@
+/*
+ * Copyright 2012 Anchialas and Mykolaas.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.kenai.redmineNB.repository;
 
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.RedmineConfig;
+import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.issue.RedmineIssue;
+import com.kenai.redmineNB.issue.RedmineIssueProvider;
+import com.kenai.redmineNB.issue.RedmineTaskListProvider;
 import com.kenai.redmineNB.query.ParameterValue;
 import com.kenai.redmineNB.query.RedmineQuery;
 import com.kenai.redmineNB.query.RedmineQueryController;
 import com.kenai.redmineNB.user.RedmineUser;
 import com.kenai.redmineNB.util.Is;
+import com.kenai.redmineNB.util.RedmineUtil;
 import com.kenai.redminenb.api.AuthMode;
 import java.awt.EventQueue;
 import java.awt.Image;
@@ -16,13 +35,16 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import javax.swing.JOptionPane;
-import org.netbeans.modules.bugtracking.spi.Issue;
-import org.netbeans.modules.bugtracking.spi.*;
+import org.netbeans.modules.bugtracking.api.Query;
+import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
+import org.netbeans.modules.bugtracking.spi.RepositoryController;
+import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
 import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -33,30 +55,37 @@ import org.redmine.ta.beans.*;
 
 
 /**
+ * Redmine repository manager.
  *
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
-public class RedmineRepository extends Repository {
+@NbBundle.Messages({
+   "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}",
+   "LBL_RepositoryTooltipNoUser=\"{0} : {1}"
+})
+public class RedmineRepository {
 
-   private static final String TOOLTIP = "Redmine repository: ";
-   //
-   private String name;
-   private String id;
-   private String url;
-   private transient AuthMode authMode;
-   private String accessKey;
-   private String username;
-   private transient char[] password;
-   private transient BugtrackingController controller;
+   static final String PROPERTY_AUTH_MODE = "authMode";        // NOI18N  
+   static final String PROPERTY_ACCESS_KEY = "accessKey";      // NOI18N  
+   // 
+   private RepositoryInfo info;
+//   private String name;
+//   private String id;
+//   private String url;
+//   private transient AuthMode authMode;
+//   private String accessKey;
+//   private String username;
+//   private transient char[] password;
+   private transient RepositoryController controller;
    private Collection<RedmineQuery> queries;
    // TODO Create manager wrapping class to handle Redmine related errors
    private transient RedmineManager manager;
    private transient Project project;
    private transient Lookup lookup;
    private final transient InstanceContent ic;
-   private transient IssueCache<org.redmine.ta.beans.Issue> cache;
-   private transient boolean fresh;
+   private transient RedmineIssueCache cache;
+//   private transient boolean fresh;
    //
    private final Set<String> issuesToRefresh = new HashSet<String>(5);
    private final Set<RedmineQuery> queriesToRefresh = new HashSet<RedmineQuery>(3);
@@ -64,27 +93,22 @@ public class RedmineRepository extends Repository {
    private RequestProcessor.Task refreshQueryTask;
    private RequestProcessor refreshProcessor;
 
-
    /**
     * Default constructor required for deserializing.
     */
    public RedmineRepository() {
-      this(false);
-   }
-
-
-   public RedmineRepository(boolean fresh) {
-      this.id = String.valueOf(System.currentTimeMillis());
       this.ic = new InstanceContent();
-      setFresh(fresh);
    }
 
+   public RedmineRepository(RepositoryInfo info) {
+      this();
+      this.info = info;
+//      setFresh(true);
+   }
 
-   @Override
    public Image getIcon() {
       return Redmine.getIconImage();
    }
-
 
    public boolean isReachable() throws IOException {
       URL url = new URL(getUrl());
@@ -94,48 +118,91 @@ public class RedmineRepository extends Repository {
       return true;
    }
 
-
-   public String getName() {
-      return name;
+   public RepositoryInfo getInfo() {
+      return info;
    }
 
+   synchronized void setInfoValues(String name, String url, String user, char[] password,
+                                   String accessKey, AuthMode authMode) {
+      String id = info != null ? info.getId() : name + System.currentTimeMillis();
+      String httpUser = null;
+      char[] httpPassword = null;
+      RepositoryInfo ri = new RepositoryInfo(id,
+                                             RedmineConnector.ID,
+                                             url,
+                                             name,
+                                             getTooltip(name, user, url),
+                                             user,
+                                             httpUser,
+                                             password,
+                                             httpPassword);
+      ri.putValue(PROPERTY_ACCESS_KEY, accessKey);
+      ri.putValue(PROPERTY_AUTH_MODE, authMode == null ? null : authMode.name());
+      info = ri;
+   }
 
-   @Override
    public String getDisplayName() {
       try {
          if (isReachable()) {
-            return name;
+            return info.getDisplayName();
          }
       } catch (IOException ex) {
       }
-      return name + " (offline)";
+      return info.getDisplayName() + " (offline)";
    }
 
-
-   @Override
-   public String getTooltip() {
-      return TOOLTIP + name;
+   private String getTooltip(String repoName, String user, String url) {
+      return Bundle.LBL_RepositoryTooltip(repoName, user, url);
    }
 
-
-   @Override
    public String getID() {
-      return id;
+      return info.getId();
    }
 
-
-   @Override
    public String getUrl() {
-      return url;
+      //return taskRepository != null ? taskRepository.getUrl() : null;
+      return info.getUrl();
    }
 
+   public AuthMode getAuthMode() {
+      return AuthMode.valueOf(info.getValue(PROPERTY_AUTH_MODE));
+   }
 
-   @Override
-   @Deprecated
+   public void setAuthMode(AuthMode authMode) {
+      if (authMode == null) {
+         throw new IllegalArgumentException("authMode cannot be null");
+      }
+      AuthMode old = getAuthMode();
+      if (!Is.equals(old, authMode)) {
+         info.putValue(PROPERTY_AUTH_MODE, authMode.name());
+         manager = null;
+      }
+   }
+
+   public String getAccessKey() {
+      return info.getValue(PROPERTY_ACCESS_KEY);
+   }
+
+   public void setAccessKey(String accessKey) {
+      String old = getAccessKey();
+      if (!Is.equals(old, accessKey)) {
+         info.putValue(PROPERTY_ACCESS_KEY, accessKey);
+         manager = null; // force reconnect
+      }
+   }
+
+   public char[] getPassword() {
+      return info.getPassword();
+   }
+
+   public String getUsername() {
+      return info.getUsername();
+   }
+
    public RedmineIssue getIssue(String issueId) {
       try {
          org.redmine.ta.beans.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
-         RedmineIssue redmineIssue = (RedmineIssue) getIssueCache().setIssueData(issueId, issue);
+         RedmineIssue redmineIssue = (RedmineIssue)getIssueCache().setIssueData(issueId, issue);
          //ensureConfigurationUptodate(issue);
          return redmineIssue;
 
@@ -147,8 +214,17 @@ public class RedmineRepository extends Repository {
       }
    }
 
+   public Collection<RedmineIssue> getIssues(final String... ids) {
+      final List<RedmineIssue> ret = new ArrayList<RedmineIssue>(ids.length);
+      for (String id : ids) {
+         RedmineIssue issue = getIssue(id);
+         if (issue != null) {
+            ret.add(issue);
+         }
+      }
+      return ret;
+   }
 
-   @Override
    public void remove() {
       try {
          Redmine.getInstance().removeRepository(this);
@@ -157,68 +233,65 @@ public class RedmineRepository extends Repository {
       }
    }
 
-
-   @Override
-   public BugtrackingController getController() {
+//   synchronized void resetRepository(boolean keepConfiguration) {
+//      if (!keepConfiguration) {
+//         manager = null;
+//      }
+//      if (getManager() != null) {
+//         Redmine.getInstance()
+//                 .getRepositoryConnector()
+//                 .getClientManager()
+//                 .repositoryRemoved(getTaskRepository());
+//      }
+//   }
+   public RepositoryController getController() {
       if (controller == null) {
          controller = new RedmineRepositoryController(this);
       }
       return controller;
    }
 
-
-   @Override
-   public Issue createIssue() {
+   public RedmineIssue createIssue() {
       return new RedmineIssue(this);
    }
 
-
-   @Override
-   public Query createQuery() {
-      Query query = new RedmineQuery(this);
-      return query;
+   public RedmineQuery createQuery() {
+      return new RedmineQuery(this);
    }
-
 
    public void removeQuery(RedmineQuery query) {
-//      RedmineConfig.getInstance().removeQuery(this, query);
-//      getIssueCache().removeQuery(query.getStoredQueryName());
-//      doGetQueries().remove(query);
-//      stopRefreshing(query);
+      RedmineConfig.getInstance().removeQuery(this, query);
+      getIssueCache().removeQuery(query.getStoredQueryName());
+      doGetQueries().remove(query);
+      stopRefreshing(query);
    }
-
 
    public void saveQuery(RedmineQuery query) {
-//      assert id != null;
-//      RedmineConfig.getInstance().putQuery(this, query);
-//      doGetQueries().add(query);
+      assert info != null;
+      RedmineConfig.getInstance().putQuery(this, query);
+      doGetQueries().add(query);
    }
-
 
    private Collection<RedmineQuery> doGetQueries() {
       if (queries == null) {
          queries = new HashSet<RedmineQuery>(10);
-//         String[] qs = RedmineConfig.getInstance().getQueries(id);
-//         for (String queryName : qs) {
-//            RedmineQuery q = RedmineConfig.getInstance().getQuery(this, queryName);
-//            if (q != null) {
-//               queries.add(q);
-//            } else {
-//               Redmine.LOG.log(Level.WARNING, "Couldn''t find query with stored name {0}", queryName); // NOI18N
-//            }
-//         }
+         String[] qs = RedmineConfig.getInstance().getQueries(getID());
+         for (String queryName : qs) {
+            RedmineQuery q = RedmineConfig.getInstance().getQuery(this, queryName);
+            if (q != null) {
+               queries.add(q);
+            } else {
+               Redmine.LOG.log(Level.WARNING, "Couldn''t find query with stored name {0}", queryName); // NOI18N
+            }
+         }
       }
       return queries;
    }
 
-
-   @Override
-   public Query[] getQueries() {
-      return doGetQueries().toArray(new Query[0]);
+   public Collection<RedmineQuery> getQueries() {
+      return doGetQueries();
    }
 
-
-   @Override
    public Collection<RepositoryUser> getUsers() {
       try {
          return RedmineUser.getUsers(getManager().getUsers());
@@ -231,7 +304,6 @@ public class RedmineRepository extends Repository {
       }
       return Collections.<RepositoryUser>emptyList();
    }
-
 
    public Collection<Tracker> getTrackers() {
       try {
@@ -246,7 +318,6 @@ public class RedmineRepository extends Repository {
       return Collections.<Tracker>emptyList();
    }
 
-
    public IssueStatus getStatus(int id) {
       for (IssueStatus issueStatus : getStatuses()) {
          if (id == issueStatus.getId()) {
@@ -255,7 +326,6 @@ public class RedmineRepository extends Repository {
       }
       return null;
    }
-
 
    public Collection<? extends IssueStatus> getStatuses() {
       Collection<? extends IssueStatus> c = getLookup().lookupAll(IssueStatus.class);
@@ -280,14 +350,12 @@ public class RedmineRepository extends Repository {
       return c;
    }
 
-
    public Collection<? extends IssueCategory> reloadIssueCategories() {
       for (IssueCategory issueCategory : getLookup().lookupAll(IssueCategory.class)) {
          ic.remove(issueCategory);
       }
       return getIssueCategories();
    }
-
 
    public Collection<? extends IssueCategory> getIssueCategories() {
       Collection<? extends IssueCategory> c = getLookup().lookupAll(IssueCategory.class);
@@ -318,14 +386,12 @@ public class RedmineRepository extends Repository {
       return c;
    }
 
-
    public Collection<? extends Version> reloadVersions() {
       for (Version v : getLookup().lookupAll(Version.class)) {
          ic.remove(v);
       }
       return getVersions();
    }
-
 
    public Collection<Version> getVersions() {
       try {
@@ -341,7 +407,6 @@ public class RedmineRepository extends Repository {
       return Collections.<Version>emptyList();
    }
 
-
    public List<ParameterValue> getIssuePriorities() {
       // XXX not yet supported by redmine-java-api
       return Arrays.asList(
@@ -352,17 +417,14 @@ public class RedmineRepository extends Repository {
               new ParameterValue("Immediate", 7));
    }
 
-
-   public IssueCache<org.redmine.ta.beans.Issue> getIssueCache() {
+   public IssueCache<RedmineIssue, org.redmine.ta.beans.Issue> getIssueCache() {
       if (cache == null) {
-         cache = new Cache();
+         cache = new RedmineIssueCache();
       }
       return cache;
    }
 
-
-   @Override
-   public Issue[] simpleSearch(String string) {
+   public Collection<RedmineIssue> simpleSearch(String string) {
       try {
          List<org.redmine.ta.beans.Issue> issuesByID =
                  new LinkedList<org.redmine.ta.beans.Issue>();
@@ -373,8 +435,9 @@ public class RedmineRepository extends Repository {
          } catch (NotFoundException ex) {
          }
 
-         return RedmineIssue.getIssues(this, issuesByID, getManager().getIssuesBySummary(
-                 project.getIdentifier(), "*" + string + "*"));
+         return RedmineIssue.getIssues(this,
+                                       issuesByID,
+                                       getManager().getIssuesBySummary(project.getIdentifier(), "*" + string + "*"));
 
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
@@ -384,11 +447,9 @@ public class RedmineRepository extends Repository {
          Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);
       }
 
-      return new Issue[0];
+      return Collections.<RedmineIssue>emptyList();
    }
 
-
-   @Override
    public Lookup getLookup() {
       if (lookup == null) {
          ic.add(getIssueCache());
@@ -398,125 +459,51 @@ public class RedmineRepository extends Repository {
       return lookup;
    }
 
-
-   @Override
-   public void fireQueryListChanged() {
-      super.fireQueryListChanged();
-   }
-
-
-   public void setUrl(String url) {
-      this.url = url;
-   }
-
-
-   public void setName(String name) {
-      this.name = name;
-   }
-
-
-   public AuthMode getAuthMode() {
-      return authMode;
-   }
-
-
-   public String getAccessKey() {
-      return accessKey;
-   }
-
-
-   public void setAccessKey(String accessKey) {
-      String old = this.accessKey;
-      this.accessKey = accessKey;
-      if (!Is.equals(old, accessKey)) {
-         manager = null;
-      }
-   }
-
-
-   public char[] getPassword() {
-      return password;
-   }
-
-
-   public void setPassword(char[] password) {
-      this.password = password;
-   }
-
-
-   public String getUsername() {
-      return username;
-   }
-
-
-   public void setUsername(String username) {
-      this.username = username;
-   }
-
-
-   public void setAuthMode(AuthMode authMode) {
-      if (authMode == null) {
-         throw new IllegalArgumentException("authMode cannot be null");
-      }
-      if (this.authMode != authMode) {
-         this.authMode = authMode;
-         manager = null;
-      }
-   }
-
-
    public RedmineManager getManager() {
+      AuthMode authMode = getAuthMode();
       if (manager == null) {
          if (authMode == null) {
             throw new IllegalArgumentException("authMode must be set");
          }
          if (authMode == AuthMode.AccessKey) {
-            manager = new RedmineManager(url, accessKey);
+            manager = new RedmineManager(getUrl(), getAccessKey());
          } else {
-            manager = new RedmineManager(url);
+            manager = new RedmineManager(getUrl());
          }
          manager.setObjectsPerPage(100);
       }
       if (authMode == AuthMode.Credentials) {
-         manager.setLogin(username);
-         manager.setPassword(password == null ? "" : String.valueOf(password));
+         manager.setLogin(getUsername());
+         manager.setPassword(getPassword() == null ? "" : String.valueOf(getPassword()));
       }
       return manager;
    }
-
 
    public Project getProject() {
       return project;
    }
 
-
    public void setProject(Project project) {
       this.project = project;
    }
 
-
-   public boolean isFresh() {
-      return fresh;
-   }
-
-
-   public final void setFresh(boolean fresh) {
-      this.fresh = fresh;
-   }
-
-
+//   public boolean isFresh() {
+//      return fresh;
+//   }
+//
+//   public final void setFresh(boolean fresh) {
+//      this.fresh = fresh;
+//   }
    private RequestProcessor getRefreshProcessor() {
       if (refreshProcessor == null) {
-         refreshProcessor = new RequestProcessor("Redmine refresh - " + name); // NOI18N
+         refreshProcessor = new RequestProcessor("Redmine refresh - " + getDisplayName()); // NOI18N
       }
       return refreshProcessor;
    }
 
-
    private void setupIssueRefreshTask() {
       if (refreshIssuesTask == null) {
          refreshIssuesTask = getRefreshProcessor().create(new Runnable() {
-
             @Override
             public void run() {
                Set<String> ids;
@@ -524,11 +511,13 @@ public class RedmineRepository extends Repository {
                   ids = new HashSet<String>(issuesToRefresh);
                }
                if (ids.isEmpty()) {
-                  Redmine.LOG.log(Level.FINE, "no issues to refresh {0}", name); // NOI18N
+                  Redmine.LOG.log(Level.FINE, "no issues to refresh {0}",
+                                  getDisplayName()); // NOI18N
                   return;
                }
-               Redmine.LOG.log(Level.FINER, "preparing to refresh issue {0} - {1}", new Object[]{name, ids}); // NOI18N
-//               GetMultiTaskDataCommand cmd = new GetMultiTaskDataCommand(BugzillaRepository.this, ids, new IssuesCollector());
+               Redmine.LOG.log(Level.FINER, "preparing to refresh issue {0} - {1}",
+                               new Object[]{getDisplayName(), ids}); // NOI18N
+//               GetMultiTaskDataCommand cmd = new GetMultiTaskDataCommand(RedmineRepository.this, ids, new IssuesCollector());
 //               getExecutor().execute(cmd, false);
                scheduleIssueRefresh();
             }
@@ -538,11 +527,9 @@ public class RedmineRepository extends Repository {
       }
    }
 
-
    private void setupQueryRefreshTask() {
       if (refreshQueryTask == null) {
          refreshQueryTask = getRefreshProcessor().create(new Runnable() {
-
             @Override
             public void run() {
                try {
@@ -551,11 +538,13 @@ public class RedmineRepository extends Repository {
                      queries = new HashSet<RedmineQuery>(queriesToRefresh);
                   }
                   if (queries.isEmpty()) {
-                     Redmine.LOG.log(Level.FINE, "no queries to refresh {0}", new Object[]{name}); // NOI18N
+                     Redmine.LOG.log(Level.FINE, "no queries to refresh {0}",
+                                     new Object[]{getDisplayName()}); // NOI18N
                      return;
                   }
                   for (RedmineQuery q : queries) {
-                     Redmine.LOG.log(Level.FINER, "preparing to refresh query {0} - {1}", new Object[]{q.getDisplayName(), name}); // NOI18N
+                     Redmine.LOG.log(Level.FINER, "preparing to refresh query {0} - {1}",
+                                     new Object[]{q.getDisplayName(), getDisplayName()}); // NOI18N
                      RedmineQueryController qc = q.getController();
                      qc.autoRefresh();
                   }
@@ -569,17 +558,17 @@ public class RedmineRepository extends Repository {
       }
    }
 
-
    private void scheduleIssueRefresh() {
       int delay = RedmineConfig.getInstance().getIssueRefreshInterval();
-      Redmine.LOG.log(Level.FINE, "scheduling issue refresh for repository {0} in {1} minute(s)", new Object[]{name, delay}); // NOI18N
+      Redmine.LOG.log(Level.FINE, "scheduling issue refresh for repository {0} in {1} minute(s)",
+                      new Object[]{getDisplayName(), delay}); // NOI18N
       if (delay < 5 && System.getProperty("netbeans.t9y.redmine.force.refresh.delay") == null) { // t9y: Testability
-         Redmine.LOG.log(Level.WARNING, " wrong issue refresh delay {0}. Falling back to default {0}", new Object[]{delay, RedmineConfig.DEFAULT_ISSUE_REFRESH}); // NOI18N
+         Redmine.LOG.log(Level.WARNING, " wrong issue refresh delay {0}. Falling back to default {0}",
+                         new Object[]{delay, RedmineConfig.DEFAULT_ISSUE_REFRESH}); // NOI18N
          delay = RedmineConfig.DEFAULT_ISSUE_REFRESH;
       }
       refreshIssuesTask.schedule(delay * 60 * 1000); // given in minutes
    }
-
 
    private void scheduleQueryRefresh() {
       String schedule = System.getProperty("netbeans.t9y.redmine.force.refresh.schedule", "");
@@ -590,57 +579,66 @@ public class RedmineRepository extends Repository {
       }
 
       int delay = RedmineConfig.getInstance().getQueryRefreshInterval();
-      Redmine.LOG.log(Level.FINE, "scheduling query refresh for repository {0} in {1} minute(s)", new Object[]{name, delay}); // NOI18N
+      Redmine.LOG.log(Level.FINE, "scheduling query refresh for repository {0} in {1} minute(s)",
+                      new Object[]{getDisplayName(), delay}); // NOI18N
       if (delay < 5) {
-         Redmine.LOG.log(Level.WARNING, " wrong query refresh delay {0}. Falling back to default {0}", new Object[]{delay, RedmineConfig.DEFAULT_QUERY_REFRESH}); // NOI18N
+         Redmine.LOG.log(Level.WARNING, " wrong query refresh delay {0}. Falling back to default {0}",
+                         new Object[]{delay, RedmineConfig.DEFAULT_QUERY_REFRESH}); // NOI18N
          delay = RedmineConfig.DEFAULT_QUERY_REFRESH;
       }
       refreshQueryTask.schedule(delay * 60 * 1000); // given in minutes
    }
 
-
    public void stopRefreshing(String id) {
-      Redmine.LOG.log(Level.FINE, "removing issue {0} from refresh on repository {1}", new Object[]{id, name}); // NOI18N
+      Redmine.LOG.log(Level.FINE, "removing issue {0} from refresh on repository {1}",
+                      new Object[]{id, getDisplayName()}); // NOI18N
       synchronized (issuesToRefresh) {
          issuesToRefresh.remove(id);
       }
    }
 
+   public void scheduleForRefresh(String id) {
+      Redmine.LOG.log(Level.FINE, "scheduling issue {0} for refresh on repository {0}",
+                      new Object[]{id, getDisplayName()}); // NOI18N
+      synchronized (issuesToRefresh) {
+         issuesToRefresh.add(id);
+      }
+      setupIssueRefreshTask();
+   }
 
    public void scheduleForRefresh(RedmineQuery query) {
-      Redmine.LOG.log(Level.FINE, "scheduling query {0} for refresh on repository {1}", new Object[]{query.getDisplayName(), name}); // NOI18N
+      Redmine.LOG.log(Level.FINE, "scheduling query {0} for refresh on repository {1}",
+                      new Object[]{query.getDisplayName(), getDisplayName()}); // NOI18N
       synchronized (queriesToRefresh) {
          queriesToRefresh.add(query);
       }
       setupQueryRefreshTask();
    }
 
-
    public void stopRefreshing(RedmineQuery query) {
-      Redmine.LOG.log(Level.FINE, "removing query {0} from refresh on repository {1}", new Object[]{query.getDisplayName(), name}); // NOI18N
+      Redmine.LOG.log(Level.FINE, "removing query {0} from refresh on repository {1}",
+                      new Object[]{query.getDisplayName(), getDisplayName()}); // NOI18N
       synchronized (queriesToRefresh) {
          queriesToRefresh.remove(query);
       }
    }
 
-
    public void refreshAllQueries() {
       refreshAllQueries(true);
    }
 
-
    protected void refreshAllQueries(final boolean onlyOpened) {
       EventQueue.invokeLater(new Runnable() {
-
          @Override
          public void run() {
-            Query[] qs = getQueries();
-            for (Query q : qs) {
-               if (!onlyOpened || !BugtrackingUtil.isOpened(q)) {
+            for (RedmineQuery q : getQueries()) {
+               if (!onlyOpened || !Redmine.getInstance().getBugtrackingFactory().isOpen(
+                       RedmineUtil.getRepository(RedmineRepository.this), q)) {
                   continue;
                }
-               Redmine.LOG.log(Level.FINER, "preparing to refresh query {0} - {1}", new Object[]{q.getDisplayName(), name}); // NOI18N
-               RedmineQueryController qc = ((RedmineQuery) q).getController();
+               Redmine.LOG.log(Level.FINER, "preparing to refresh query {0} - {1}",
+                               new Object[]{q.getDisplayName(), getDisplayName()}); // NOI18N
+               RedmineQueryController qc = q.getController();
                qc.onRefresh();
             }
          }
@@ -648,15 +646,13 @@ public class RedmineRepository extends Repository {
       });
    }
 
-
    @Override
    public String toString() {
       return getClass().getSimpleName()
               + "["
-              + name
+              + getDisplayName()
               + "]";
    }
-
 
    @Override
    public boolean equals(Object obj) {
@@ -666,85 +662,77 @@ public class RedmineRepository extends Repository {
       if (!(obj instanceof RedmineRepository)) {
          return false;
       }
-      RedmineRepository other = (RedmineRepository) obj;
-      return Is.equals(this.name, other.name)
-              && Is.equals(this.url, other.url)
+      RedmineRepository other = (RedmineRepository)obj;
+      return Is.equals(this.getDisplayName(), other.getDisplayName())
+              && Is.equals(this.getUrl(), other.getUrl())
               && Is.equals(this.project, other.project);
    }
-
 
    @Override
    public int hashCode() {
       int hash = 3;
-      hash = 97 * hash + (this.name != null ? this.name.hashCode() : 0);
-      hash = 97 * hash + (this.url != null ? this.url.hashCode() : 0);
+      hash = 97 * hash + (this.getDisplayName() != null ? this.getDisplayName().hashCode() : 0);
+      hash = 97 * hash + (this.getUrl() != null ? this.getUrl().hashCode() : 0);
       hash = 97 * hash + (this.project != null ? this.project.hashCode() : 0);
       return hash;
    }
 
 
-   private class Cache extends IssueCache<org.redmine.ta.beans.Issue> {
+   private class RedmineIssueCache extends IssueCache<RedmineIssue, org.redmine.ta.beans.Issue> {
 
-      Cache() {
-         super(RedmineRepository.this.getUrl() + RedmineRepository.this.getProject().
-                 getIdentifier(), new RedmineIssueAccessor());
+      RedmineIssueCache() {
+         super(RedmineRepository.this.getUrl() + RedmineRepository.this.getProject().getIdentifier(),
+               new RedmineIssueAccessor(),
+               Redmine.getInstance().getIssueProvider(),
+               RedmineUtil.getRepository(RedmineRepository.this));
       }
 
    }
 
 
-   private class RedmineIssueAccessor implements
-           IssueCache.IssueAccessor<org.redmine.ta.beans.Issue> {
+   private class RedmineIssueAccessor implements IssueCache.IssueAccessor<RedmineIssue, org.redmine.ta.beans.Issue> {
 
       @Override
-      public Issue createIssue(org.redmine.ta.beans.Issue issue) {
-         RedmineIssue redmineIssue = new RedmineIssue(RedmineRepository.this, issue);
-         //org.netbeans.modules.bugzilla.issue.BugzillaIssueProvider.getInstance().notifyIssueCreated(issue);
+      public RedmineIssue createIssue(Issue issueData) {
+         RedmineIssue redmineIssue = new RedmineIssue(RedmineRepository.this, issueData);
+         RedmineTaskListProvider.getInstance().notifyIssueCreated(redmineIssue);
          return redmineIssue;
       }
 
-
       @Override
-      public void setIssueData(Issue redmineIssue, org.redmine.ta.beans.Issue issue) {
+      public void setIssueData(RedmineIssue redmineIssue, org.redmine.ta.beans.Issue issue) {
          assert redmineIssue != null && issue != null;
-         ((RedmineIssue) redmineIssue).setIssue(issue);
+         redmineIssue.setIssue(issue);
       }
-
 
       @Override
-      public String getRecentChanges(Issue issue) {
-         assert issue != null;
-         // TODO Implement recent changes methods
-         return ""; //((RedmineIssue) issue).getRecentChanges();
+      public String getRecentChanges(RedmineIssue redmineIssue) {
+         assert redmineIssue != null;
+         return redmineIssue.getRecentChanges();
       }
-
 
       @Override
-      public long getLastModified(Issue issue) {
-         assert issue != null;
-         return ((RedmineIssue) issue).getLastModify();
+      public long getLastModified(RedmineIssue redmineIssue) {
+         assert redmineIssue != null;
+         return redmineIssue.getLastModify();
       }
-
 
       @Override
-      public long getCreated(Issue issue) {
-         assert issue != null;
-         return ((RedmineIssue) issue).getCreated();
+      public long getCreated(RedmineIssue redmineIssue) {
+         assert redmineIssue != null;
+         return redmineIssue.getCreated();
       }
 
+      @Override
+      public Map<String, String> getAttributes(RedmineIssue redmineIssue) {
+         assert redmineIssue != null;
+         return redmineIssue.getAttributes();
+      }
 
       @Override
       public String getID(org.redmine.ta.beans.Issue issue) {
          assert issue != null;
          return new RedmineIssue(RedmineRepository.this, issue).getID();
-      }
-
-
-      @Override
-      public Map<String, String> getAttributes(Issue issue) {
-         assert issue != null;
-         // TODO Implement attributes method
-         return new HashMap<String, String>(); //((RedmineIssue) issue).getAttributes();
       }
 
    }

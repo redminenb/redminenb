@@ -17,20 +17,22 @@ package com.kenai.redmineNB.issue;
 
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.repository.RedmineRepository;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 import org.netbeans.modules.bugtracking.issuetable.IssueNode;
-import org.netbeans.modules.bugtracking.issuetable.IssueTable;
 import org.netbeans.modules.bugtracking.spi.BugtrackingController;
-import org.netbeans.modules.bugtracking.spi.Issue;
-import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCacheUtils;
 import org.netbeans.modules.bugtracking.util.TextUtils;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
@@ -63,20 +65,20 @@ import org.redmine.ta.beans.TimeEntry;
    "CTL_Issue_Category_Desc=Issue Category",
    "CTL_Issue_PriorityText=Priority",
    "CTL_Issue_PriorityText_Desc=Issue Priority",
-   "CTL_Issue_Subject=Subject", // Summary in Bugzilla
+   "CTL_Issue_Subject=Subject", // Summary in Redmine
    "CTL_Issue_Subject_Desc=Issue Summary",
-   "CTL_Issue_Author=Author", // Reporter in Bugzilla
-   "CTL_Issue_Author_Desc=Issue Author", // Reporter in Bugzilla
+   "CTL_Issue_Author=Author", // Reporter in Redmine
+   "CTL_Issue_Author_Desc=Issue Author", // Reporter in Redmine
    "CTL_Issue_Assignee=Assigned To",
    "CTL_Issue_Assignee_Desc=User to whom the issue is assigned",
    "CTL_Issue_CreatedOn=Created",
    "CTL_Issue_CreatedOn_Desc=creation time of the issue",
-   "CTL_Issue_UpdatedOn=Updated", // Modification in Bugzilla
+   "CTL_Issue_UpdatedOn=Updated", // Modification in Redmine
    "CTL_Issue_UpdatedOn_Desc=Last time the issue was modified",
    "CTL_Issue_TargetVersion=Target Version",
    "CTL_Issue_TargetVersion_Desc=Issue Target Version"
 })
-public final class RedmineIssue extends Issue implements IssueTable.NodeProvider {
+public final class RedmineIssue {
 
    static final String FIELD_ID = "id";                           // NOI18N
    static final String FIELD_PROJECT = "project";                 // NOI18N
@@ -99,21 +101,23 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
    static final String FIELD_UPDATED = "updatedOn";               // NOI18N
    static final String FIELD_VERSION = "targetVersion";           // NOI18N
    static final String FIELD_CATEGORY = "category";               // NOI18N
-   
    //
    private static final int SHORTENED_SUMMARY_LENGTH = 22;
    //
    private org.redmine.ta.beans.Issue issue;
+   private RedmineRepository repository;
    private RedmineIssueController controller;
+   private IssueNode node;
+   //
+   private final PropertyChangeSupport support;
 
-
-   public RedmineIssue(RedmineRepository repository) {
-      super(repository);
+   public RedmineIssue(RedmineRepository repo) {
+      repository = repo;
+      support = new PropertyChangeSupport(this);
    }
 
-
    public RedmineIssue(RedmineRepository repository, org.redmine.ta.beans.Issue issue) {
-      super(repository);
+      this(repository);
       setIssue(issue);
 
 //      try {
@@ -123,21 +127,24 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
 //      }
    }
 
+   public void addPropertyChangeListener(PropertyChangeListener listener) {
+      support.addPropertyChangeListener(listener);
+   }
 
-   @Override
+   public void removePropertyChangeListener(PropertyChangeListener listener) {
+      support.removePropertyChangeListener(listener);
+   }
+
    public String getDisplayName() {
       return getDisplayName(issue);
    }
 
-
    public static String getDisplayName(org.redmine.ta.beans.Issue issue) {
       return issue == null
-             ? Bundle.CTL_NewIssue()
-             : Bundle.CTL_Issue(issue.getTracker().getName(), issue.getId(), issue.getSubject());
+              ? Bundle.CTL_NewIssue()
+              : Bundle.CTL_Issue(issue.getTracker().getName(), issue.getId(), issue.getSubject());
    }
 
-
-   @Override
    public String getShortenedDisplayName() {
       if (isNew()) {
          return getDisplayName();
@@ -148,32 +155,58 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       return Bundle.CTL_Issue(issue.getTracker().getName(), getID(), shortSummary);
    }
 
-
-   @Override
    public String getTooltip() {
       return getDisplayName();
    }
 
-
-   @Override
    public String getID() {
       return isNew() ? null : String.valueOf(issue.getId());
    }
 
-
-   @Override
    public String getSummary() {
       return isNew() ? Bundle.CTL_NewIssue() : issue.getSubject();
    }
 
-
-   @Override
    public boolean isNew() {
       return issue == null;
    }
 
+   public boolean isFinished() {
+      // TODO: improve this
+      return "closed".equalsIgnoreCase(issue.getStatusName());
+   }
 
-   @Override
+   void opened() {
+      if (Redmine.LOG.isLoggable(Level.FINE)) {
+         Redmine.LOG.log(Level.FINE, "issue {0} open start", new Object[]{getID()});
+      }
+//      if (!data.isNew()) {
+//         // 1.) to get seen attributes makes no sense for new issues
+//         // 2.) set seenAtributes on issue open, before its actuall
+//         //     state is written via setSeen().
+//         seenAtributes = repository.getIssueCache().getSeenAttributes(getID());
+//      }
+      String refresh = System.getProperty("org.netbeans.modules.bugzilla.noIssueRefresh"); // NOI18N
+      if (refresh != null && refresh.equals("true")) {                                      // NOI18N
+         return;
+      }
+      repository.scheduleForRefresh(getID());
+      if (Redmine.LOG.isLoggable(Level.FINE)) {
+         Redmine.LOG.log(Level.FINE, "issue {0} open finish", new Object[]{getID()});
+      }
+   }
+
+   void closed() {
+      if (Redmine.LOG.isLoggable(Level.FINE)) {
+         Redmine.LOG.log(Level.FINE, "issue {0} close start", new Object[]{getID()});
+      }
+      repository.stopRefreshing(getID());
+//      seenAtributes = null;
+      if (Redmine.LOG.isLoggable(Level.FINE)) {
+         Redmine.LOG.log(Level.FINE, "issue {0} close finish", new Object[]{getID()});
+      }
+   }
+
    public boolean refresh() {
       try {
          if (issue.getId() != null) {
@@ -199,14 +232,12 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       return false;
    }
 
-
-   @Override
    public void addComment(String comment, boolean resolve) {
       Integer oldStatusId = issue.getStatusId();
 
       try {
          issue.setNotes(comment);
-         
+
          if (resolve) {
             // TODO This works for default Redmine Settings only. Add resolved status ID configuration to Redmine Option.
             issue.setStatusId(3);
@@ -215,7 +246,7 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
             getRepository().getManager().update(issue);
          }
          return;
-         
+
       } catch (NotFoundException ex) {
          // TODO Notify user that the issue no longer exists
          Redmine.LOG.log(Level.SEVERE, "Can't add comment for a Redmine issue", ex);
@@ -228,15 +259,11 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       getRepository().getIssueCache().wasSeen(getID());
    }
 
-
-   @Override
    public void attachPatch(File file, String string) {
       // TODO Implement file addition as soon as the function is supported by Redmine API
       throw new UnsupportedOperationException("Not supported yet.");
    }
 
-
-   @Override
    public BugtrackingController getController() {
       if (controller == null) {
          controller = new RedmineIssueController(this);
@@ -244,20 +271,17 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       return controller;
    }
 
-
    public org.redmine.ta.beans.Issue getIssue() {
       return issue;
    }
-
 
    public void setIssue(org.redmine.ta.beans.Issue issue) {
       this.issue = issue;
    }
 
-
-   public static Issue[] getIssues(RedmineRepository repository,
-                                   List<org.redmine.ta.beans.Issue>... issueList) {
-      List<Issue> convertedIssues = new LinkedList<Issue>();
+   public static Collection<RedmineIssue> getIssues(RedmineRepository repository,
+                                                    List<org.redmine.ta.beans.Issue>... issueList) {
+      List<RedmineIssue> convertedIssues = new LinkedList<RedmineIssue>();
 
       for (List<org.redmine.ta.beans.Issue> issues : issueList) {
          if (issues != null) {
@@ -267,21 +291,44 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
          }
       }
 
-      return convertedIssues.toArray(new Issue[0]);
+      return convertedIssues;
    }
 
-
-   @Override
    public RedmineRepository getRepository() {
-      return (RedmineRepository) super.getRepository();
+      return repository;
    }
 
+   public Map<String, String> getAttributes() {
+      // TODO: implement
+//        if(attributes == null) {
+//            attributes = new HashMap<String, String>();
+//            String value;
+//            for (IssueField field : getRepository().getConfiguration().getFields()) {
+//                value = getFieldValue(field);
+//                if(value != null && !value.trim().equals("")) {                 // NOI18N
+//                    attributes.put(field.getKey(), value);
+//                }
+//            }
+//        }
+//        return attributes;
+      return Collections.<String, String>emptyMap();
+   }
 
    @Override
    public String toString() {
       return getTooltip();
    }
 
+   public IssueNode getNode() {
+      if (node == null) {
+         node = createNode();
+      }
+      return node;
+   }
+
+   private IssueNode createNode() {
+      return new RedmineIssueNode(this);
+   }
 
    public long getLastModify() {
       if (issue != null) {
@@ -290,6 +337,9 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       return -1;
    }
 
+   public String getRecentChanges() {
+      return ""; // TODO implement
+   }
 
    public long getCreated() {
       if (issue != null) {
@@ -298,16 +348,14 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       return -1;
    }
 
-
    public void setSeen(boolean seen) throws IOException {
-      IssueCacheUtils.setSeen(this, seen);
+      repository.getIssueCache().setSeen(getID(), seen);
    }
-
 
    private boolean wasSeen() {
-      return IssueCacheUtils.wasSeen(this);
+      // TODO: use this method
+      return repository.getIssueCache().wasSeen(getID());
    }
-
 
    private TimeEntry createTimeEntry(String comment) throws IOException, AuthenticationException,
                                                             RedmineException, NotFoundException {
@@ -327,7 +375,6 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       return timeEntry;
    }
 
-
    /**
     * Returns the value represented by the given field name
     *
@@ -339,7 +386,7 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
          Field f = issue.getClass().getDeclaredField(fieldName);
          f.setAccessible(true);
          return (T)f.get(issue);
-         
+
       } catch (NoSuchFieldException ex) {
          Exceptions.printStackTrace(ex);
       } catch (Exception ex) {
@@ -348,10 +395,4 @@ public final class RedmineIssue extends Issue implements IssueTable.NodeProvider
       return null;
    }
 
-   // IssueTable.NodeProvider implementation ///////////////////////////////////
-
-   @Override
-   public IssueNode getNode() {
-      return new RedmineIssueNode(this);
-   }
 }

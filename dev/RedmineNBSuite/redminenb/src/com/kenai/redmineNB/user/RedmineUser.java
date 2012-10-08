@@ -4,13 +4,15 @@ import com.kenai.redmineNB.util.Is;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.netbeans.modules.bugtracking.spi.RepositoryUser;
+import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
 import org.redmine.ta.beans.User;
 
 
 /**
- *
+ * A Redmine {@link RepositoryUser repository user}.
+ * 
  * @author Mykolas
+ * @author Anchialas <anchialas@gmail.com>
  */
 public class RedmineUser extends RepositoryUser {
 

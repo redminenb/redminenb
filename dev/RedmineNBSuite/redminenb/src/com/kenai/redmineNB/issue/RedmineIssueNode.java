@@ -21,7 +21,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import org.netbeans.modules.bugtracking.BugtrackingManager;
 import org.netbeans.modules.bugtracking.issuetable.IssueNode;
-import org.netbeans.modules.bugtracking.spi.Issue;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 import org.redmine.ta.beans.IssueCategory;
@@ -30,15 +29,15 @@ import org.redmine.ta.beans.Version;
 
 
 /**
+ * Redmine specific {@link IssueNode} that is rendered in the IssuesTable.
  *
  * @author Anchialas <anchialas@gmail.com>
  */
-public class RedmineIssueNode extends IssueNode {
+public class RedmineIssueNode extends IssueNode<RedmineIssue> {
 
-   public RedmineIssueNode(Issue issue) {
-      super(issue);
+   public RedmineIssueNode(RedmineIssue issue) {
+      super(RedmineUtil.getRepository(issue.getRepository()), issue);
    }
-
 
    @Override
    public final Node.Property<?>[] getProperties() {
@@ -56,7 +55,6 @@ public class RedmineIssueNode extends IssueNode {
               };
    }
 
-
    @Override
    public void fireDataChanged() {
       super.fireDataChanged();
@@ -69,12 +67,10 @@ public class RedmineIssueNode extends IssueNode {
          super(RedmineIssue.FIELD_ID, String.class);
       }
 
-
       @Override
       public String getValue() {
          return getIssue().getID();
       }
-
 
       @Override
       public int compareTo(IssueProperty p) {
@@ -85,6 +81,7 @@ public class RedmineIssueNode extends IssueNode {
          Integer i2 = Integer.parseInt(p.getIssue().getID());
          return i1.compareTo(i2);
       }
+
    }
 
 
@@ -93,7 +90,6 @@ public class RedmineIssueNode extends IssueNode {
       public TrackerProperty() {
          super(RedmineIssue.FIELD_TRACKER, Tracker.class);
       }
-
 
       @Override
       public Object getValue(String attributeName) {
@@ -105,7 +101,6 @@ public class RedmineIssueNode extends IssueNode {
          }
       }
 
-
       @Override
       public String toString() {
          try {
@@ -115,6 +110,7 @@ public class RedmineIssueNode extends IssueNode {
             return e.getLocalizedMessage();
          }
       }
+
    }
 
 
@@ -124,15 +120,15 @@ public class RedmineIssueNode extends IssueNode {
          super(RedmineIssue.FIELD_PRIORITY_TEXT, String.class);
       }
 
-
       @Override
       public Object getValue(String attributeName) {
          if ("sortkey".equals(attributeName)) {
-            return getIssue().getFieldValue(RedmineIssue.FIELD_PRIORITY_ID);
+            return getIssueData().getFieldValue(RedmineIssue.FIELD_PRIORITY_ID);
          } else {
             return super.getValue(attributeName);
          }
       }
+
    }
 
 
@@ -142,15 +138,15 @@ public class RedmineIssueNode extends IssueNode {
          super(RedmineIssue.FIELD_STATUS_NAME, String.class);
       }
 
-
       @Override
       public Object getValue(String attributeName) {
          if ("sortkey".equals(attributeName)) {
-            return getIssue().getFieldValue(RedmineIssue.FIELD_STATUS_ID);
+            return getIssueData().getFieldValue(RedmineIssue.FIELD_STATUS_ID);
          } else {
             return super.getValue(attributeName);
          }
       }
+
    }
 
 
@@ -159,7 +155,6 @@ public class RedmineIssueNode extends IssueNode {
       public VersionProperty() {
          super(RedmineIssue.FIELD_VERSION, Version.class);
       }
-
 
       @Override
       public Object getValue(String attributeName) {
@@ -171,7 +166,6 @@ public class RedmineIssueNode extends IssueNode {
          }
       }
 
-
       @Override
       public String toString() {
          try {
@@ -183,6 +177,7 @@ public class RedmineIssueNode extends IssueNode {
             return e.getLocalizedMessage();
          }
       }
+
    }
 
 
@@ -191,7 +186,6 @@ public class RedmineIssueNode extends IssueNode {
       public CategoryProperty() {
          super(RedmineIssue.FIELD_CATEGORY, IssueCategory.class);
       }
-
 
       @Override
       public Object getValue(String attributeName) {
@@ -203,7 +197,6 @@ public class RedmineIssueNode extends IssueNode {
          }
       }
 
-
       @Override
       public String toString() {
          try {
@@ -215,6 +208,7 @@ public class RedmineIssueNode extends IssueNode {
             return e.getLocalizedMessage();
          }
       }
+
    }
 
 
@@ -223,6 +217,7 @@ public class RedmineIssueNode extends IssueNode {
       public UpdatedProperty() {
          super(RedmineIssue.FIELD_UPDATED, Date.class);
       }
+
    }
 
 
@@ -230,16 +225,13 @@ public class RedmineIssueNode extends IssueNode {
 
       protected final String fieldName;
 
-
       public RedmineFieldProperty(String fieldName, Class<T> type) {
          this("issue." + fieldName, fieldName, type);
       }
 
-
       public RedmineFieldProperty(String name, String fieldName, Class<T> type) {
          this(name, fieldName, type, "CTL_Issue_" + RedmineUtil.capitalize(fieldName));
       }
-
 
       private RedmineFieldProperty(String name, String fieldName, Class<T> type, String titleProp) {
          super(name,
@@ -249,18 +241,10 @@ public class RedmineIssueNode extends IssueNode {
          this.fieldName = fieldName;
       }
 
-
-      @Override
-      public RedmineIssue getIssue() {
-         return (RedmineIssue) super.getIssue();
-      }
-
-
       @Override
       public T getValue() {
-         return getIssue().getFieldValue(fieldName);
+         return getIssueData().getFieldValue(fieldName);
       }
-
 
       @Override
       public int compareTo(IssueProperty p) {
@@ -268,14 +252,16 @@ public class RedmineIssueNode extends IssueNode {
             return 1;
          }
          T o1 = getValue();
-         T o2 = ((RedmineFieldProperty<T>) p).getValue();
+         T o2 = ((RedmineFieldProperty<T>)p).getValue();
          if (o1 == null) {
             return o2 == null ? 0 : 1;
          }
          if (o1 instanceof Comparable) {
-            return o2 == null ? -1 : ((Comparable) o1).compareTo(o2);
+            return o2 == null ? -1 : ((Comparable)o1).compareTo(o2);
          }
          return 0;
       }
+
    }
+
 }

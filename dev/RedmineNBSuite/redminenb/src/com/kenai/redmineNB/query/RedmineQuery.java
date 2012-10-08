@@ -1,3 +1,18 @@
+/*
+ * Copyright 2012 Anchialas.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.kenai.redmineNB.query;
 
 import com.kenai.redmineNB.Redmine;
@@ -6,22 +21,24 @@ import com.kenai.redmineNB.issue.RedmineIssue;
 import com.kenai.redmineNB.issue.RedmineIssueNode;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.util.RedmineUtil;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
+import org.netbeans.modules.bugtracking.api.Issue;
 import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
-import org.netbeans.modules.bugtracking.spi.Issue;
-import org.netbeans.modules.bugtracking.spi.Query;
+import org.netbeans.modules.bugtracking.spi.QueryProvider;
 import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
-import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
+import org.netbeans.modules.bugtracking.util.LogUtils;
 import org.openide.nodes.Node.Property;
 import org.openide.util.Exceptions;
 import org.redmine.ta.AuthenticationException;
@@ -30,10 +47,11 @@ import org.redmine.ta.RedmineException;
 
 
 /**
+ * Redmine Query.
  *
- * @author Mykolas
+ * @author Anchialas <anchialas@gmail.com>
  */
-public class RedmineQuery extends Query {
+public final class RedmineQuery {
 
    private String name;
    private final RedmineRepository repository;
@@ -42,57 +60,67 @@ public class RedmineQuery extends Query {
    //private String urlParameters;
    private boolean initialUrlDef;
    private boolean firstRun = true;
+   private boolean saved;
+   protected long lastRefresh;
+   private final PropertyChangeSupport support;
    //
    private RedmineQueryController queryController;
    private ColumnDescriptor[] columnDescriptors;
 
-
    public RedmineQuery(RedmineRepository repository) {
-      this(null, repository, false, false, true);
+      this(null, repository, null, false, false, true);
    }
 
-
-   public RedmineQuery(String name, RedmineRepository repository, //String urlParameters,
+   public RedmineQuery(String name, RedmineRepository repository, String urlParameters,
                        boolean saved, boolean urlDef, boolean initControler) {
       this.name = name;
       this.repository = repository;
       this.saved = saved;
       //this.urlParameters = urlParameters;
       this.initialUrlDef = urlDef;
+      this.lastRefresh = repository.getIssueCache().getQueryTimestamp(getStoredQueryName());
       this.issues = new HashSet<String>();
+      this.support = new PropertyChangeSupport(this);
    }
 
+   public void addPropertyChangeListener(PropertyChangeListener listener) {
+      support.addPropertyChangeListener(listener);
+   }
 
-   @Override
+   public void removePropertyChangeListener(PropertyChangeListener listener) {
+      support.removePropertyChangeListener(listener);
+   }
+
+   private void fireQuerySaved() {
+      support.firePropertyChange(QueryProvider.EVENT_QUERY_SAVED, null, null);
+   }
+
+   private void fireQueryRemoved() {
+      support.firePropertyChange(QueryProvider.EVENT_QUERY_REMOVED, null, null);
+   }
+
+   private void fireQueryIssuesChanged() {
+      support.firePropertyChange(QueryProvider.EVENT_QUERY_ISSUES_CHANGED, null, null);
+   }
+
    public String getDisplayName() {
       return name;
    }
 
-
-   @Override
    public String getTooltip() {
       return name + " - " + repository.getDisplayName(); // NOI18N
    }
 
-
-   @Override
-   public RedmineQueryController getController() {
+   public synchronized RedmineQueryController getController() {
       if (queryController == null) {
          queryController = new RedmineQueryController(repository, this);
       }
       return queryController;
    }
 
-
-   @Override
    public RedmineRepository getRepository() {
       return repository;
    }
-
-
-//    public ColumnDescriptor[] getColumnDescriptors() {
-//        return NbJiraIssue.getColumnDescriptors(repository);
-//    }
 
    public ColumnDescriptor[] getColumnDescriptors() {
       if (columnDescriptors == null) {
@@ -106,42 +134,13 @@ public class RedmineQuery extends Query {
       return columnDescriptors;
    }
 
-//
-//   public String getUrlParameters() {
-//      return urlParameters;
-//   }
-//
-
-   public void setName(String name) {
-      this.name = name;
-   }
-
-
-   @Override
-   public void setSaved(boolean saved) {
-      super.setSaved(saved);
-   }
-
-
-   protected void logQueryEvent(int count, boolean autoRefresh) {
-      BugtrackingUtil.logQueryEvent(
-              RedmineConnector.getConnectorName(),
-              name,
-              count,
-              false,
-              autoRefresh);
-   }
-
-
    void refresh(boolean autoReresh) {
       doRefresh(autoReresh);
    }
 
-
    public void refresh() { // XXX what if already running! - cancel task
       doRefresh(false);
    }
-
 
    private boolean doRefresh(final boolean autoRefresh) {
       // XXX what if already running! - cancel task
@@ -149,7 +148,6 @@ public class RedmineQuery extends Query {
 
       final boolean ret[] = new boolean[1];
       executeQuery(new Runnable() {
-
          @Override
          public void run() {
             Redmine.LOG.log(Level.FINE, "refresh start - {0}", name); // NOI18N
@@ -175,7 +173,7 @@ public class RedmineQuery extends Query {
                   for (org.redmine.ta.beans.Issue issue : issueArr) {
                      getController().addProgressUnit(RedmineIssue.getDisplayName(issue));
                      try {
-                        RedmineIssue redmineIssue = (RedmineIssue) repository.getIssueCache().setIssueData(
+                        RedmineIssue redmineIssue = (RedmineIssue)repository.getIssueCache().setIssueData(
                                 String.valueOf(issue.getId()), issue);
                         issues.add(redmineIssue.getID());
 
@@ -211,11 +209,23 @@ public class RedmineQuery extends Query {
                Redmine.LOG.log(Level.FINE, "refresh finish - {0}", name); // NOI18N
             }
          }
+
       });
 
       return ret[0];
    }
 
+   public final String getStoredQueryName() {
+      return getDisplayName();
+   }
+
+   protected void logQueryEvent(int count, boolean autoRefresh) {
+      LogUtils.logQueryEvent(RedmineConnector.getConnectorName(),
+                             name,
+                             count,
+                             false,
+                             autoRefresh);
+   }
 
    /**
     * Performs the issue search with the attributes and values provided by the
@@ -242,8 +252,7 @@ public class RedmineQuery extends Query {
          List<org.redmine.ta.beans.Issue> newArr = new ArrayList<org.redmine.ta.beans.Issue>();
          for (org.redmine.ta.beans.Issue issue : issueArr) {
             if ((isSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
-                    || (isDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr))
-                    /* || (isComments && StringUtils.containsIgnoreCase(..., queryStr))*/ ) {
+                    || (isDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /* || (isComments && StringUtils.containsIgnoreCase(..., queryStr))*/) {
                newArr.add(issue);
             }
          }
@@ -252,72 +261,143 @@ public class RedmineQuery extends Query {
       return issueArr;
    }
 
-
-   public String getStoredQueryName() {
-      return getDisplayName();
-   }
-
-
-   void remove() {
+   public void remove() {
       repository.removeQuery(this);
       fireQueryRemoved();
    }
 
-
-   @Override
-   public void fireQuerySaved() {
-      super.fireQuerySaved();
-      repository.fireQueryListChanged();
+   public boolean contains(String id) {
+      return issues.contains(id);
    }
-
-
-   @Override
-   public void fireQueryRemoved() {
-      super.fireQueryRemoved();
-      repository.fireQueryListChanged();
-   }
-
 
    boolean wasRun() {
       return !firstRun;
    }
 
+   long getLastRefresh() {
+      return lastRefresh;
+   }
+   //
+//   public String getUrlParameters() {
+//      return urlParameters;
+//   }
+//
 
-   @Override
-   public Issue[] getIssues(int includeStatus) {
+   public void setName(String name) {
+      this.name = name;
+   }
+
+   public void setSaved(boolean saved) {
+      this.saved = saved;
+      fireQuerySaved();
+   }
+
+   public boolean isSaved() {
+      return saved;
+   }
+
+   public Collection<RedmineIssue> getIssues() {
+      return getIssues(~0);
+   }
+
+   public Collection<RedmineIssue> getIssues(int includeStatus) {
       if (issues == null) {
-         return new Issue[0];
+         return Collections.<RedmineIssue>emptyList();
       }
       List<String> ids = new ArrayList<String>();
       synchronized (issues) {
          ids.addAll(issues);
       }
-
-      IssueCache cache = repository.getIssueCache();
-      List<Issue> ret = new ArrayList<Issue>();
+      IssueCache<RedmineIssue, org.redmine.ta.beans.Issue> cache = repository.getIssueCache();
+      List<RedmineIssue> ret = new ArrayList<RedmineIssue>();
       for (String id : ids) {
          int status = getIssueStatus(id);
          if ((status & includeStatus) != 0) {
             ret.add(cache.getIssue(id));
          }
       }
-      return ret.toArray(new Issue[0]);
+      return ret;
    }
 
-
-   @Override
    public boolean contains(Issue issue) {
       return issues.contains(issue.getID());
    }
 
-
-   @Override
    public int getIssueStatus(Issue issue) {
       return getIssueStatus(issue.getID());
    }
 
-
    public int getIssueStatus(String id) {
       return repository.getIssueCache().getStatus(id);
    }
+
+   public void addNotifyListener(QueryNotifyListener l) {
+      List<QueryNotifyListener> list = getNotifyListeners();
+      synchronized (list) {
+         list.add(l);
+      }
+   }
+
+   public void removeNotifyListener(QueryNotifyListener l) {
+      List<QueryNotifyListener> list = getNotifyListeners();
+      synchronized (list) {
+         list.remove(l);
+      }
+   }
+
+   protected void fireNotifyData(RedmineIssue issue) {
+      QueryNotifyListener[] listeners = getListeners();
+      for (QueryNotifyListener l : listeners) {
+         l.notifyData(issue);
+      }
+   }
+
+   protected void fireStarted() {
+      QueryNotifyListener[] listeners = getListeners();
+      for (QueryNotifyListener l : listeners) {
+         l.started();
+      }
+   }
+
+   protected void fireFinished() {
+      QueryNotifyListener[] listeners = getListeners();
+      for (QueryNotifyListener l : listeners) {
+         l.finished();
+      }
+   }
+
+   // XXX move to API
+   protected void executeQuery(Runnable r) {
+      fireStarted();
+      try {
+         r.run();
+      } finally {
+         fireFinished();
+         fireQueryIssuesChanged();
+         lastRefresh = System.currentTimeMillis();
+      }
+   }
+
+   private QueryNotifyListener[] getListeners() {
+      List<QueryNotifyListener> list = getNotifyListeners();
+      QueryNotifyListener[] listeners;
+      synchronized (list) {
+         listeners = list.toArray(new QueryNotifyListener[list.size()]);
+      }
+      return listeners;
+   }
+
+   private List<QueryNotifyListener> notifyListeners;
+
+   private List<QueryNotifyListener> getNotifyListeners() {
+      if (notifyListeners == null) {
+         notifyListeners = new ArrayList<QueryNotifyListener>();
+      }
+      return notifyListeners;
+   }
+
+   public String getUrlParameters() {
+      throw new UnsupportedOperationException("Not yet implemented");
+   }
+
 }

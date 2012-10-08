@@ -15,8 +15,14 @@
  */
 package com.kenai.redmineNB.util;
 
+import com.kenai.redmineNB.Redmine;
+import com.kenai.redmineNB.RedmineConnector;
+import com.kenai.redmineNB.issue.RedmineIssue;
+import com.kenai.redmineNB.query.RedmineQuery;
+import com.kenai.redmineNB.repository.RedmineRepository;
 import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
+import org.netbeans.modules.bugtracking.api.Repository;
 import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
 import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
 import org.openide.DialogDescriptor;
@@ -27,11 +33,16 @@ import org.openide.util.NbBundle;
 
 
 /**
+ * Redmine utility class.
  *
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
-public class RedmineUtil {
+public final class RedmineUtil {
+
+   private RedmineUtil() {
+      // default constructor suppressed for non-instantiability
+   }
 
    public static <T> ColumnDescriptor<T> convertNodePropertyToColumnDescriptor(Node.Property<T> prop) {
       return new ColumnDescriptor<T>(prop.getName(),
@@ -40,7 +51,6 @@ public class RedmineUtil {
                                      prop.getShortDescription());
    }
 
-
    /**
     * Helper method to convert the first letter of a string to uppercase. And
     * prefix the string with some next string.
@@ -48,7 +58,6 @@ public class RedmineUtil {
    public static String capitalize(String s) {
       return StringUtils.isBlank(s) ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
    }
-
 
    public static boolean show(ActionListenerPanel panel, String title, String okName) {
       JButton ok = new JButton(okName);
@@ -75,4 +84,28 @@ public class RedmineUtil {
 
       return DialogDisplayer.getDefault().notify(dd) == ok;
    }
+
+   public static Repository getRepository(RedmineRepository redmineRepository) {
+      Repository repository = Redmine.getInstance().getBugtrackingFactory().getRepository(
+              RedmineConnector.ID, redmineRepository.getID());
+      if (repository == null) {
+         repository = Redmine.getInstance().getBugtrackingFactory().createRepository(
+                 redmineRepository,
+                 Redmine.getInstance().getRepositoryProvider(),
+                 Redmine.getInstance().getQueryProvider(),
+                 Redmine.getInstance().getIssueProvider());
+      }
+      return repository;
+   }
+
+   public static void openIssue(RedmineIssue redmineIssue) {
+      Redmine.getInstance().getBugtrackingFactory().openIssue(
+              getRepository(redmineIssue.getRepository()), redmineIssue);
+   }
+
+   public static void openQuery(RedmineQuery redmineQuery) {
+      Redmine.getInstance().getBugtrackingFactory().openQuery(
+              getRepository(redmineQuery.getRepository()), redmineQuery);
+   }
+
 }

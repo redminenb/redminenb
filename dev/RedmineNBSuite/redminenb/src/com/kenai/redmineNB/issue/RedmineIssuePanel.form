@@ -117,8 +117,8 @@
                   <Component id="resetButton" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Component id="infoLabel" min="-2" pref="277" max="-2" attributes="0"/>
-                  <EmptySpace pref="25" max="32767" attributes="0"/>
-                  <Component id="toolBar" min="-2" pref="100" max="-2" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                  <Component id="toolbar" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -134,7 +134,7 @@
                           <Component id="resetButton" alignment="3" max="32767" attributes="0"/>
                       </Group>
                       <Component id="createButton" alignment="0" max="32767" attributes="0"/>
-                      <Component id="toolBar" alignment="0" max="32767" attributes="0"/>
+                      <Component id="toolbar" alignment="0" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
@@ -184,7 +184,7 @@
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
         </Component>
-        <Container class="org.openide.awt.Toolbar" name="toolBar">
+        <Container class="org.openide.awt.Toolbar" name="toolbar">
           <Properties>
             <Property name="rollover" type="boolean" value="true"/>
             <Property name="borderPainted" type="boolean" value="false"/>

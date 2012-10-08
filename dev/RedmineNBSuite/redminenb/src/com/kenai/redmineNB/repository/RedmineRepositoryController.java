@@ -1,3 +1,18 @@
+/*
+ * Copyright 2012 Anchialas and Mykolas.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.kenai.redmineNB.repository;
 
 import com.kenai.redmineNB.Redmine;
@@ -18,13 +33,15 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
-import org.netbeans.modules.bugtracking.spi.BugtrackingController;
+import org.netbeans.modules.bugtracking.spi.RepositoryController;
+import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.openide.util.*;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor.Task;
@@ -34,7 +51,7 @@ import org.redmine.ta.beans.User;
 
 
 /**
- * Redmine repository parameters controller.
+ * Redmine repository parameter controller.
  *
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
@@ -51,28 +68,25 @@ import org.redmine.ta.beans.User;
    "MSG_RepositoryAlreadyExists=The same Issue Tracker already exists",
    "MSG_AuthSuccessful=Successfully authenticated as ''{0}''"
 })
-public class RedmineRepositoryController extends BugtrackingController implements DocumentListener,
-                                                                                  ActionListener {
+public class RedmineRepositoryController implements RepositoryController, DocumentListener, ActionListener {
 
    private RedmineRepository repository;
    //private RedmineRepository realRepository;
    private RedmineRepositoryPanel panel;
    private String errorMessage;
    private boolean connectError;
-//    private boolean populated = false;
+   private boolean populated = false;
    private boolean connected = false;
    private TaskRunner taskRunner;
    private RequestProcessor rp;
-
+   private final ChangeSupport support = new ChangeSupport(this);
 
    public RedmineRepositoryController(RedmineRepository repository) {
       this.repository = repository;
 
       panel = new RedmineRepositoryPanel(this);
-      populate();
-
       panel.nameTextField.getDocument().addDocumentListener(this);
-      panel.hostTextField.getDocument().addDocumentListener(this);
+      panel.urlTextField.getDocument().addDocumentListener(this);
       panel.accessKeyTextField.getDocument().addDocumentListener(this);
       panel.userField.getDocument().addDocumentListener(this);
       panel.pwdField.getDocument().addDocumentListener(this);
@@ -85,59 +99,52 @@ public class RedmineRepositoryController extends BugtrackingController implement
       panel.rbCredentials.addActionListener(this);
    }
 
-
    @Override
    public JComponent getComponent() {
-      populate();
       return panel;
    }
 
+   private String getUrl() {
+      String url = panel.urlTextField.getText().trim();
+      return url.endsWith("/") ? url.substring(0, url.length() - 1) : url; // NOI18N
+   }
+
+   private String getName() {
+      return panel.nameTextField.getText().trim();
+   }
+
+   private String getUser() {
+      return panel.userField.getText();
+   }
+
+   private char[] getPassword() {
+      return panel.pwdField.getPassword();
+   }
+
+   public AuthMode getAuthMode() {
+      return panel.getAuthMode();
+   }
+
+   private String getAccessKey() {
+      return panel.accessKeyTextField.getText().trim();
+   }
+
+   private Project getProject() {
+      return (Project)panel.projectComboBox.getSelectedItem();
+   }
 
    @Override
    public boolean isValid() {
       return validate();
    }
 
-
-   private String getHost() {
-      String url = panel.hostTextField.getText().trim();
-      return url.endsWith("/") ? url.substring(0, url.length() - 1) : url; // NOI18N
-   }
-
-
-   private String getName() {
-      return panel.nameTextField.getText().trim();
-   }
-
-
-   private String getUser() {
-      return panel.userField.getText();
-   }
-
-
-   private char[] getPassword() {
-      return panel.pwdField.getPassword();
-   }
-
-
-   public AuthMode getAuthMode() {
-      return panel.getAuthMode();
-   }
-
-
-   private String getAccessKey() {
-      return panel.accessKeyTextField.getText().trim();
-   }
-
-
-   private Project getProject() {
-      return (Project) panel.projectComboBox.getSelectedItem();
-   }
-
-
    private boolean validate() {
       if (connectError) {
          panel.connectButton.setEnabled(true);
+         return false;
+      }
+
+      if (!populated) {
          return false;
       }
       errorMessage = null;
@@ -154,19 +161,16 @@ public class RedmineRepositoryController extends BugtrackingController implement
       }
 
       // is name unique?
-      try {
-         if ((repository.isFresh() && Redmine.getInstance().isRepositoryNameExists(name))
-                 || (!repository.isFresh() && !name.equals(repository.getName())
-                 && Redmine.getInstance().isRepositoryNameExists(name))) {
-            errorMessage = Bundle.MSG_TrackerAlreadyExists();
-            return false;
-         }
-      } catch (com.kenai.redmineNB.RedmineException ex) {
-         JOptionPane.showMessageDialog(panel, ex.getLocalizedMessage());
+//      if ((repository.isFresh() && Redmine.getInstance().isRepositoryNameExists(name))
+//               || (!repository.isFresh() && !name.equals(repository.getName())
+//               && Redmine.getInstance().isRepositoryNameExists(name))) {
+      if (Redmine.getInstance().isRepositoryNameExists(name)) {
+         errorMessage = Bundle.MSG_TrackerAlreadyExists();
+         return false;
       }
 
       // check url
-      String url = getHost();
+      String url = getUrl();
       if (url.equals("")) { // NOI18N
          errorMessage = Bundle.MSG_MissingUrl();
          return false;
@@ -201,17 +205,15 @@ public class RedmineRepositoryController extends BugtrackingController implement
       panel.createNewProjectButton.setEnabled(connected);
 
       // is repository unique?
-      try {
-         RedmineRepository confRepository = Redmine.getInstance().repositoryExists(repository);
+      RedmineRepository confRepository = Redmine.getInstance().repositoryExists(repository);
 
-         if ((repository.isFresh() && Redmine.getInstance().isRepositoryExists(repository))
-                 || (!repository.isFresh() && confRepository != null
-                 && !confRepository.getID().equals(repository.getID()))) {
-            errorMessage = Bundle.MSG_RepositoryAlreadyExists();
-            return false;
-         }
-      } catch (com.kenai.redmineNB.RedmineException ex) {
-         JOptionPane.showMessageDialog(panel, ex.getLocalizedMessage());
+//      if ((repository.isFresh() && Redmine.getInstance().isRepositoryExists(repository))
+//              || (!repository.isFresh() && confRepository != null
+//              && !confRepository.getID().equals(repository.getID()))) {
+      if (confRepository != null
+              && !confRepository.getID().equals(repository.getID())) {
+         errorMessage = Bundle.MSG_RepositoryAlreadyExists();
+         return false;
       }
 
       if (panel.projectComboBox.getSelectedIndex() == -1) {
@@ -222,75 +224,91 @@ public class RedmineRepositoryController extends BugtrackingController implement
       return true;
    }
 
-
    @Override
    public HelpCtx getHelpCtx() {
-      return new HelpCtx(getClass());
+      return new HelpCtx(getClass().getName());
    }
-
 
    @Override
    public String getErrorMessage() {
       return errorMessage != null ? "<html>" + errorMessage + "</html>" : errorMessage;
    }
 
-
    @Override
    public void applyChanges() {
-      try {
-         repository.setName(getName());
-         repository.getNode().setName(getName());
-         repository.setAuthMode(getAuthMode());
+      repository.setInfoValues(
+              getName(),
+              getUrl(),
+              getUser(),
+              getPassword(),
+              getAccessKey(),
+              getAuthMode());
+   }
 
-         if (repository.isFresh()) {
-            Redmine.getInstance().addRepository(repository);
-            repository.setFresh(false);
-         } else {
-//                realRepository.set(repository);
-//                Redmine.getInstance().updateRepository(realRepository);
-            Redmine.getInstance().updateRepository(repository);
+   @Override
+   public final void populate() {
+      taskRunner = new TaskRunner(NbBundle.getMessage(RedmineRepositoryPanel.class, "LBL_ReadingRepoData")) {  // NOI18N
+         @Override
+         protected void preRun() {
+            //panel.validateButton.setVisible(false);
+            super.preRun();
          }
-      } catch (com.kenai.redmineNB.RedmineException ex) {
-         JOptionPane.showMessageDialog(panel, ex.getLocalizedMessage());
-      }
+
+         @Override
+         protected void postRun() {
+            //panel.validateButton.setVisible(true);
+            super.postRun();
+         }
+
+         @Override
+         void execute() {
+            SwingUtilities.invokeLater(new Runnable() {
+               @Override
+               public void run() {
+                  RepositoryInfo info = repository.getInfo();
+                  if (info != null) {
+                     connected = false;
+
+                     panel.nameTextField.setText(info.getDisplayName());
+                     panel.urlTextField.setText(info.getUrl());
+
+                     panel.setAuthMode(repository.getAuthMode());
+                     panel.accessKeyTextField.setText(repository.getAccessKey());
+                     panel.userField.setText(repository.getUsername());
+                     panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
+
+                     panel.projectComboBox.setProjects(Collections.singletonList(repository.getProject()));
+                     panel.projectComboBox.setSelectedItem(repository.getProject());
+                     panel.projectComboBox.setEnabled(false);
+                  }
+                  populated = true;
+                  fireChange();
+               }
+
+            });
+         }
+
+      };
+      taskRunner.startTask();
    }
-
-
-   final void populate() {
-      connected = false;
-
-      panel.nameTextField.setText(repository.getName());
-      panel.hostTextField.setText(repository.getUrl());
-
-      panel.setAuthMode(repository.getAuthMode());
-      panel.accessKeyTextField.setText(repository.getAccessKey());
-      panel.userField.setText(repository.getUsername());
-      panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
-
-      panel.projectComboBox.setProjects(Collections.singletonList(repository.getProject()));
-      panel.projectComboBox.setSelectedItem(repository.getProject());
-      panel.projectComboBox.setEnabled(false);
-   }
-
 
    @Override
    public void insertUpdate(DocumentEvent e) {
       changedUpdate(e);
    }
 
-
    @Override
    public void removeUpdate(DocumentEvent e) {
       changedUpdate(e);
    }
 
-
    @Override
    public void changedUpdate(DocumentEvent e) {
-      validateErrorOff(e);
-      fireDataChanged();
+      if (populated) {
+         validateErrorOff(e);
+         fireChange();
+      }
    }
-
 
    @Override
    public void actionPerformed(ActionEvent e) {
@@ -302,36 +320,33 @@ public class RedmineRepositoryController extends BugtrackingController implement
          onCreateNewProject();
       } else {
          SwingUtilities.invokeLater(new Runnable() {
-
             @Override
             public void run() {
                validate();
-               fireDataChanged();
+               fireChange();
             }
 
          });
       }
    }
 
-
    private void onConnect() {
-      if (taskRunner == null) {
+//      if (taskRunner == null) {
          taskRunner = new TaskRunner(NbBundle.getMessage(RedmineRepositoryPanel.class,
                                                          "LBL_Connecting")) {  // NOI18N
-
             private List<Project> projects;
-
 
             @Override
             void execute() {
                connectError = true;
                connected = false;
 
-               repository.setUrl(getHost());
-               repository.setAccessKey(getAccessKey());
-               repository.setUsername(getUser());
-               repository.setPassword(getPassword());
-               repository.setAuthMode(getAuthMode());
+               repository.setInfoValues(getName(),
+                                        getUrl(),
+                                        getUser(),
+                                        getPassword(),
+                                        getAccessKey(),
+                                        getAuthMode());
 
                try {
 //                  InetAddress inetAddr = InetAddress.getByName(repository.getUrl());
@@ -353,7 +368,6 @@ public class RedmineRepositoryController extends BugtrackingController implement
                   connected = true;
 
                   SwingUtilities.invokeLater(new Runnable() {
-
                      @Override
                      public void run() {
                         Object item = panel.projectComboBox.getSelectedItem();
@@ -375,20 +389,19 @@ public class RedmineRepositoryController extends BugtrackingController implement
                   Redmine.LOG.log(Level.WARNING, errorMessage, ex);
                }
 
-               fireDataChanged();
+               fireChange();
             }
 
          };
-      }
+
+//      }
       taskRunner.startTask();
    }
 
-
    private void onProjectSelected() {
       repository.setProject(getProject());
-      fireDataChanged();
+      fireChange();
    }
-
 
    private void onCreateNewProject() {
       RedmineProjectPanel projectPanel = new RedmineProjectPanel(repository);
@@ -404,14 +417,12 @@ public class RedmineRepositoryController extends BugtrackingController implement
             Redmine.LOG.log(Level.INFO, errorMessage, ex);
          }
       }
-
-      fireDataChanged();
+      fireChange();
    }
-
 
    private void validateErrorOff(DocumentEvent e) {
       if (e.getDocument() == panel.accessKeyTextField.getDocument()
-              || e.getDocument() == panel.hostTextField.getDocument()
+              || e.getDocument() == panel.urlTextField.getDocument()
               || e.getDocument() == panel.userField.getDocument()
               || e.getDocument() == panel.pwdField.getDocument()) {
          connectError = false;
@@ -420,13 +431,36 @@ public class RedmineRepositoryController extends BugtrackingController implement
       }
    }
 
-
    void cancel() {
       if (taskRunner != null) {
          taskRunner.cancel();
       }
    }
 
+   private RequestProcessor getRequestProcessor() {
+      if (rp == null) {
+         rp = new RequestProcessor("Redmine Repository tasks", 1, true); // NOI18N
+      }
+      return rp;
+   }
+
+   @Override
+   public void addChangeListener(ChangeListener l) {
+      support.addChangeListener(l);
+   }
+
+   @Override
+   public void removeChangeListener(ChangeListener l) {
+      support.removeChangeListener(l);
+   }
+
+   protected void fireChange() {
+      support.fireChange();
+   }
+
+   //
+   // inner classes
+   //
 
    private abstract class TaskRunner implements Runnable, Cancellable, ActionListener {
 
@@ -434,18 +468,15 @@ public class RedmineRepositoryController extends BugtrackingController implement
       private ProgressHandle handle;
       private String labelText;
 
-
       public TaskRunner(String labelText) {
          this.labelText = labelText;
       }
-
 
       final void startTask() {
          //cancel();
          task = getRequestProcessor().create(this);
          task.schedule(0);
       }
-
 
       @Override
       final public void run() {
@@ -457,9 +488,7 @@ public class RedmineRepositoryController extends BugtrackingController implement
          }
       }
 
-
       abstract void execute();
-
 
       protected void preRun() {
          handle = ProgressHandleFactory.createHandle(labelText, this);
@@ -476,7 +505,6 @@ public class RedmineRepositoryController extends BugtrackingController implement
          panel.enableFields(false);
          panel.projectComboBox.setEnabled(false);
       }
-
 
       protected void postRun() {
          if (handle != null) {
@@ -500,7 +528,6 @@ public class RedmineRepositoryController extends BugtrackingController implement
          }
       }
 
-
       @Override
       // TODO: implement correct task interruption
       public boolean cancel() {
@@ -518,7 +545,6 @@ public class RedmineRepositoryController extends BugtrackingController implement
          return ret;
       }
 
-
       @Override
       public void actionPerformed(ActionEvent e) {
          if (e.getSource() == panel.cancelButton) {
@@ -526,15 +552,6 @@ public class RedmineRepositoryController extends BugtrackingController implement
          }
       }
 
-   }
-
-
-   private RequestProcessor getRequestProcessor() {
-      if (rp == null) {
-         rp = new RequestProcessor("Redmine Repository tasks", 1, true); // NOI18N
-      }
-
-      return rp;
    }
 
 }

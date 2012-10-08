@@ -41,7 +41,7 @@ import java.util.Arrays;
  * 
  * @author Anchialas <anchialas@gmail.com>
  */
-public class Is {
+public final class Is {
 
     private Is() {
         // default constructor suppressed for non-instantiability

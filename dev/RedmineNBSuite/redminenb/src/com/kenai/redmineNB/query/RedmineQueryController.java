@@ -24,11 +24,14 @@ import com.kenai.redmineNB.query.RedmineQueryParameter.CheckBoxParameter;
 import com.kenai.redmineNB.query.RedmineQueryParameter.ListParameter;
 import com.kenai.redmineNB.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redmineNB.repository.RedmineRepository;
+import com.kenai.redmineNB.util.RedmineUtil;
 
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -47,21 +50,15 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
 import javax.swing.JComponent;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
+import org.netbeans.modules.bugtracking.api.Util;
 import org.netbeans.modules.bugtracking.issuetable.Filter;
 import org.netbeans.modules.bugtracking.issuetable.IssueTable;
-import org.netbeans.modules.bugtracking.spi.BugtrackingController;
-import org.netbeans.modules.bugtracking.spi.Issue;
-import org.netbeans.modules.bugtracking.spi.Query;
-import org.netbeans.modules.bugtracking.spi.QueryNotifyListener;
-import org.netbeans.modules.bugtracking.ui.query.QueryAction;
-import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
+import org.netbeans.modules.bugtracking.util.LogUtils;
 import org.netbeans.modules.bugtracking.util.SaveQueryPanel;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -96,10 +93,11 @@ import org.redmine.ta.beans.Version;
    "LBL_MatchingIssues=There {0,choice,0#are no issues|1#is one issue|1<are {0,number,integer} issues} matching this query.",
    "LBL_SelectKeywords=Select or deselect keywords."
 })
-public class RedmineQueryController extends BugtrackingController implements DocumentListener, ItemListener, ListSelectionListener, ActionListener, KeyListener {
+public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi.QueryController
+        implements ItemListener, ListSelectionListener, ActionListener, FocusListener, KeyListener, IssueTable.IssueTableProvider {
 
    final RedmineQueryPanel queryPanel;
-   private final IssueTable issueTable;
+   private final IssueTable<RedmineQuery> issueTable;
    //
    private final RequestProcessor rp = new RequestProcessor("Redmine query", 1, true);  // NOI18N
    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
@@ -116,14 +114,15 @@ public class RedmineQueryController extends BugtrackingController implements Doc
    //private final ListParameter severityParameter;
    private final Map<String, RedmineQueryParameter> parameters;
    //
+   private final Object REFRESH_LOCK = new Object();
    private QueryTask refreshTask;
-
 
    public RedmineQueryController(RedmineRepository repository, RedmineQuery query) {
       this.repository = repository;
       this.query = query;
 
-      issueTable = new IssueTable(query, query.getColumnDescriptors());
+      issueTable = new IssueTable<RedmineQuery>(RedmineUtil.getRepository(repository),
+                                                query, query.getColumnDescriptors());
       //issueTable.setRenderer(...);
       queryPanel = new RedmineQueryPanel(issueTable.getComponent(), this);
 
@@ -145,7 +144,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       setListeners();
       postPopulate();
    }
-
 
    private void setListeners() {
       queryPanel.filterComboBox.addItemListener(this);
@@ -176,64 +174,44 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       queryPanel.peopleTextField.addActionListener(this);
    }
 
-
    @Override
    public JComponent getComponent() {
       return queryPanel;
    }
-
 
    @Override
    public HelpCtx getHelpCtx() {
       return HelpCtx.DEFAULT_HELP;
    }
 
-
-   @Override
-   public boolean isValid() {
-      return true;
-   }
-
-
-   @Override
-   public void applyChanges() throws IOException {
-      System.out.println("applyChanges()");
-   }
-
-   // Listener implementations /////////////////////////////////////////////////
-
-   @Override
-   public void insertUpdate(DocumentEvent e) {
-      fireDataChanged();
-   }
-
-
-   @Override
-   public void removeUpdate(DocumentEvent e) {
-      fireDataChanged();
-   }
-
-
-   @Override
-   public void changedUpdate(DocumentEvent e) {
-      fireDataChanged();
-   }
-
-
    @Override
    public void itemStateChanged(ItemEvent e) {
-      fireDataChanged();
       if (e.getSource() == queryPanel.filterComboBox) {
-         onFilterChange((Filter) e.getItem());
+         onFilterChange((Filter)e.getItem());
       }
    }
 
-
    @Override
    public void valueChanged(ListSelectionEvent e) {
-      fireDataChanged();            // XXX do we need this ???
+//      if (e.getSource() == queryPanel.productList) {
+//         onProductChanged(e);
+//      }
    }
 
+   @Override
+   public void focusGained(FocusEvent e) {
+//      if (panel.changedFromTextField.getText().equals("")) {                   // NOI18N
+//         String lastChangeFrom = BugzillaConfig.getInstance().getLastChangeFrom();
+//         panel.changedFromTextField.setText(lastChangeFrom);
+//         panel.changedFromTextField.setSelectionStart(0);
+//         panel.changedFromTextField.setSelectionEnd(lastChangeFrom.length());
+//      }
+   }
+
+   @Override
+   public void focusLost(FocusEvent e) {
+      // do nothing
+   }
 
    @Override
    public void actionPerformed(ActionEvent e) {
@@ -280,18 +258,15 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       }
    }
 
-
    @Override
    public void keyTyped(KeyEvent e) {
       // do nothing
    }
 
-
    @Override
    public void keyPressed(KeyEvent e) {
       // do nothing
    }
-
 
    @Override
    public void keyReleased(KeyEvent e) {
@@ -308,15 +283,12 @@ public class RedmineQueryController extends BugtrackingController implements Doc
    }
 
    /////////////////////////////////////////////////////////////////////////////
-
    private void onFilterChange(Filter filter) {
       selectFilter(filter);
    }
 
-
    private void onSave(final boolean refresh) throws RedmineException {
       Redmine.getInstance().getRequestProcessor().post(new Runnable() {
-
          @Override
          public void run() {
             Redmine.LOG.fine("on save start");
@@ -339,7 +311,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       });
    }
 
-
    /**
     * Saves the query under the given name
     *
@@ -358,14 +329,11 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       Redmine.LOG.log(Level.FINE, "query '{0}' saved", new Object[]{name});
    }
 
-
    private String getSaveName() {
       SaveQueryPanel.QueryNameValidator v = new SaveQueryPanel.QueryNameValidator() {
-
          @Override
          public String isValid(String name) {
-            Query[] queries = repository.getQueries();
-            for (Query q : queries) {
+            for (RedmineQuery q : repository.getQueries()) {
                if (q.getDisplayName().equals(name)) {
                   return Bundle.MSG_SameName();
                }
@@ -377,7 +345,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       return SaveQueryPanel.show(v, new HelpCtx("com.kenai.redmineNB.query.savePanel"));
    }
 
-
    private void onCancelChanges() {
 //        if(query.getDisplayName() != null) { // XXX need a better semantic - isSaved?
 //            String urlParameters = RedmineConfig.getInstance().getUrlParams(repository, query.getDisplayName());
@@ -388,23 +355,18 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       setAsSaved();
    }
 
-
    public void selectFilter(final Filter filter) {
       if (filter != null) {
          // XXX this part should be handled in the issues table - move the filtercombo and the label over
-         Issue[] issues = query.getIssues();
          int c = 0;
-         if (issues != null) {
-            for (Issue issue : issues) {
-               if (filter.accept(issue)) {
-                  c++;
-               }
+         for (RedmineIssue issue : query.getIssues()) {
+            if (filter.accept(issue.getNode())) {
+               c++;
             }
          }
          final int issueCount = c;
 
          Runnable r = new Runnable() {
-
             @Override
             public void run() {
                queryPanel.filterComboBox.setSelectedItem(filter);
@@ -421,13 +383,11 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       issueTable.setFilter(filter);
    }
 
-
    private void setAsSaved() {
       queryPanel.setSaved(query.getDisplayName(), getLastRefresh());
       queryPanel.setModifyVisible(false);
       queryPanel.refreshCheckBox.setVisible(true);
    }
-
 
    private String getLastRefresh() throws MissingResourceException {
       long l = query.getLastRefresh();
@@ -436,16 +396,14 @@ public class RedmineQueryController extends BugtrackingController implements Doc
               : Bundle.LBL_Never();
    }
 
-
    private void onGotoIssue() throws RedmineException {
-      final Long issueId = (Long) queryPanel.issueIdTextField.getValue();
+      final Long issueId = (Long)queryPanel.issueIdTextField.getValue();
       if (issueId == null) {
          return;
       }
 
       final RequestProcessor.Task[] t = new RequestProcessor.Task[1];
       Cancellable c = new Cancellable() {
-
          @Override
          public boolean cancel() {
             if (t[0] != null) {
@@ -457,18 +415,11 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       };
       final ProgressHandle handle = ProgressHandleFactory.createHandle(Bundle.MSG_Opening(issueId), c); // NOI18N
       t[0] = Redmine.getInstance().getRequestProcessor().create(new Runnable() {
-
          @Override
          public void run() {
             handle.start();
             try {
-               RedmineIssue issue = (RedmineIssue) repository.getIssue(String.valueOf(issueId));
-               if (issue == null) {
-                  queryPanel.setGoToIssueInfo("exclamation.png", Bundle.MSG_NotFound(issueId));
-               } else {
-                  queryPanel.setGoToIssueInfo(null, null);
-                  issue.open();
-               }
+               openIssue((RedmineIssue)repository.getIssue(String.valueOf(issueId)));
             } finally {
                handle.finish();
             }
@@ -478,7 +429,13 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       t[0].schedule(0);
    }
 
-
+   protected void openIssue(RedmineIssue issue) {
+      if (issue != null) {
+         RedmineUtil.openIssue(issue);
+      } else {
+         // XXX nice message?
+      }
+   }
 
    private void onWeb() throws RedmineException {
       String params = ""; //query.getUrlParameters();
@@ -486,7 +443,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       final String urlString = repoURL + (params != null && !params.equals("") ? params : ""); // NOI18N
 
       Redmine.getInstance().getRequestProcessor().post(new Runnable() {
-
          @Override
          public void run() {
             URL url;
@@ -508,79 +464,18 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       });
    }
 
-
    private void onCloneQuery() {
-      RedmineQuery q = new RedmineQuery(null, repository, false, false, true);
-      BugtrackingUtil.openQuery(q, repository, false);
+      RedmineQuery q = new RedmineQuery(null, repository, null, false, false, true);
+      RedmineUtil.openQuery(q);
    }
-
 
    public void autoRefresh() {
-      onRefresh(true);
+      refresh(true, false);
    }
 
-
-   public void onRefresh() {
-      onRefresh(false);
+   public void refresh(boolean synchronously) {
+      refresh(false, synchronously);
    }
-
-
-   private void onRefresh(final boolean auto) {
-      if (refreshTask == null) {
-         refreshTask = new QueryTask();
-      } else {
-         refreshTask.cancel();
-      }
-      refreshTask.post(auto);
-   }
-
-
-   private void onModify() {
-      queryPanel.setModifyVisible(true);
-   }
-
-
-   private void onMarkSeen() throws RedmineException {
-      Redmine.getInstance().getRequestProcessor().post(new Runnable() {
-
-         @Override
-         public void run() {
-            Issue[] issues = query.getIssues();
-            for (Issue issue : issues) {
-               try {
-                  ((RedmineIssue) issue).setSeen(true);
-               } catch (IOException ex) {
-                  Redmine.LOG.log(Level.SEVERE, null, ex);
-               }
-            }
-         }
-
-      });
-   }
-
-
-   private void onRemove() throws RedmineException {
-      NotifyDescriptor nd = new NotifyDescriptor.Confirmation(Bundle.MSG_RemoveQuery(query.getDisplayName()),
-                                                              Bundle.CTL_RemoveQuery(),
-                                                              NotifyDescriptor.OK_CANCEL_OPTION);
-      if (DialogDisplayer.getDefault().notify(nd) == NotifyDescriptor.OK_OPTION) {
-         Redmine.getInstance().getRequestProcessor().post(new Runnable() {
-
-            @Override
-            public void run() {
-               remove();
-            }
-
-         });
-      }
-   }
-
-
-   private void onFindIssues() {
-      //Query.openNew(repository);
-      QueryAction.openQuery(query, repository);
-   }
-
 
    private void onAutoRefresh() {
       final boolean autoRefresh = queryPanel.refreshCheckBox.isSelected();
@@ -593,6 +488,63 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       }
    }
 
+   public void onRefresh() {
+      refresh(false, false);
+   }
+
+   private void refresh(final boolean auto, boolean synchronously) {
+      RequestProcessor.Task t;
+      synchronized (REFRESH_LOCK) {
+         if (refreshTask == null) {
+            refreshTask = new QueryTask();
+         } else {
+            refreshTask.cancel();
+         }
+         t = refreshTask.post(auto);
+      }
+      if (synchronously) {
+         t.waitFinished();
+      }
+   }
+
+   private void onModify() {
+      queryPanel.setModifyVisible(true);
+   }
+
+   private void onMarkSeen() throws RedmineException {
+      Redmine.getInstance().getRequestProcessor().post(new Runnable() {
+         @Override
+         public void run() {
+            for (RedmineIssue issue : query.getIssues()) {
+               try {
+                  issue.setSeen(true);
+               } catch (IOException ex) {
+                  Redmine.LOG.log(Level.SEVERE, null, ex);
+               }
+            }
+         }
+
+      });
+   }
+
+   private void onRemove() throws RedmineException {
+      NotifyDescriptor nd = new NotifyDescriptor.Confirmation(Bundle.MSG_RemoveQuery(query.getDisplayName()),
+                                                              Bundle.CTL_RemoveQuery(),
+                                                              NotifyDescriptor.OK_CANCEL_OPTION);
+      if (DialogDisplayer.getDefault().notify(nd) == NotifyDescriptor.OK_OPTION) {
+         Redmine.getInstance().getRequestProcessor().post(new Runnable() {
+            @Override
+            public void run() {
+               remove();
+            }
+
+         });
+      }
+   }
+
+   private void onFindIssues() {
+      Util.createNewQuery(RedmineUtil.getRepository(repository));
+   }
 
    protected void scheduleForRefresh() {
       if (query.isSaved()) {
@@ -600,27 +552,22 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       }
    }
 
-
    protected void logAutoRefreshEvent(boolean autoRefresh) {
-      BugtrackingUtil.logAutoRefreshEvent(
-              RedmineConnector.getConnectorName(),
-              query.getDisplayName(),
-              false,
-              autoRefresh);
+      LogUtils.logAutoRefreshEvent(RedmineConnector.getConnectorName(),
+                                   query.getDisplayName(),
+                                   false,
+                                   autoRefresh);
    }
-
 
    private void onRefreshConfiguration() {
 //      postPopulate(query.getUrlParameters(), true);
       postPopulate();
    }
 
-
    protected final void postPopulate() {
 
       final RequestProcessor.Task[] t = new RequestProcessor.Task[1];
       Cancellable c = new Cancellable() {
-
          @Override
          public boolean cancel() {
             if (t[0] != null) {
@@ -635,7 +582,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       final ProgressHandle handle = ProgressHandleFactory.createHandle(msgPopulating, c);
 
       EventQueue.invokeLater(new Runnable() {
-
          @Override
          public void run() {
             enableFields(false);
@@ -646,7 +592,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       });
 
       t[0] = rp.post(new Runnable() {
-
          @Override
          public void run() {
             try {
@@ -654,7 +599,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
 
             } finally {
                EventQueue.invokeLater(new Runnable() {
-
                   @Override
                   public void run() {
                      enableFields(true);
@@ -669,14 +613,12 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       });
    }
 
-
    protected void populate() {
       if (Redmine.LOG.isLoggable(Level.FINE)) {
          Redmine.LOG.log(Level.FINE, "Starting populate query controller {0}", (query.isSaved() ? " - " + query.getDisplayName() : "")); // NOI18N
       }
       try {
          EventQueue.invokeLater(new Runnable() {
-
             @Override
             public void run() {
                populateProjectDetails();
@@ -694,7 +636,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
          }
       }
    }
-
 
    private void populateProjectDetails() {
       // Versions
@@ -735,7 +676,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
 
    }
 
-
    private <T extends RedmineQueryParameter> T createQueryParameter(Class<T> clazz, Component c, String parameter) {
       try {
          Constructor<T> constructor = clazz.getConstructor(c.getClass(), String.class);
@@ -747,7 +687,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       }
       return null;
    }
-
 
    public Map<String, String> getSearchParameterMap() {
       Map<String, String> m = new HashMap<String, String>();
@@ -761,7 +700,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       return m;
    }
 
-
    protected void enableFields(boolean bl) {
       // set all non parameter fields
       queryPanel.enableFields(bl);
@@ -772,7 +710,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       }
    }
 
-
    private void remove() {
       if (refreshTask != null) {
          refreshTask.cancel();
@@ -780,10 +717,8 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       query.remove();
    }
 
-
    private void setIssueCount(final int count) {
       EventQueue.invokeLater(new Runnable() {
-
          @Override
          public void run() {
             queryPanel.tableSummaryLabel.setText(Bundle.LBL_MatchingIssues(count));
@@ -792,18 +727,37 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       });
    }
 
-
    void switchToDeterminateProgress(long issuesCount) {
       if (refreshTask != null) {
          refreshTask.switchToDeterminateProgress(issuesCount);
       }
    }
 
-
    void addProgressUnit(String issueDesc) {
       if (refreshTask != null) {
          refreshTask.addProgressUnit(issueDesc);
       }
+   }
+
+   @Override
+   public void setMode(QueryMode mode) {
+      Filter filter;
+      switch (mode) {
+         case SHOW_ALL:
+            filter = issueTable.getAllFilter();
+            break;
+         case SHOW_NEW_OR_CHANGED:
+            filter = issueTable.getNewOrChangedFilter();
+            break;
+         default:
+            throw new IllegalStateException("Unsupported mode " + mode);
+      }
+      selectFilter(filter);
+   }
+
+   @Override
+   public IssueTable getIssueTable() {
+      return issueTable;
    }
 
 
@@ -816,20 +770,17 @@ public class RedmineQueryController extends BugtrackingController implements Doc
       private long progressMaxWorkunits;
       private int progressWorkunits;
 
-
       public QueryTask() {
          query.addNotifyListener(this);
       }
 
-
-      private synchronized void startQuery() {
+      private void startQuery() {
          handle = ProgressHandleFactory.createHandle(
                  Bundle.MSG_SearchingQuery(query.getDisplayName() != null
                  ? query.getDisplayName()
                  : repository.getDisplayName()),
                  this);
          EventQueue.invokeLater(new Runnable() {
-
             @Override
             public void run() {
                enableFields(false);
@@ -840,7 +791,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
          handle.start();
       }
 
-
       private synchronized void finnishQuery() {
          task = null;
          if (handle != null) {
@@ -848,7 +798,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
             handle = null;
          }
          EventQueue.invokeLater(new Runnable() {
-
             @Override
             public void run() {
                queryPanel.setQueryRunning(false);
@@ -860,22 +809,19 @@ public class RedmineQueryController extends BugtrackingController implements Doc
          });
       }
 
-
       synchronized void switchToDeterminateProgress(long progressMaxWorkunits) {
          if (handle != null) {
-            handle.switchToDeterminate((int) progressMaxWorkunits);
+            handle.switchToDeterminate((int)progressMaxWorkunits);
             this.progressMaxWorkunits = progressMaxWorkunits;
             this.progressWorkunits = 0;
          }
       }
-
 
       synchronized void addProgressUnit(String issueDesc) {
          if (handle != null && progressWorkunits < progressMaxWorkunits) {
             handle.progress(Bundle.LBL_RetrievingIssue(issueDesc), ++progressWorkunits);
          }
       }
-
 
       public void executeQuery() {
          setQueryRunning(true);
@@ -888,10 +834,8 @@ public class RedmineQueryController extends BugtrackingController implements Doc
 
       }
 
-
       private void setQueryRunning(final boolean running) {
          EventQueue.invokeLater(new Runnable() {
-
             @Override
             public void run() {
                queryPanel.setQueryRunning(running);
@@ -899,7 +843,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
 
          });
       }
-
 
       @Override
       public void run() {
@@ -911,16 +854,15 @@ public class RedmineQueryController extends BugtrackingController implements Doc
          }
       }
 
-
-      synchronized void post(boolean autoRefresh) {
+      RequestProcessor.Task post(boolean autoRefresh) {
          if (task != null) {
             task.cancel();
          }
          task = rp.create(this);
          this.autoRefresh = autoRefresh;
          task.schedule(0);
+         return task;
       }
-
 
       @Override
       public boolean cancel() {
@@ -931,10 +873,10 @@ public class RedmineQueryController extends BugtrackingController implements Doc
          return true;
       }
 
-
       @Override
-      public void notifyData(final Issue issue) {
-         if (!query.contains(issue)) {
+      public void notifyData(RedmineIssue issue) {
+         issueTable.addNode(issue.getNode());
+         if (!query.contains(issue.getID())) {
             // XXX this is quite ugly - the query notifies an archoived issue
             // but it doesn't "contain" it!
             return;
@@ -942,7 +884,6 @@ public class RedmineQueryController extends BugtrackingController implements Doc
          setIssueCount(++counter);
          if (counter == 1) {
             EventQueue.invokeLater(new Runnable() {
-
                @Override
                public void run() {
                   queryPanel.showNoContentPanel(false);;
@@ -952,13 +893,11 @@ public class RedmineQueryController extends BugtrackingController implements Doc
          }
       }
 
-
       @Override
       public void started() {
          counter = 0;
          setIssueCount(counter);
       }
-
 
       @Override
       public void finished() {

@@ -24,6 +24,7 @@ import com.kenai.redmineNB.util.RedmineUtil;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
@@ -31,7 +32,6 @@ import java.util.List;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -130,7 +130,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    }
 
    private Project getProject() {
-      return (Project)panel.projectComboBox.getSelectedItem();
+      return (Project) panel.projectComboBox.getSelectedItem();
    }
 
    @Override
@@ -235,14 +235,21 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    }
 
    @Override
-   public void applyChanges() {
+   public void applyChanges() throws IOException {
       repository.setInfoValues(
               getName(),
               getUrl(),
               getUser(),
               getPassword(),
               getAccessKey(),
-              getAuthMode());
+              getAuthMode(),
+              getProject());
+      // TODO
+//      try {
+//         Redmine.getInstance().updateRepository(repository);
+//      } catch (com.kenai.redmineNB.RedmineException ex) {
+//         throw new IOException(ex);
+//      }
    }
 
    @Override
@@ -332,67 +339,68 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
    private void onConnect() {
 //      if (taskRunner == null) {
-         taskRunner = new TaskRunner(NbBundle.getMessage(RedmineRepositoryPanel.class,
-                                                         "LBL_Connecting")) {  // NOI18N
-            private List<Project> projects;
+      taskRunner = new TaskRunner(NbBundle.getMessage(RedmineRepositoryPanel.class,
+                                                      "LBL_Connecting")) {  // NOI18N
+         private List<Project> projects;
 
-            @Override
-            void execute() {
-               connectError = true;
-               connected = false;
+         @Override
+         void execute() {
+            connectError = true;
+            connected = false;
 
-               repository.setInfoValues(getName(),
-                                        getUrl(),
-                                        getUser(),
-                                        getPassword(),
-                                        getAccessKey(),
-                                        getAuthMode());
+            repository.setInfoValues(getName(),
+                                     getUrl(),
+                                     getUser(),
+                                     getPassword(),
+                                     getAccessKey(),
+                                     getAuthMode(),
+                                     getProject());
 
-               try {
+            try {
 //                  InetAddress inetAddr = InetAddress.getByName(repository.getUrl());
 //                  if (inetAddr.isReachable(500)) {
 //                     
 //                  }
 
-                  projects = repository.getManager().getProjects();
-                  // check authentication
-                  User currentUser = repository.getManager().getCurrentUser();
+               projects = repository.getManager().getProjects();
+               // check authentication
+               User currentUser = repository.getManager().getCurrentUser();
 
-                  panel.progressPanel.removeAll();
-                  panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(currentUser.getFullName()),
-                                                     Defaults.getIcon("info.png"),
-                                                     SwingUtilities.LEADING));
-                  panel.progressPanel.setVisible(true);
+               panel.progressPanel.removeAll();
+               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(currentUser.getFullName()),
+                                                  Defaults.getIcon("info.png"),
+                                                  SwingUtilities.LEADING));
+               panel.progressPanel.setVisible(true);
 
-                  connectError = false;
-                  connected = true;
+               connectError = false;
+               connected = true;
 
-                  SwingUtilities.invokeLater(new Runnable() {
-                     @Override
-                     public void run() {
-                        Object item = panel.projectComboBox.getSelectedItem();
-                        panel.projectComboBox.setProjects(projects);
-                        panel.projectComboBox.setSelectedItem(item);
-                        panel.projectComboBox.setEnabled(true);
-                        onProjectSelected();
-                     }
+               SwingUtilities.invokeLater(new Runnable() {
+                  @Override
+                  public void run() {
+                     Object item = panel.projectComboBox.getSelectedItem();
+                     panel.projectComboBox.setProjects(projects);
+                     panel.projectComboBox.setSelectedItem(item);
+                     panel.projectComboBox.setEnabled(true);
+                     onProjectSelected();
+                  }
 
-                  });
+               });
 
-               } catch (RedmineException ex) {
-                  errorMessage = Redmine.getMessage("MSG_REDMINE_ERROR",
-                                                    ex.getLocalizedMessage());
-                  Redmine.LOG.log(Level.INFO, errorMessage, ex);
-               } catch (Exception ex) {
-                  errorMessage = Redmine.getMessage("MSG_CONNECTION_ERROR",
-                                                    ex.getLocalizedMessage());
-                  Redmine.LOG.log(Level.WARNING, errorMessage, ex);
-               }
-
-               fireChange();
+            } catch (RedmineException ex) {
+               errorMessage = Redmine.getMessage("MSG_REDMINE_ERROR",
+                                                 ex.getLocalizedMessage());
+               Redmine.LOG.log(Level.INFO, errorMessage, ex);
+            } catch (Exception ex) {
+               errorMessage = Redmine.getMessage("MSG_CONNECTION_ERROR",
+                                                 ex.getLocalizedMessage());
+               Redmine.LOG.log(Level.WARNING, errorMessage, ex);
             }
 
-         };
+            fireChange();
+         }
+
+      };
 
 //      }
       taskRunner.startTask();
@@ -497,35 +505,49 @@ public class RedmineRepositoryController implements RepositoryController, Docume
          panel.progressPanel.add(ProgressHandleFactory.createProgressComponent(handle), BorderLayout.NORTH);
          panel.progressPanel.add(ProgressHandleFactory.createMainLabelComponent(handle), BorderLayout.CENTER);
          panel.cancelButton.addActionListener(this);
+
          handle.start();
-         panel.progressPanel.setVisible(true);
-         panel.cancelButton.setVisible(true);
-         panel.connectButton.setEnabled(false);
-         panel.createNewProjectButton.setEnabled(false);
-         panel.enableFields(false);
-         panel.projectComboBox.setEnabled(false);
+
+         SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+               panel.progressPanel.setVisible(true);
+               panel.cancelButton.setVisible(true);
+               panel.connectButton.setEnabled(false);
+               panel.createNewProjectButton.setEnabled(false);
+               panel.enableFields(false);
+               panel.projectComboBox.setEnabled(false);
+            }
+
+         });
       }
 
       protected void postRun() {
          if (handle != null) {
             handle.finish();
          }
-
          panel.cancelButton.removeActionListener(this);
-         if (errorMessage != null) {
-            panel.progressPanel.setVisible(false);
-         }
-         panel.connectButton.setEnabled(true);
-         panel.cancelButton.setVisible(false);
-         panel.enableFields(true);
 
-         if (panel.projectComboBox.getItemCount() > 0) {
-            panel.projectComboBox.setEnabled(true);
-         }
+         SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+               if (errorMessage != null) {
+                  panel.progressPanel.setVisible(false);
+               }
+               panel.connectButton.setEnabled(true);
+               panel.cancelButton.setVisible(false);
+               panel.enableFields(true);
 
-         if (connected) {
-            panel.createNewProjectButton.setEnabled(true);
-         }
+               if (panel.projectComboBox.getItemCount() > 0) {
+                  panel.projectComboBox.setEnabled(true);
+               }
+               if (connected) {
+                  panel.createNewProjectButton.setEnabled(true);
+               }
+               validate();
+            }
+
+         });
       }
 
       @Override

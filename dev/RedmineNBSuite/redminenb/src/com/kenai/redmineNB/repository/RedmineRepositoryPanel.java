@@ -26,7 +26,6 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         authLabel.setEnabled(b);
         rbCredentials.setEnabled(b);
         userField.setEnabled(b);
-        pwdLabel.setEnabled(b); 
         pwdField.setEnabled(b);
         projectLabel.setEnabled(b);
     }
@@ -73,12 +72,9 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
       cancelButton = new javax.swing.JButton();
       progressPanel = new javax.swing.JPanel();
       projectComboBox = new com.kenai.redmineNB.project.ProjectComboBox();
-      createNewProjectButton = new javax.swing.JButton();
-      pwdLabel = new javax.swing.JLabel();
       rbAccessKey = new javax.swing.JRadioButton();
       authLabel = new javax.swing.JLabel();
       rbCredentials = new javax.swing.JRadioButton();
-      userLabel = new javax.swing.JLabel();
 
       setNextFocusableComponent(nameTextField);
 
@@ -108,10 +104,6 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
          }
       });
 
-      createNewProjectButton.setText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.createNewProjectButton.text")); // NOI18N
-
-      pwdLabel.setText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.pwdLabel.text")); // NOI18N
-
       userField.setColumns(15);
 
       pwdField.setColumns(15);
@@ -119,6 +111,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
       buttonGroup1.add(rbAccessKey);
       rbAccessKey.setSelected(true);
       rbAccessKey.setText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.rbAccessKey.text")); // NOI18N
+      rbAccessKey.setActionCommand(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.rbAccessKey.actionCommand")); // NOI18N
       rbAccessKey.addActionListener(new java.awt.event.ActionListener() {
          public void actionPerformed(java.awt.event.ActionEvent evt) {
             rbAuthPerformed(evt);
@@ -135,7 +128,8 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
          }
       });
 
-      userLabel.setText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.userLabel.text_1")); // NOI18N
+      createNewProjectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redmineNB/resources/add.png"))); // NOI18N
+      createNewProjectButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.createNewProjectButton.toolTipText")); // NOI18N
 
       javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
       this.setLayout(layout);
@@ -149,38 +143,28 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
                   .addGap(0, 0, Short.MAX_VALUE))
                .addGroup(layout.createSequentialGroup()
                   .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(layout.createSequentialGroup()
-                           .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                           .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                              .addGroup(layout.createSequentialGroup()
-                                 .addComponent(rbCredentials)
-                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                 .addComponent(userLabel))
-                              .addComponent(rbAccessKey)
-                              .addGroup(layout.createSequentialGroup()
-                                 .addGap(21, 21, 21)
-                                 .addComponent(pwdLabel))))
-                        .addComponent(hostLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(nameLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE))
+                     .addComponent(rbCredentials)
+                     .addComponent(rbAccessKey)
+                     .addComponent(hostLabel)
+                     .addComponent(nameLabel)
                      .addComponent(projectLabel))
-                  .addGap(11, 11, 11)
+                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                   .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(projectComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(createNewProjectButton))
                      .addComponent(urlTextField)
                      .addComponent(nameTextField)
                      .addComponent(accessKeyTextField)
                      .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                           .addComponent(userField, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                           .addComponent(pwdField, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)
+                        .addComponent(projectComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(createNewProjectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(connectButton))
                      .addGroup(layout.createSequentialGroup()
-                        .addComponent(progressPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE)
+                        .addComponent(userField, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pwdField, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE))
+                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(progressPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(cancelButton))))))
       );
@@ -203,25 +187,20 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                .addComponent(rbCredentials)
-               .addComponent(userField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(userLabel))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-               .addComponent(pwdLabel)
                .addComponent(pwdField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(connectButton))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-               .addComponent(projectComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(projectLabel)
-               .addComponent(createNewProjectButton))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+               .addComponent(userField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGap(18, 18, 18)
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+               .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                  .addComponent(projectComboBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                  .addComponent(projectLabel)
+                  .addComponent(connectButton))
+               .addComponent(createNewProjectButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGap(18, 18, 18)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addComponent(progressPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-               .addGroup(layout.createSequentialGroup()
-                  .addComponent(cancelButton)
-                  .addGap(0, 0, Short.MAX_VALUE)))
-            .addGap(14, 14, 14))
+               .addComponent(cancelButton))
+            .addContainerGap())
       );
    }// </editor-fold>//GEN-END:initComponents
 
@@ -241,7 +220,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
    private javax.swing.ButtonGroup buttonGroup1;
    javax.swing.JButton cancelButton;
    javax.swing.JButton connectButton;
-   javax.swing.JButton createNewProjectButton;
+   final org.netbeans.modules.bugtracking.util.LinkButton createNewProjectButton = new org.netbeans.modules.bugtracking.util.LinkButton();
    private javax.swing.JLabel hostLabel;
    private javax.swing.JLabel nameLabel;
    javax.swing.JTextField nameTextField;
@@ -249,11 +228,9 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
    com.kenai.redmineNB.project.ProjectComboBox projectComboBox;
    private javax.swing.JLabel projectLabel;
    final javax.swing.JPasswordField pwdField = new javax.swing.JPasswordField();
-   private javax.swing.JLabel pwdLabel;
    javax.swing.JRadioButton rbAccessKey;
    javax.swing.JRadioButton rbCredentials;
    javax.swing.JTextField urlTextField;
    final javax.swing.JTextField userField = new javax.swing.JTextField();
-   private javax.swing.JLabel userLabel;
    // End of variables declaration//GEN-END:variables
 }

@@ -19,7 +19,6 @@ import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.RedmineConfig;
 import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.issue.RedmineIssue;
-import com.kenai.redmineNB.issue.RedmineIssueProvider;
 import com.kenai.redmineNB.issue.RedmineTaskListProvider;
 import com.kenai.redmineNB.query.ParameterValue;
 import com.kenai.redmineNB.query.RedmineQuery;
@@ -35,12 +34,10 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import javax.swing.JOptionPane;
-import org.netbeans.modules.bugtracking.api.Query;
 import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
-import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
@@ -68,6 +65,7 @@ public class RedmineRepository {
 
    static final String PROPERTY_AUTH_MODE = "authMode";        // NOI18N  
    static final String PROPERTY_ACCESS_KEY = "accessKey";      // NOI18N  
+   static final String PROPERTY_PROJECT_ID = "projectId";      // NOI18N  
    // 
    private RepositoryInfo info;
 //   private String name;
@@ -123,7 +121,7 @@ public class RedmineRepository {
    }
 
    synchronized void setInfoValues(String name, String url, String user, char[] password,
-                                   String accessKey, AuthMode authMode) {
+                                   String accessKey, AuthMode authMode, Project project) {
       String id = info != null ? info.getId() : name + System.currentTimeMillis();
       String httpUser = null;
       char[] httpPassword = null;
@@ -136,9 +134,10 @@ public class RedmineRepository {
                                              httpUser,
                                              password,
                                              httpPassword);
-      ri.putValue(PROPERTY_ACCESS_KEY, accessKey);
-      ri.putValue(PROPERTY_AUTH_MODE, authMode == null ? null : authMode.name());
       info = ri;
+      setAccessKey(accessKey);
+      setAuthMode(authMode);
+      setProject(project);
    }
 
    public String getDisplayName() {
@@ -165,18 +164,15 @@ public class RedmineRepository {
    }
 
    public AuthMode getAuthMode() {
-      return AuthMode.valueOf(info.getValue(PROPERTY_AUTH_MODE));
+      return AuthMode.get(info.getValue(PROPERTY_AUTH_MODE));
    }
 
    public void setAuthMode(AuthMode authMode) {
-      if (authMode == null) {
-         throw new IllegalArgumentException("authMode cannot be null");
-      }
       AuthMode old = getAuthMode();
       if (!Is.equals(old, authMode)) {
-         info.putValue(PROPERTY_AUTH_MODE, authMode.name());
          manager = null;
       }
+      info.putValue(PROPERTY_AUTH_MODE, authMode == null ? null : authMode.name());
    }
 
    public String getAccessKey() {
@@ -186,9 +182,9 @@ public class RedmineRepository {
    public void setAccessKey(String accessKey) {
       String old = getAccessKey();
       if (!Is.equals(old, accessKey)) {
-         info.putValue(PROPERTY_ACCESS_KEY, accessKey);
          manager = null; // force reconnect
       }
+      info.putValue(PROPERTY_ACCESS_KEY, accessKey);
    }
 
    public char[] getPassword() {
@@ -199,10 +195,19 @@ public class RedmineRepository {
       return info.getUsername();
    }
 
+   public Project getProject() {
+      return project;
+   }
+
+   public void setProject(Project project) {
+      this.project = project;
+      info.putValue(PROPERTY_PROJECT_ID, project == null ? null : String.valueOf(project.getId()));
+   }
+
    public RedmineIssue getIssue(String issueId) {
       try {
          org.redmine.ta.beans.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
-         RedmineIssue redmineIssue = (RedmineIssue)getIssueCache().setIssueData(issueId, issue);
+         RedmineIssue redmineIssue = (RedmineIssue) getIssueCache().setIssueData(issueId, issue);
          //ensureConfigurationUptodate(issue);
          return redmineIssue;
 
@@ -479,21 +484,6 @@ public class RedmineRepository {
       return manager;
    }
 
-   public Project getProject() {
-      return project;
-   }
-
-   public void setProject(Project project) {
-      this.project = project;
-   }
-
-//   public boolean isFresh() {
-//      return fresh;
-//   }
-//
-//   public final void setFresh(boolean fresh) {
-//      this.fresh = fresh;
-//   }
    private RequestProcessor getRefreshProcessor() {
       if (refreshProcessor == null) {
          refreshProcessor = new RequestProcessor("Redmine refresh - " + getDisplayName()); // NOI18N
@@ -662,7 +652,7 @@ public class RedmineRepository {
       if (!(obj instanceof RedmineRepository)) {
          return false;
       }
-      RedmineRepository other = (RedmineRepository)obj;
+      RedmineRepository other = (RedmineRepository) obj;
       return Is.equals(this.getDisplayName(), other.getDisplayName())
               && Is.equals(this.getUrl(), other.getUrl())
               && Is.equals(this.project, other.project);

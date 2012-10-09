@@ -44,7 +44,7 @@ public class RedmineConnector extends BugtrackingConnector {
    public static String getConnectorName() {
       return Bundle.LBL_ConnectorName();
    }
-
+ 
    @Override
    public Repository createRepository(RepositoryInfo info) {
       RedmineRepository redmineRepository = new RedmineRepository(info);

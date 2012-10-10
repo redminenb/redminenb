@@ -164,10 +164,10 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 //      if ((repository.isFresh() && Redmine.getInstance().isRepositoryNameExists(name))
 //               || (!repository.isFresh() && !name.equals(repository.getName())
 //               && Redmine.getInstance().isRepositoryNameExists(name))) {
-      if (Redmine.getInstance().isRepositoryNameExists(name)) {
-         errorMessage = Bundle.MSG_TrackerAlreadyExists();
-         return false;
-      }
+//      if (Redmine.getInstance().isRepositoryNameExists(name)) {
+//         errorMessage = Bundle.MSG_TrackerAlreadyExists();
+//         return false;
+//      }
 
       // check url
       String url = getUrl();
@@ -205,16 +205,14 @@ public class RedmineRepositoryController implements RepositoryController, Docume
       panel.createNewProjectButton.setEnabled(connected);
 
       // is repository unique?
-      RedmineRepository confRepository = Redmine.getInstance().repositoryExists(repository);
-
+//      RedmineRepository confRepository = Redmine.getInstance().repositoryExists(repository);
+//
 //      if ((repository.isFresh() && Redmine.getInstance().isRepositoryExists(repository))
 //              || (!repository.isFresh() && confRepository != null
 //              && !confRepository.getID().equals(repository.getID()))) {
-      if (confRepository != null
-              && !confRepository.getID().equals(repository.getID())) {
-         errorMessage = Bundle.MSG_RepositoryAlreadyExists();
-         return false;
-      }
+//         errorMessage = Bundle.MSG_RepositoryAlreadyExists();
+//         return false;
+//      }
 
       if (panel.projectComboBox.getSelectedIndex() == -1) {
          errorMessage = Bundle.MSG_MissingProject();
@@ -244,12 +242,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
               getAccessKey(),
               getAuthMode(),
               getProject());
-      // TODO
-//      try {
-//         Redmine.getInstance().updateRepository(repository);
-//      } catch (com.kenai.redmineNB.RedmineException ex) {
-//         throw new IOException(ex);
-//      }
    }
 
    @Override

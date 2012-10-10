@@ -33,13 +33,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
-import javax.swing.JOptionPane;
 import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
@@ -68,13 +68,6 @@ public class RedmineRepository {
    static final String PROPERTY_PROJECT_ID = "projectId";      // NOI18N  
    // 
    private RepositoryInfo info;
-//   private String name;
-//   private String id;
-//   private String url;
-//   private transient AuthMode authMode;
-//   private String accessKey;
-//   private String username;
-//   private transient char[] password;
    private transient RepositoryController controller;
    private Collection<RedmineQuery> queries;
    // TODO Create manager wrapping class to handle Redmine related errors
@@ -90,6 +83,8 @@ public class RedmineRepository {
    private RequestProcessor.Task refreshIssuesTask;
    private RequestProcessor.Task refreshQueryTask;
    private RequestProcessor refreshProcessor;
+   //
+   private final Object QUERIES_LOCK = new Object();
 
    /**
     * Default constructor required for deserializing.
@@ -101,7 +96,17 @@ public class RedmineRepository {
    public RedmineRepository(RepositoryInfo info) {
       this();
       this.info = info;
+
+      try {
+         String projectId = info.getValue(PROPERTY_PROJECT_ID);
+         if (projectId != null) {
+            setProject(getManager().getProjectByKey(projectId));
+         }
 //      setFresh(true);
+      } catch (RedmineException ex) {
+         Exceptions.printStackTrace(ex);
+      }
+      RedmineTaskListProvider.getInstance().notifyRepositoryCreated(this);
    }
 
    public Image getIcon() {
@@ -231,24 +236,26 @@ public class RedmineRepository {
    }
 
    public void remove() {
-      try {
-         Redmine.getInstance().removeRepository(this);
-      } catch (com.kenai.redmineNB.RedmineException ex) {
-         JOptionPane.showMessageDialog(null, ex.getLocalizedMessage());
+//      try {
+//         Redmine.getInstance().removeRepository(this);
+//      } catch (com.kenai.redmineNB.RedmineException ex) {
+//         JOptionPane.showMessageDialog(null, ex.getLocalizedMessage());
+//      }
+      synchronized (QUERIES_LOCK) {
+         for (RedmineQuery rq : doGetQueries()) {
+            removeQuery(rq);
+         }
+      }
+      resetRepository(true);
+      RedmineTaskListProvider.getInstance().notifyRepositoryRemoved(this);
+   }
+
+   synchronized void resetRepository(boolean keepConfiguration) {
+      if (!keepConfiguration) {
+         manager = null;
       }
    }
 
-//   synchronized void resetRepository(boolean keepConfiguration) {
-//      if (!keepConfiguration) {
-//         manager = null;
-//      }
-//      if (getManager() != null) {
-//         Redmine.getInstance()
-//                 .getRepositoryConnector()
-//                 .getClientManager()
-//                 .repositoryRemoved(getTaskRepository());
-//      }
-//   }
    public RepositoryController getController() {
       if (controller == null) {
          controller = new RedmineRepositoryController(this);

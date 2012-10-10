@@ -120,43 +120,43 @@ public class RedmineConfig {
       return getPreferences().getBoolean(CHECK_UPDATES, true);
    }
 
-   public void putRepository(RedmineRepository repository) throws IllegalArgumentException,
-                                                                  IllegalAccessException,
-                                                                  BackingStoreException {
-      String baseKey = getRepositoryKey(repository);
-      RedminePreferences.putObject(baseKey, repository);
-      RedminePreferences.getPreferences().put(baseKey + ".authMode", repository.getAuthMode().name());
-      RedminePreferences.getPreferences().put(baseKey + ".project.id", repository.getProject().getIdentifier());
-
-      BugtrackingUtil.savePassword(String.valueOf(repository.getPassword()),
-                                   null,
-                                   repository.getUsername(),
-                                   repository.getUrl());
-   }
-
-   @Messages("MSG_HostNotReachable=Redmine host ''{0}'' is not reachable!")
-   public RedmineRepository getRepository(String id) throws InstantiationException,
-                                                            IllegalAccessException,
-                                                            BackingStoreException {
-      String baseKey = getRepositoryKey(id);
-      RedmineRepository repo = RedminePreferences.getObject(baseKey, RedmineRepository.class);
-//      repo.setPassword(BugtrackingUtil.readPassword("", null, repo.getUsername(), repo.getUrl()));
-//      repo.setAuthMode(AuthMode.valueOf(RedminePreferences.getPreferences().get(baseKey + ".authMode", AuthMode.AccessKey.name())));
-      String projectId = RedminePreferences.getPreferences().get(baseKey + ".project.id", null);
-      try {
-         URL url = new URL(repo.getUrl());
-         if (repo.isReachable()) {
-            repo.setProject(repo.getManager().getProjectByKey(projectId));
-         } else {
-            NotificationDisplayer.getDefault().notify("Redmine: " + repo.getDisplayName(),
-                                                      Defaults.getIcon("error.png"),
-                                                      Bundle.MSG_HostNotReachable(url.getHost()), null);
-         }
-      } catch (Exception ex) {
-         Exceptions.printStackTrace(ex);
-      }
-      return repo;
-   }
+//   public void putRepository(RedmineRepository repository) throws IllegalArgumentException,
+//                                                                  IllegalAccessException,
+//                                                                  BackingStoreException {
+//      String baseKey = getRepositoryKey(repository);
+//      RedminePreferences.putObject(baseKey, repository);
+//      RedminePreferences.getPreferences().put(baseKey + ".authMode", repository.getAuthMode().name());
+//      RedminePreferences.getPreferences().put(baseKey + ".project.id", repository.getProject().getIdentifier());
+//
+//      BugtrackingUtil.savePassword(String.valueOf(repository.getPassword()),
+//                                   null,
+//                                   repository.getUsername(),
+//                                   repository.getUrl());
+//   }
+//
+//   @Messages("MSG_HostNotReachable=Redmine host ''{0}'' is not reachable!")
+//   public RedmineRepository getRepository(String id) throws InstantiationException,
+//                                                            IllegalAccessException,
+//                                                            BackingStoreException {
+//      String baseKey = getRepositoryKey(id);
+//      RedmineRepository repo = RedminePreferences.getObject(baseKey, RedmineRepository.class);
+////      repo.setPassword(BugtrackingUtil.readPassword("", null, repo.getUsername(), repo.getUrl()));
+////      repo.setAuthMode(AuthMode.valueOf(RedminePreferences.getPreferences().get(baseKey + ".authMode", AuthMode.AccessKey.name())));
+//      String projectId = RedminePreferences.getPreferences().get(baseKey + ".project.id", null);
+//      try {
+//         URL url = new URL(repo.getUrl());
+//         if (repo.isReachable()) {
+//            repo.setProject(repo.getManager().getProjectByKey(projectId));
+//         } else {
+//            NotificationDisplayer.getDefault().notify("Redmine: " + repo.getDisplayName(),
+//                                                      Defaults.getIcon("error.png"),
+//                                                      Bundle.MSG_HostNotReachable(url.getHost()), null);
+//         }
+//      } catch (Exception ex) {
+//         Exceptions.printStackTrace(ex);
+//      }
+//      return repo;
+//   }
 
    public void removeRepository(RedmineRepository repository) throws BackingStoreException {
       RedminePreferences.removeObject(getRepositoryKey(repository));
@@ -181,25 +181,25 @@ public class RedmineConfig {
       return ret.toArray(keys);
    }
 
-   public Set<RedmineRepository> getRepositories() throws BackingStoreException,
-                                                          InstantiationException,
-                                                          IllegalAccessException {
-      Set<RedmineRepository> repositories = new HashSet<RedmineRepository>();
-      Set<String> repositorySet = new HashSet<String>();
-
-      for (String string : RedminePreferences.getPreferences().keys()) {
-         if (string.startsWith(REPO_ID)) {
-            String id = getRepositoryId(string);
-
-            if (!repositorySet.contains(id)) {
-               repositories.add(getRepository(id));
-               repositorySet.add(id);
-            }
-         }
-      }
-
-      return repositories;
-   }
+//   public Set<RedmineRepository> getRepositories() throws BackingStoreException,
+//                                                          InstantiationException,
+//                                                          IllegalAccessException {
+//      Set<RedmineRepository> repositories = new HashSet<RedmineRepository>();
+//      Set<String> repositorySet = new HashSet<String>();
+//
+//      for (String string : RedminePreferences.getPreferences().keys()) {
+//         if (string.startsWith(REPO_ID)) {
+//            String id = getRepositoryId(string);
+//
+//            if (!repositorySet.contains(id)) {
+//               repositories.add(getRepository(id));
+//               repositorySet.add(id);
+//            }
+//         }
+//      }
+//
+//      return repositories;
+//   }
 
    private String getRepositoryId(String key) {
       return key.substring(REPO_ID.length() + 1, key.indexOf('.', REPO_ID.length() + 1));

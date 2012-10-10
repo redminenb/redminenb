@@ -47,111 +47,111 @@ public final class Redmine {
 
    @SuppressWarnings("unchecked")
    private Redmine() throws RedmineException {
-      try {
-         repositories = RedmineConfig.getInstance().getRepositories();
-      } catch (BackingStoreException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to get Redmine repositories");
-      } catch (InstantiationException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to get Redmine repositories");
-      } catch (IllegalAccessException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to get Redmine repositories");
-      }
+//      try {
+//         repositories = RedmineConfig.getInstance().getRepositories();
+//      } catch (BackingStoreException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to get Redmine repositories");
+//      } catch (InstantiationException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to get Redmine repositories");
+//      } catch (IllegalAccessException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to get Redmine repositories");
+//      }
    }
 
-   public void addRepository(RedmineRepository repository) throws RedmineException {
-      try {
-         if (isRepositoryNameExists(repository.getDisplayName())) {
-            throw new RedmineException("Redmine repository already exists");
-         }
-
-         RedmineConfig.getInstance().putRepository(repository);
-
-         Collection<RedmineRepository> oldRepos = Collections.unmodifiableCollection(
-                 new LinkedList<RedmineRepository>(repositories));
-
-         repositories.add(repository);
-//         getConnector().fireRepositoriesChanged(oldRepos, repositories);
-         
-      } catch (BackingStoreException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to save Redmine repository");
-      } catch (IllegalArgumentException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to save Redmine repository");
-      } catch (IllegalAccessException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to save Redmine repository");
-      }
-   }
-
-   public void removeRepository(RedmineRepository repository) throws RedmineException {
-      try {
-         Collection<RedmineRepository> oldRepos = Collections.unmodifiableCollection(
-                 new ArrayList<RedmineRepository>(repositories));
-
-         RedmineConfig.getInstance().removeRepository(repository);
-         repositories.remove(repository);
-
-//         getConnector().fireRepositoriesChanged(oldRepos, Collections.unmodifiableCollection(repositories));
-
-      } catch (BackingStoreException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to remove Redmine repository");
-      }
-   }
-
-   public void updateRepository(RedmineRepository repository) throws RedmineException {
-      try {
-         if (!isRepositoryExists(repository)) {
-            throw new RedmineException("Redmine repository does not exist, so can not be updated");
-         }
-
-         RedmineConfig.getInstance().putRepository(repository);
-
-         //getConnector().fireRepositoriesChanged(null, null);
-
-      } catch (BackingStoreException ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to save Redmine repository");
-      } catch (Exception ex) {
-         LOG.log(Level.SEVERE, "Redmine preference error", ex);
-         throw new RedmineException("Unable to save Redmine repository");
-      }
-   }
-
-   public Collection<RedmineRepository> getRepositories() throws RedmineException {
-      return repositories;
-   }
-
-   public boolean isRepositoryNameExists(String name) {
-      for (RedmineRepository repository : repositories) {
-         if (repository.getDisplayName().equals(name)) {
-            return true;
-         }
-      }
-      return false;
-   }
-
-   public boolean isRepositoryExists(RedmineRepository repository) {
-      for (RedmineRepository confRepository : repositories) {
-         if (confRepository.equals(repository)) {
-            return true;
-         }
-      }
-      return false;
-   }
-
-   public RedmineRepository repositoryExists(RedmineRepository repository) {
-      for (RedmineRepository confRepository : repositories) {
-         if (confRepository.equals(repository)) {
-            return confRepository;
-         }
-      }
-      return null;
-   }
+//   public void addRepository(RedmineRepository repository) throws RedmineException {
+//      try {
+//         if (isRepositoryNameExists(repository.getDisplayName())) {
+//            throw new RedmineException("Redmine repository already exists");
+//         }
+//
+//         RedmineConfig.getInstance().putRepository(repository);
+//
+//         Collection<RedmineRepository> oldRepos = Collections.unmodifiableCollection(
+//                 new LinkedList<RedmineRepository>(repositories));
+//
+//         repositories.add(repository);
+////         getConnector().fireRepositoriesChanged(oldRepos, repositories);
+//         
+//      } catch (BackingStoreException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to save Redmine repository");
+//      } catch (IllegalArgumentException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to save Redmine repository");
+//      } catch (IllegalAccessException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to save Redmine repository");
+//      }
+//   }
+//
+//   public void removeRepository(RedmineRepository repository) throws RedmineException {
+//      try {
+//         Collection<RedmineRepository> oldRepos = Collections.unmodifiableCollection(
+//                 new ArrayList<RedmineRepository>(repositories));
+//
+//         RedmineConfig.getInstance().removeRepository(repository);
+//         repositories.remove(repository);
+//
+////         getConnector().fireRepositoriesChanged(oldRepos, Collections.unmodifiableCollection(repositories));
+//
+//      } catch (BackingStoreException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to remove Redmine repository");
+//      }
+//   }
+//
+//   public void updateRepository(RedmineRepository repository) throws RedmineException {
+//      try {
+//         if (!isRepositoryExists(repository)) {
+//            throw new RedmineException("Redmine repository does not exist, so can not be updated");
+//         }
+//
+//         RedmineConfig.getInstance().putRepository(repository);
+//
+//         //getConnector().fireRepositoriesChanged(null, null);
+//
+//      } catch (BackingStoreException ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to save Redmine repository");
+//      } catch (Exception ex) {
+//         LOG.log(Level.SEVERE, "Redmine preference error", ex);
+//         throw new RedmineException("Unable to save Redmine repository");
+//      }
+//   }
+//
+//   public Collection<RedmineRepository> getRepositories() throws RedmineException {
+//      return repositories;
+//   }
+//
+//   public boolean isRepositoryNameExists(String name) {
+//      for (RedmineRepository repository : repositories) {
+//         if (repository.getDisplayName().equals(name)) {
+//            return true;
+//         }
+//      }
+//      return false;
+//   }
+//
+//   public boolean isRepositoryExists(RedmineRepository repository) {
+//      for (RedmineRepository confRepository : repositories) {
+//         if (confRepository.equals(repository)) {
+//            return true;
+//         }
+//      }
+//      return false;
+//   }
+//
+//   public RedmineRepository repositoryExists(RedmineRepository repository) {
+//      for (RedmineRepository confRepository : repositories) {
+//         if (confRepository.equals(repository)) {
+//            return confRepository;
+//         }
+//      }
+//      return null;
+//   }
 
    public static synchronized Redmine getInstance() {
       if (instance == null) {

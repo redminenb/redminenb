@@ -30,34 +30,31 @@ public class RedmineIssueController extends BugtrackingController {
 
    public RedmineIssueController(RedmineIssue issue) {
       this.issue = issue;
+      issuePanel = new RedmineIssuePanel(issue);
+      initActions();
+      //issuePane.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+
+      JScrollPane scrollPane = new JScrollPane(issuePanel);
+      scrollPane.setBorder(null);
+      UIUtils.keepFocusedComponentVisible(scrollPane);
+
+      JPanel pane = new JPanel(new BorderLayout());
+      pane.setBorder(null);
+      pane.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+//         if (!issue.isNew()) {
+//            pane.add(issuePane.headPanel, BorderLayout.NORTH);
+//         }
+      pane.add(scrollPane, BorderLayout.CENTER);
+      component = pane;
    }
 
    @Override
    public JComponent getComponent() {
-      if (component == null) {
-         issuePanel = new RedmineIssuePanel(issue);
-         initActions();
-         //issuePane.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-
-         JScrollPane scrollPane = new JScrollPane(issuePanel);
-         scrollPane.setBorder(null);
-         UIUtils.keepFocusedComponentVisible(scrollPane);
-
-         JPanel pane = new JPanel(new BorderLayout());
-         pane.setBorder(null);
-         pane.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
-//         if (!issue.isNew()) {
-//            pane.add(issuePane.headPanel, BorderLayout.NORTH);
-//         }
-         pane.add(scrollPane, BorderLayout.CENTER);
-         component = pane;
-      }
       return component;
    }
 
    @Override
    public void opened() {
-      RedmineIssue issue = issuePanel.getIssue();
       if (issue != null) {
          issuePanel.opened();
          issue.opened();
@@ -66,7 +63,6 @@ public class RedmineIssueController extends BugtrackingController {
 
    @Override
    public void closed() {
-      RedmineIssue issue = issuePanel.getIssue();
       if (issue != null) {
          issue.closed();
          issuePanel.closed();

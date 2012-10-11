@@ -23,9 +23,9 @@ import org.netbeans.modules.bugtracking.BugtrackingManager;
 import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
-import org.redmine.ta.beans.IssueCategory;
-import org.redmine.ta.beans.Tracker;
-import org.redmine.ta.beans.Version;
+import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.Tracker;
+import com.taskadapter.redmineapi.bean.Version;
 
 
 /**

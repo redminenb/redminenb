@@ -41,9 +41,9 @@ import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
 import org.netbeans.modules.bugtracking.util.LogUtils;
 import org.openide.nodes.Node.Property;
 import org.openide.util.Exceptions;
-import org.redmine.ta.AuthenticationException;
-import org.redmine.ta.NotFoundException;
-import org.redmine.ta.RedmineException;
+import com.taskadapter.redmineapi.AuthenticationException;
+import com.taskadapter.redmineapi.NotFoundException;
+import com.taskadapter.redmineapi.RedmineException;
 
 
 /**
@@ -169,8 +169,8 @@ public final class RedmineQuery {
                }
                firstRun = false;
                try {
-                  List<org.redmine.ta.beans.Issue> issueArr = doSearch(queryController.getSearchParameterMap());
-                  for (org.redmine.ta.beans.Issue issue : issueArr) {
+                  List<com.taskadapter.redmineapi.bean.Issue> issueArr = doSearch(queryController.getSearchParameterMap());
+                  for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
                      getController().addProgressUnit(RedmineIssue.getDisplayName(issue));
                      try {
                         RedmineIssue redmineIssue = (RedmineIssue)repository.getIssueCache().setIssueData(
@@ -237,7 +237,7 @@ public final class RedmineQuery {
     * @see http://www.redmine.org/projects/redmine/wiki/Rest_Issues
     * @param searchParameterMap
     */
-   private List<org.redmine.ta.beans.Issue> doSearch(Map<String, String> searchParameterMap) throws IOException, AuthenticationException, NotFoundException, RedmineException {
+   private List<com.taskadapter.redmineapi.bean.Issue> doSearch(Map<String, String> searchParameterMap) throws IOException, AuthenticationException, NotFoundException, RedmineException {
       // see RedmineQueryController constructor
       boolean isSubject = "1".equals(searchParameterMap.remove("is_subject"));
       boolean isDescription = "1".equals(searchParameterMap.remove("is_description"));
@@ -245,12 +245,12 @@ public final class RedmineQuery {
       String queryStr = searchParameterMap.remove("query");
 
       // Perform search
-      List<org.redmine.ta.beans.Issue> issueArr = repository.getManager().getIssues(searchParameterMap);
+      List<com.taskadapter.redmineapi.bean.Issue> issueArr = repository.getManager().getIssues(searchParameterMap);
 
       // Post filtering
       if (StringUtils.isNotBlank(queryStr) && (isSubject || isDescription || isComments)) {
-         List<org.redmine.ta.beans.Issue> newArr = new ArrayList<org.redmine.ta.beans.Issue>();
-         for (org.redmine.ta.beans.Issue issue : issueArr) {
+         List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>();
+         for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
             if ((isSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
                     || (isDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /* || (isComments && StringUtils.containsIgnoreCase(..., queryStr))*/) {
                newArr.add(issue);
@@ -308,7 +308,7 @@ public final class RedmineQuery {
       synchronized (issues) {
          ids.addAll(issues);
       }
-      IssueCache<RedmineIssue, org.redmine.ta.beans.Issue> cache = repository.getIssueCache();
+      IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> cache = repository.getIssueCache();
       List<RedmineIssue> ret = new ArrayList<RedmineIssue>();
       for (String id : ids) {
          int status = getIssueStatus(id);

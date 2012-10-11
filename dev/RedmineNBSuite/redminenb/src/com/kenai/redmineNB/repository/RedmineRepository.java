@@ -45,11 +45,10 @@ import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import org.redmine.ta.NotFoundException;
-import org.redmine.ta.RedmineException;
-import org.redmine.ta.RedmineManager;
-import org.redmine.ta.beans.*;
-
+import com.taskadapter.redmineapi.NotFoundException;
+import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.bean.*;
 
 /**
  * Redmine repository manager.
@@ -76,7 +75,6 @@ public class RedmineRepository {
    private transient Lookup lookup;
    private final transient InstanceContent ic;
    private transient RedmineIssueCache cache;
-//   private transient boolean fresh;
    //
    private final Set<String> issuesToRefresh = new HashSet<String>(5);
    private final Set<RedmineQuery> queriesToRefresh = new HashSet<RedmineQuery>(3);
@@ -102,7 +100,6 @@ public class RedmineRepository {
          if (projectId != null) {
             setProject(getManager().getProjectByKey(projectId));
          }
-//      setFresh(true);
       } catch (RedmineException ex) {
          Exceptions.printStackTrace(ex);
       }
@@ -211,8 +208,8 @@ public class RedmineRepository {
 
    public RedmineIssue getIssue(String issueId) {
       try {
-         org.redmine.ta.beans.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
-         RedmineIssue redmineIssue = (RedmineIssue) getIssueCache().setIssueData(issueId, issue);
+         com.taskadapter.redmineapi.bean.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
+         RedmineIssue redmineIssue = (RedmineIssue)getIssueCache().setIssueData(issueId, issue);
          //ensureConfigurationUptodate(issue);
          return redmineIssue;
 
@@ -304,17 +301,26 @@ public class RedmineRepository {
       return doGetQueries();
    }
 
+   /**
+    * Get this {@link #project}'s users.
+    *
+    * @return
+    */
    public Collection<RepositoryUser> getUsers() {
+      List<RepositoryUser> users = new ArrayList<RepositoryUser>();
       try {
-         return RedmineUser.getUsers(getManager().getUsers());
-      } catch (NotFoundException ex) {
-         // TODO Notify user that the issue no longer exists
-         Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Users", ex);
+         User currentUser = manager.getCurrentUser();
+         users.add(new RedmineUser(currentUser, true));
+         for (Membership m : manager.getMemberships(project)) {
+            if (m.getUser() != null && !currentUser.equals(m.getUser())) {
+               users.add(new RedmineUser(m.getUser()));
+            }
+         }
       } catch (RedmineException ex) {
          // TODO Notify user that Redmine internal error has happened
          Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Users", ex);
       }
-      return Collections.<RepositoryUser>emptyList();
+      return users;
    }
 
    public Collection<Tracker> getTrackers() {
@@ -429,7 +435,7 @@ public class RedmineRepository {
               new ParameterValue("Immediate", 7));
    }
 
-   public IssueCache<RedmineIssue, org.redmine.ta.beans.Issue> getIssueCache() {
+   public IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> getIssueCache() {
       if (cache == null) {
          cache = new RedmineIssueCache();
       }
@@ -438,8 +444,8 @@ public class RedmineRepository {
 
    public Collection<RedmineIssue> simpleSearch(String string) {
       try {
-         List<org.redmine.ta.beans.Issue> issuesByID =
-                 new LinkedList<org.redmine.ta.beans.Issue>();
+         List<com.taskadapter.redmineapi.bean.Issue> issuesByID =
+                 new LinkedList<com.taskadapter.redmineapi.bean.Issue>();
 
          try {
             issuesByID.add(getManager().getIssueById(Integer.parseInt(string)));
@@ -518,7 +524,6 @@ public class RedmineRepository {
 //               getExecutor().execute(cmd, false);
                scheduleIssueRefresh();
             }
-
          });
          scheduleIssueRefresh();
       }
@@ -549,7 +554,6 @@ public class RedmineRepository {
                   scheduleQueryRefresh();
                }
             }
-
          });
          scheduleQueryRefresh();
       }
@@ -639,7 +643,6 @@ public class RedmineRepository {
                qc.onRefresh();
             }
          }
-
       });
    }
 
@@ -659,7 +662,7 @@ public class RedmineRepository {
       if (!(obj instanceof RedmineRepository)) {
          return false;
       }
-      RedmineRepository other = (RedmineRepository) obj;
+      RedmineRepository other = (RedmineRepository)obj;
       return Is.equals(this.getDisplayName(), other.getDisplayName())
               && Is.equals(this.getUrl(), other.getUrl())
               && Is.equals(this.project, other.project);
@@ -674,8 +677,7 @@ public class RedmineRepository {
       return hash;
    }
 
-
-   private class RedmineIssueCache extends IssueCache<RedmineIssue, org.redmine.ta.beans.Issue> {
+   private class RedmineIssueCache extends IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> {
 
       RedmineIssueCache() {
          super(RedmineRepository.this.getUrl() + RedmineRepository.this.getProject().getIdentifier(),
@@ -683,11 +685,9 @@ public class RedmineRepository {
                Redmine.getInstance().getIssueProvider(),
                RedmineUtil.getRepository(RedmineRepository.this));
       }
-
    }
 
-
-   private class RedmineIssueAccessor implements IssueCache.IssueAccessor<RedmineIssue, org.redmine.ta.beans.Issue> {
+   private class RedmineIssueAccessor implements IssueCache.IssueAccessor<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> {
 
       @Override
       public RedmineIssue createIssue(Issue issueData) {
@@ -697,7 +697,7 @@ public class RedmineRepository {
       }
 
       @Override
-      public void setIssueData(RedmineIssue redmineIssue, org.redmine.ta.beans.Issue issue) {
+      public void setIssueData(RedmineIssue redmineIssue, com.taskadapter.redmineapi.bean.Issue issue) {
          assert redmineIssue != null && issue != null;
          redmineIssue.setIssue(issue);
       }
@@ -727,11 +727,9 @@ public class RedmineRepository {
       }
 
       @Override
-      public String getID(org.redmine.ta.beans.Issue issue) {
+      public String getID(com.taskadapter.redmineapi.bean.Issue issue) {
          assert issue != null;
          return new RedmineIssue(RedmineRepository.this, issue).getID();
       }
-
    }
-
 }

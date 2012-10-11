@@ -36,11 +36,11 @@ import org.netbeans.modules.bugtracking.spi.BugtrackingController;
 import org.netbeans.modules.bugtracking.util.TextUtils;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
-import org.redmine.ta.AuthenticationException;
-import org.redmine.ta.NotFoundException;
-import org.redmine.ta.RedmineException;
-import org.redmine.ta.beans.TimeEntry;
-
+import com.taskadapter.redmineapi.AuthenticationException;
+import com.taskadapter.redmineapi.NotFoundException;
+import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.bean.TimeEntry;
+import com.taskadapter.redmineapi.bean.TimeEntry;
 
 /**
  *
@@ -104,7 +104,7 @@ public final class RedmineIssue {
    //
    private static final int SHORTENED_SUMMARY_LENGTH = 22;
    //
-   private org.redmine.ta.beans.Issue issue;
+   private com.taskadapter.redmineapi.bean.Issue issue;
    private RedmineRepository repository;
    private RedmineIssueController controller;
    private IssueNode node;
@@ -116,7 +116,7 @@ public final class RedmineIssue {
       support = new PropertyChangeSupport(this);
    }
 
-   public RedmineIssue(RedmineRepository repository, org.redmine.ta.beans.Issue issue) {
+   public RedmineIssue(RedmineRepository repository, com.taskadapter.redmineapi.bean.Issue issue) {
       this(repository);
       setIssue(issue);
 
@@ -139,7 +139,7 @@ public final class RedmineIssue {
       return getDisplayName(issue);
    }
 
-   public static String getDisplayName(org.redmine.ta.beans.Issue issue) {
+   public static String getDisplayName(com.taskadapter.redmineapi.bean.Issue issue) {
       return issue == null
               ? Bundle.CTL_NewIssue()
               : Bundle.CTL_Issue(issue.getTracker().getName(), issue.getId(), issue.getSubject());
@@ -271,21 +271,21 @@ public final class RedmineIssue {
       return controller;
    }
 
-   public org.redmine.ta.beans.Issue getIssue() {
+   public com.taskadapter.redmineapi.bean.Issue getIssue() {
       return issue;
    }
 
-   public void setIssue(org.redmine.ta.beans.Issue issue) {
+   public void setIssue(com.taskadapter.redmineapi.bean.Issue issue) {
       this.issue = issue;
    }
 
    public static Collection<RedmineIssue> getIssues(RedmineRepository repository,
-                                                    List<org.redmine.ta.beans.Issue>... issueList) {
+                                                    List<com.taskadapter.redmineapi.bean.Issue>... issueList) {
       List<RedmineIssue> convertedIssues = new LinkedList<RedmineIssue>();
 
-      for (List<org.redmine.ta.beans.Issue> issues : issueList) {
+      for (List<com.taskadapter.redmineapi.bean.Issue> issues : issueList) {
          if (issues != null) {
-            for (org.redmine.ta.beans.Issue issue : issues) {
+            for (com.taskadapter.redmineapi.bean.Issue issue : issues) {
                convertedIssues.add(new RedmineIssue(repository, issue));
             }
          }
@@ -394,5 +394,4 @@ public final class RedmineIssue {
       }
       return null;
    }
-
 }

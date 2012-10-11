@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.openide.util.NbBundle;
-import org.redmine.ta.NotFoundException;
-import org.redmine.ta.RedmineException;
-import org.redmine.ta.beans.Project;
+import com.taskadapter.redmineapi.NotFoundException;
+import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.bean.Project;
 
 
 /**

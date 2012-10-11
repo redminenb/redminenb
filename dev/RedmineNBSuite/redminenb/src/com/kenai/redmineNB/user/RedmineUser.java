@@ -5,36 +5,44 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
-import org.redmine.ta.beans.User;
-
+import com.taskadapter.redmineapi.bean.User;
 
 /**
  * A Redmine {@link RepositoryUser repository user}.
- * 
+ *
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
 public class RedmineUser extends RepositoryUser {
 
    private final User user;
+   /**
+    * true if this user is the current logged in user.
+    */
+   private final boolean isCurrentUser;
 
-
-   private RedmineUser(User user) {
-      super(user.getLogin(), user.getFullName());
-      this.user = user;
+   public RedmineUser(User user) {
+      this(user, false);
    }
 
+   public RedmineUser(User user, boolean isCurrentUser) {
+      super(user.getLogin(), user.getFullName());
+      this.user = user;
+      this.isCurrentUser = isCurrentUser;
+   }
 
    public User getUser() {
       return user;
    }
 
+   public boolean isIsCurrentUser() {
+      return isCurrentUser;
+   }
 
    @Override
    public String toString() {
       return getFullName();
    }
-
 
    @Override
    public boolean equals(Object obj) {
@@ -44,12 +52,11 @@ public class RedmineUser extends RepositoryUser {
       if (!(obj instanceof RedmineUser)) {
          return false;
       }
-      RedmineUser other = (RedmineUser) obj;
+      RedmineUser other = (RedmineUser)obj;
       return (this.user == null && other.user == null)
               || (this.user != null && other.user != null && Is.equals(this.user.getId(), other.user.getId()))
               || false;
    }
-
 
    @Override
    public int hashCode() {
@@ -58,14 +65,7 @@ public class RedmineUser extends RepositoryUser {
       return hash;
    }
 
-   
-
-   public static RepositoryUser getUser(User user) {
-      return new RedmineUser(user);
-   }
-
-
-   public static Collection<RepositoryUser> getUsers(List<User> users) {
+   public static Collection<RepositoryUser> convert(List<User> users) {
       Collection<RepositoryUser> convertedUsers = new LinkedList<RepositoryUser>();
       for (User user : users) {
          convertedUsers.add(new RedmineUser(user));

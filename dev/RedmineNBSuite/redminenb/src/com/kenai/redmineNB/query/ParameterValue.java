@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.net.ssl.SSLEngineResult.Status;
-import org.redmine.ta.beans.IssueStatus;
-import org.redmine.ta.beans.Version;
+import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.Version;
 
 
 /**

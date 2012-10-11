@@ -45,9 +45,9 @@ import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.openide.util.*;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor.Task;
-import org.redmine.ta.RedmineException;
-import org.redmine.ta.beans.Project;
-import org.redmine.ta.beans.User;
+import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.User;
 
 
 /**

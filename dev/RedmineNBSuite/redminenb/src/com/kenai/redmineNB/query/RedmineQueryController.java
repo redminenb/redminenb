@@ -68,10 +68,10 @@ import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
-import org.redmine.ta.beans.IssueCategory;
-import org.redmine.ta.beans.IssueStatus;
-import org.redmine.ta.beans.Tracker;
-import org.redmine.ta.beans.Version;
+import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.Tracker;
+import com.taskadapter.redmineapi.bean.Version;
 
 
 /**

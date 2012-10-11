@@ -25,11 +25,10 @@ import org.openide.awt.HtmlBrowser;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.RequestProcessor;
-import org.redmine.ta.beans.IssueCategory;
-import org.redmine.ta.beans.IssueStatus;
-import org.redmine.ta.beans.Tracker;
-import org.redmine.ta.beans.Version;
-
+import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.Tracker;
+import com.taskadapter.redmineapi.bean.Version;
 
 /**
  * Panel showing a Redmine Issue.
@@ -37,7 +36,7 @@ import org.redmine.ta.beans.Version;
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
-public class RedmineIssuePanel extends javax.swing.JPanel {
+public class RedmineIssuePanel extends JPanel {
 
    private static final long serialVersionUID = 9011030935877495476L;
    static final RequestProcessor RP = new RequestProcessor("Redmine Issue Panel", 5, false); // NOI18N
@@ -103,7 +102,7 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
    private void initIssue() {
       projectNameButton.setText(redmineIssue.getRepository().getProject().getName());
 
-      org.redmine.ta.beans.Issue issue = this.redmineIssue.getIssue();
+      com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
       if (issue != null) {
          parentHeaderPanel.setVisible(!redmineIssue.isNew());
          headerLabel.setVisible(!redmineIssue.isNew());
@@ -173,7 +172,6 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
                            public void actionPerformed(ActionEvent e) {
                               RedmineUtil.openIssue(parent);
                            }
-
                         });
                         parentButton.setText(parent.getIssue().getTracker().getName() + " #" + parent.getID() + ':');
                         layout.setHorizontalGroup(
@@ -183,10 +181,8 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
                         parentHeaderPanel.setLayout(layout);
                         parentHeaderPanel.setMinimumSize(parentHeaderPanel.getPreferredSize());
                      }
-
                   });
                }
-
             });
          } else {
             // no parent issue
@@ -251,15 +247,13 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
                public void run() {
                   setInfoMessage(null);
                }
-
             });
          }
-
       }, 5000);
 
    }
 
-   private void setIssueData(org.redmine.ta.beans.Issue issue) {
+   private void setIssueData(com.taskadapter.redmineapi.bean.Issue issue) {
       issue.setTracker((Tracker)trackerComboBox.getSelectedItem());
       issue.setStatusId(((IssueStatus)statusComboBox.getSelectedItem()).getId());
 
@@ -294,7 +288,7 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
       return redmineIssue;
    }
 
-   private boolean createIssue(org.redmine.ta.beans.Issue issue) {
+   private boolean createIssue(com.taskadapter.redmineapi.bean.Issue issue) {
       try {
          setIssueData(issue);
          this.redmineIssue.setIssue(this.redmineIssue.getRepository().getManager().createIssue(
@@ -322,15 +316,15 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
 //         Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex);
 //      }
       } catch (Exception ex) {
-         Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex);
-         setErrorMessage("Creating the Issue failed!");
+         //Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex);
+         setErrorMessage("Creating the Issue failed: " + ex.getMessage());
       }
       return false;
    }
 
    private boolean saveIssue() {
       try {
-         org.redmine.ta.beans.Issue issue = this.redmineIssue.getIssue();
+         com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
          setIssueData(issue);
          redmineIssue.getRepository().getManager().update(issue);
          redmineIssue.refresh();
@@ -374,8 +368,8 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
       priorityComboBox.setModel(new DefaultComboBoxModel(redmineIssue.getRepository().getIssuePriorities().toArray()));
 
       assigneeComboBox.setRenderer(new Defaults.RepositoryUserLCR());
-      assigneeComboBox.setUsers(redmineIssue.getRepository().getUsers());
-      ((DefaultComboBoxModel)assigneeComboBox.getModel()).insertElementAt(null, 0);
+      assigneeComboBox.addUser((RedmineUser)null);
+      assigneeComboBox.addUser(redmineIssue.getRepository().getUsers().toArray(new RedmineUser[0]));
 
       categoryComboBox.setRenderer(new Defaults.IssueCategoryLCR());
       categoryComboBox.setModel(new DefaultComboBoxModel(redmineIssue.getRepository().getIssueCategories().toArray()));
@@ -472,7 +466,7 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
                .addGroup(headPaneLayout.createSequentialGroup()
                   .addGap(10, 10, 10)
                   .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-               .addComponent(parentHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 687, Short.MAX_VALUE))
+               .addComponent(parentHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 705, Short.MAX_VALUE))
             .addContainerGap())
       );
       headPaneLayout.setVerticalGroup(
@@ -488,6 +482,7 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
       buttonPane.setOpaque(false);
 
       updateButton.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateButton.text")); // NOI18N
+      updateButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateButton.toolTipText")); // NOI18N
       updateButton.setSelected(true);
       updateButton.addActionListener(new java.awt.event.ActionListener() {
          public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -496,6 +491,7 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
       });
 
       createButton.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createButton.text")); // NOI18N
+      createButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createButton.toolTipText")); // NOI18N
       createButton.setSelected(true);
       createButton.addActionListener(new java.awt.event.ActionListener() {
          public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -527,9 +523,9 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(resetButton)
             .addGap(18, 18, 18)
-            .addComponent(infoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 277, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(infoLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 68, Short.MAX_VALUE)
+            .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
             .addContainerGap())
       );
       buttonPaneLayout.setVerticalGroup(
@@ -583,7 +579,6 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
       subjectTextField.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectTextField.text")); // NOI18N
 
       descriptionTextArea.setColumns(20);
-      descriptionTextArea.setRows(5);
       jScrollPane1.setViewportView(descriptionTextArea);
 
       seenButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redmineNB/resources/help.png"))); // NOI18N
@@ -635,13 +630,13 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
       issuePane.setLayout(issuePaneLayout);
       issuePaneLayout.setHorizontalGroup(
          issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(issuePaneLayout.createSequentialGroup()
+         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
             .addContainerGap()
-            .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addGroup(issuePaneLayout.createSequentialGroup()
+            .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+               .addGroup(javax.swing.GroupLayout.Alignment.LEADING, issuePaneLayout.createSequentialGroup()
                   .addComponent(targetVersionLabel)
                   .addGap(0, 0, Short.MAX_VALUE))
-               .addGroup(issuePaneLayout.createSequentialGroup()
+               .addGroup(javax.swing.GroupLayout.Alignment.LEADING, issuePaneLayout.createSequentialGroup()
                   .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                      .addComponent(descriptionLabel)
                      .addComponent(statusLabel)
@@ -706,14 +701,14 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
             .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                .addComponent(subjectTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                .addComponent(subjectLabel))
-            .addGap(18, 18, 18)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addGroup(issuePaneLayout.createSequentialGroup()
                   .addComponent(descriptionLabel)
                   .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                   .addComponent(seenButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-               .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGap(16, 16, 16)
+               .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                .addComponent(statusLabel)
@@ -751,7 +746,7 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
                   .addComponent(targetVersionComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                   .addComponent(doneLabel)
                   .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-            .addGap(21, 21, 21))
+            .addContainerGap())
       );
 
       javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -777,16 +772,16 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
             .addComponent(buttonPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(issuePane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addContainerGap(40, Short.MAX_VALUE))
       );
    }// </editor-fold>//GEN-END:initComponents
 
     private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
        if (isIssueValid()) {
-          org.redmine.ta.beans.Issue issue = this.redmineIssue.getIssue();
+          com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
 
           if (issue == null) {
-             issue = new org.redmine.ta.beans.Issue();
+             issue = new com.taskadapter.redmineapi.bean.Issue();
              this.redmineIssue.setIssue(issue);
           }
 
@@ -866,14 +861,14 @@ public class RedmineIssuePanel extends javax.swing.JPanel {
 
    private void projectNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projectNameButtonActionPerformed
       try {
-         URL url = new URL(redmineIssue.getRepository().getUrl() + "/projects/" + redmineIssue.getIssue().getProject().getId()); // NOI18N
+         URL url = new URL(redmineIssue.getRepository().getUrl() + "/projects/" 
+                 + redmineIssue.getRepository().getProject().getId()); // NOI18N
          HtmlBrowser.URLDisplayer.getDefault().showURL(url);
       } catch (IOException ex) {
          Redmine.LOG.log(Level.INFO, "Unable to show the issue's project in the browser.", ex); // NOI18N
       }
 
    }//GEN-LAST:event_projectNameButtonActionPerformed
-
    // Variables declaration - do not modify//GEN-BEGIN:variables
    private com.kenai.redmineNB.user.UserComboBox assigneeComboBox;
    private javax.swing.JLabel assigneeLabel;

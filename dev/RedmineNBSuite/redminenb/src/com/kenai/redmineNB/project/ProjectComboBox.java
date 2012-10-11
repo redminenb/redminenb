@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
-import org.redmine.ta.beans.Project;
+import com.taskadapter.redmineapi.bean.Project;
 
 /**
  *

@@ -54,12 +54,18 @@ public class ListListModel<T> extends AbstractListModel {
       }
    }
 
-   public boolean addAll(Collection<? extends T> c) {
-      return list.addAll(c);
+   public void addAll(Collection<? extends T> c) {
+      int idx1 = list.size() - 1;
+      list.addAll(c);
+      int idx2 = list.size() - 1;
+      fireIntervalAdded(this, idx1, idx2);
    }
 
-   public boolean removeAll(Collection<? extends T> c) {
-      return list.removeAll(c);
+   public void removeAll(Collection<? extends T> c) {
+      list.removeAll(c);
+      int firstIndex = 0;
+      int lastIndex = list.size() - 1;
+      fireContentsChanged(this, firstIndex, lastIndex);
    }
 
    public void clear() {

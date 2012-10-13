@@ -366,7 +366,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
                connectError = false;
                connected = true;
-
+               
                SwingUtilities.invokeLater(new Runnable() {
                   @Override
                   public void run() {

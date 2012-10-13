@@ -43,7 +43,7 @@
               <Component id="buttonPane" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="issuePane" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="40" max="32767" attributes="0"/>
+              <EmptySpace pref="42" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -233,18 +233,30 @@
                               <Component id="subjectTextField" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" alignment="1" attributes="0">
                                   <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="trackerComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
                                       <Group type="102" alignment="0" attributes="0">
-                                          <Group type="103" groupAlignment="1" attributes="0">
-                                              <Component id="targetVersionComboBox" min="-2" pref="233" max="-2" attributes="0"/>
+                                          <Component id="trackerComboBox" min="-2" pref="180" max="-2" attributes="0"/>
+                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                          <Component id="privateCheckBox" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Group type="103" groupAlignment="0" attributes="0">
                                               <Group type="103" groupAlignment="1" attributes="0">
-                                                  <Component id="statusComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
-                                                  <Component id="priorityComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
-                                                  <Component id="assigneeComboBox" alignment="0" min="-2" pref="233" max="-2" attributes="0"/>
+                                                  <Component id="targetVersionComboBox" min="-2" pref="233" max="-2" attributes="0"/>
+                                                  <Group type="102" attributes="0">
+                                                      <Group type="103" groupAlignment="1" attributes="0">
+                                                          <Component id="statusComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
+                                                          <Component id="priorityComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
+                                                      </Group>
+                                                      <EmptySpace min="-2" pref="53" max="-2" attributes="0"/>
+                                                  </Group>
                                               </Group>
+                                              <Component id="assigneeComboBox" min="-2" pref="233" max="-2" attributes="0"/>
                                           </Group>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="versionAddButton" min="-2" pref="18" max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Component id="versionAddButton" min="-2" pref="18" max="-2" attributes="0"/>
+                                              <Component id="assignToMeButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          </Group>
                                       </Group>
                                       <Group type="102" alignment="0" attributes="0">
                                           <Component id="categoryComboBox" min="-2" pref="233" max="-2" attributes="0"/>
@@ -252,7 +264,7 @@
                                           <Component id="categoryAddButton" min="-2" pref="18" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
-                                  <EmptySpace pref="112" max="32767" attributes="0"/>
+                                  <EmptySpace pref="60" max="32767" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
                                       <Component id="dueDateLabel" min="-2" max="-2" attributes="0"/>
                                       <Component id="startDateLabel" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -293,6 +305,7 @@
                       <Component id="trackerComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="subjectLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="projectNameButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="privateCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -326,12 +339,13 @@
                           <Component id="startDateChooser" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                           <Component id="assigneeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="assigneeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="dueDateLabel" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
+                          <Component id="assignToMeButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="assigneeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Component id="dueDateChooser" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -615,13 +629,6 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="com.kenai.redmineNB.user.UserComboBox" name="assigneeComboBox">
-          <Properties>
-            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="0"/>
-            </Property>
-          </Properties>
-        </Component>
         <Component class="com.toedter.calendar.JDateChooser" name="startDateChooser">
           <Properties>
             <Property name="opaque" type="boolean" value="false"/>
@@ -649,6 +656,36 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
+        </Component>
+        <Component class="org.netbeans.modules.bugtracking.util.LinkButton" name="assignToMeButton">
+          <Properties>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redmineNB/issue/Bundle.properties" key="RedmineIssuePanel.assignToMeButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+              <Font name="Lucida Grande" size="11" style="0"/>
+            </Property>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="assignToMeButtonActionPerformed"/>
+          </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
+          </AuxValues>
+        </Component>
+        <Component class="javax.swing.JComboBox" name="assigneeComboBox">
+          <Properties>
+            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+              <StringArray count="0"/>
+            </Property>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="privateCheckBox">
+          <Properties>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redmineNB/issue/Bundle.properties" key="RedmineIssuePanel.privateCheckBox.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
         </Component>
       </SubComponents>
     </Container>

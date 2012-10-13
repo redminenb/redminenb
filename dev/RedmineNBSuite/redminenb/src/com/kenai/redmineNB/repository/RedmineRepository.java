@@ -306,8 +306,8 @@ public class RedmineRepository {
     *
     * @return
     */
-   public Collection<RepositoryUser> getUsers() {
-      List<RepositoryUser> users = new ArrayList<RepositoryUser>();
+   public Collection<RedmineUser> getUsers() {
+      List<RedmineUser> users = new ArrayList<RedmineUser>();
       try {
          User currentUser = manager.getCurrentUser();
          users.add(new RedmineUser(currentUser, true));
@@ -477,7 +477,7 @@ public class RedmineRepository {
       return lookup;
    }
 
-   public RedmineManager getManager() {
+   public final RedmineManager getManager() {
       AuthMode authMode = getAuthMode();
       if (manager == null) {
          if (authMode == null) {

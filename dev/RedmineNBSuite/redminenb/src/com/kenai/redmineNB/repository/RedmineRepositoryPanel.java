@@ -71,10 +71,10 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
       connectButton = new javax.swing.JButton();
       cancelButton = new javax.swing.JButton();
       progressPanel = new javax.swing.JPanel();
-      projectComboBox = new com.kenai.redmineNB.project.ProjectComboBox();
       rbAccessKey = new javax.swing.JRadioButton();
       authLabel = new javax.swing.JLabel();
       rbCredentials = new javax.swing.JRadioButton();
+      projectComboBox = new javax.swing.JComboBox();
 
       setNextFocusableComponent(nameTextField);
 
@@ -97,12 +97,6 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
 
       progressPanel.setPreferredSize(new java.awt.Dimension(250, 25));
       progressPanel.setLayout(new java.awt.BorderLayout());
-
-      projectComboBox.addActionListener(new java.awt.event.ActionListener() {
-         public void actionPerformed(java.awt.event.ActionEvent evt) {
-            projectComboBoxActionPerformed(evt);
-         }
-      });
 
       userField.setColumns(15);
 
@@ -154,19 +148,20 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
                      .addComponent(nameTextField)
                      .addComponent(accessKeyTextField)
                      .addGroup(layout.createSequentialGroup()
-                        .addComponent(projectComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(createNewProjectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(connectButton))
-                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(userField, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pwdField, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE))
-                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(progressPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(progressPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(cancelButton))))))
+                        .addComponent(cancelButton))
+                     .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                           .addComponent(projectComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                           .addComponent(userField, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                           .addGroup(layout.createSequentialGroup()
+                              .addComponent(createNewProjectButton, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                              .addComponent(connectButton))
+                           .addComponent(pwdField, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE)))))))
       );
       layout.setVerticalGroup(
          layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -192,9 +187,9 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
             .addGap(18, 18, 18)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                  .addComponent(projectComboBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                   .addComponent(projectLabel)
-                  .addComponent(connectButton))
+                  .addComponent(connectButton)
+                  .addComponent(projectComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                .addComponent(createNewProjectButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGap(18, 18, 18)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -210,10 +205,6 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         pwdField.setEnabled(evt.getSource() == rbCredentials);
     }//GEN-LAST:event_rbAuthPerformed
 
-   private void projectComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projectComboBoxActionPerformed
-      // TODO add your handling code here:
-   }//GEN-LAST:event_projectComboBoxActionPerformed
-
    // Variables declaration - do not modify//GEN-BEGIN:variables
    javax.swing.JTextField accessKeyTextField;
    private javax.swing.JLabel authLabel;
@@ -225,7 +216,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
    private javax.swing.JLabel nameLabel;
    javax.swing.JTextField nameTextField;
    javax.swing.JPanel progressPanel;
-   com.kenai.redmineNB.project.ProjectComboBox projectComboBox;
+   javax.swing.JComboBox projectComboBox;
    private javax.swing.JLabel projectLabel;
    final javax.swing.JPasswordField pwdField = new javax.swing.JPasswordField();
    javax.swing.JRadioButton rbAccessKey;

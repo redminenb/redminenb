@@ -36,7 +36,7 @@ public final class Redmine {
    //
    private static Redmine instance;
    //
-   private Set<RedmineRepository> repositories;
+//   private Set<RedmineRepository> repositories;
    private RedmineConnector connector;
    private RequestProcessor rp;
    //

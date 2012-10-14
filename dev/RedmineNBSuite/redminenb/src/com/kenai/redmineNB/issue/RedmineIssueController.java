@@ -2,6 +2,8 @@ package com.kenai.redmineNB.issue;
 
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.ui.Defaults;
+import com.kenai.redmineNB.util.RedmineUtil;
+import com.taskadapter.redmineapi.bean.Issue;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
@@ -16,7 +18,6 @@ import org.openide.awt.HtmlBrowser;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
-
 /**
  *
  * @author Mykolas
@@ -24,12 +25,12 @@ import org.openide.util.NbBundle;
  */
 public class RedmineIssueController extends BugtrackingController {
 
-   private final RedmineIssue issue;
+   private final RedmineIssue redmineIssue;
    private JComponent component;
    private RedmineIssuePanel issuePanel;
 
    public RedmineIssueController(RedmineIssue issue) {
-      this.issue = issue;
+      this.redmineIssue = issue;
       issuePanel = new RedmineIssuePanel(issue);
       initActions();
       //issuePane.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
@@ -55,16 +56,16 @@ public class RedmineIssueController extends BugtrackingController {
 
    @Override
    public void opened() {
-      if (issue != null) {
+      if (redmineIssue != null) {
          issuePanel.opened();
-         issue.opened();
+         redmineIssue.opened();
       }
    }
 
    @Override
    public void closed() {
-      if (issue != null) {
-         issue.closed();
+      if (redmineIssue != null) {
+         redmineIssue.closed();
          issuePanel.closed();
       }
    }
@@ -84,32 +85,75 @@ public class RedmineIssueController extends BugtrackingController {
       System.out.println("applyChanges " + this);
    }
 
+   private RedmineIssue createSubTask() {
+      Issue issue = redmineIssue.getIssue();
+      // TODO: check if issue is available (id != 0)
+      
+      Issue subIssue = new Issue();
+      subIssue.setParentId(issue.getId());
+      subIssue.setAssignee(issue.getAssignee());
+      //subIssue.setAuthor(issue.getAuthor());
+      subIssue.setAuthor(redmineIssue.getRepository().getCurrentUser().getUser());
+      subIssue.setCategory(issue.getCategory());
+      
+      subIssue.setPriorityText(issue.getPriorityText());
+      subIssue.setPriorityId(issue.getPriorityId());
+      
+      subIssue.setTargetVersion(issue.getTargetVersion());
+      subIssue.setTracker(issue.getTracker());
+      subIssue.setStatusId(issue.getStatusId());
+      subIssue.setDoneRatio(0);
+      subIssue.setSubject("New Subtask");
+      return new RedmineIssue(redmineIssue.getRepository(), subIssue);
+   }
+
    @NbBundle.Messages({
+      "CTL_RefreshAction=Refresh",
       "CTL_ShowInBrowserAction=Show in Browser",
+      "CTL_CreateSubTaskAction=Create Subtask",
       "CTL_ActionListAction.add=Add to Action Items",
       "CTL_ActionListAction.remove=Remove from Action Items"
    })
    private void initActions() {
+
+      Action refreshAction = new AbstractAction(Bundle.CTL_RefreshAction(),
+                                                Defaults.getIcon("refresh.png")) {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            redmineIssue.refresh();
+            issuePanel.initIssue();
+            issuePanel.setInfoMessage("Issue successfully reloaded.");
+         }
+      };
 
       Action showInBrowserAction = new AbstractAction(Bundle.CTL_ShowInBrowserAction(),
                                                       Defaults.getIcon("redmine.png")) {
          @Override
          public void actionPerformed(ActionEvent e) {
             try {
-               URL url = new URL(issue.getRepository().getUrl() + "/issues/" + issue.getID()); // NOI18N
+               URL url = new URL(redmineIssue.getRepository().getUrl() + "/issues/" + redmineIssue.getID()); // NOI18N
                HtmlBrowser.URLDisplayer.getDefault().showURL(url);
             } catch (IOException ex) {
                Redmine.LOG.log(Level.INFO, "Unable to show the issue in the browser.", ex); // NOI18N
             }
          }
+      };
 
+      Action createSubTaskAction = new AbstractAction(Bundle.CTL_CreateSubTaskAction(),
+                                                      Defaults.getIcon("subtask.png")) {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            RedmineIssue subTask = createSubTask();
+            RedmineUtil.openIssue(subTask);
+         }
       };
 
       //issuePanel.setDefaultPopupAction(showInBrowserAction);
       issuePanel.addToolbarAction(showInBrowserAction, false);
+      issuePanel.addToolbarAction(createSubTaskAction, false);
       issuePanel.addToolbarAction(new ActionItemAction(), false);
+      issuePanel.addToolbarAction(refreshAction, false);
    }
-
 
    private class ActionItemAction extends AbstractAction {
 
@@ -134,11 +178,11 @@ public class RedmineIssueController extends BugtrackingController {
       public void actionPerformed(ActionEvent e) {
          setEnabled(false);
          RedmineTaskListProvider provider = RedmineTaskListProvider.getInstance();
-         if (provider.isAdded(issue)) {
-            provider.remove(issue);
+         if (provider.isAdded(redmineIssue)) {
+            provider.remove(redmineIssue);
          } else {
             attachTasklistListener(provider);
-            provider.add(issue, true);
+            provider.add(redmineIssue, true);
          }
          updateTasklistButton();
       }
@@ -150,13 +194,12 @@ public class RedmineIssueController extends BugtrackingController {
             actionItemListener = new PropertyChangeListener() {
                @Override
                public void propertyChange(PropertyChangeEvent evt) {
-                  if (RedmineTaskListProvider.PROPERTY_ISSUE_REMOVED.equals(evt.getPropertyName()) && issue.equals(evt.getOldValue())) {
+                  if (RedmineTaskListProvider.PROPERTY_ISSUE_REMOVED.equals(evt.getPropertyName()) && redmineIssue.equals(evt.getOldValue())) {
                      Runnable inAWT = new Runnable() {
                         @Override
                         public void run() {
                            updateTasklistButton();
                         }
-
                      };
                      if (EventQueue.isDispatchThread()) {
                         inAWT.run();
@@ -165,7 +208,6 @@ public class RedmineIssueController extends BugtrackingController {
                      }
                   }
                }
-
             };
             provider.addPropertyChangeListener(org.openide.util.WeakListeners.propertyChange(actionItemListener, provider));
          }
@@ -177,10 +219,10 @@ public class RedmineIssueController extends BugtrackingController {
             @Override
             public void run() {
                RedmineTaskListProvider provider = RedmineTaskListProvider.getInstance();
-               if (provider == null || issue.isNew()) { // do not enable button for new issues
+               if (provider == null || redmineIssue.isNew()) { // do not enable button for new issues
                   return;
                }
-               final boolean isInTasklist = provider.isAdded(issue);
+               final boolean isInTasklist = provider.isAdded(redmineIssue);
                if (isInTasklist) {
                   attachTasklistListener(provider);
                }
@@ -193,13 +235,9 @@ public class RedmineIssueController extends BugtrackingController {
                      setSelected(isInTasklist);
                      setEnabled(true);
                   }
-
                });
             }
-
          });
       }
-
    }
-
 }

@@ -71,6 +71,7 @@ public class RedmineRepository {
    private Collection<RedmineQuery> queries;
    // TODO Create manager wrapping class to handle Redmine related errors
    private transient RedmineManager manager;
+   private transient RedmineUser currentUser;
    private transient Project project;
    private transient Lookup lookup;
    private final transient InstanceContent ic;
@@ -309,10 +310,9 @@ public class RedmineRepository {
    public Collection<RedmineUser> getUsers() {
       List<RedmineUser> users = new ArrayList<RedmineUser>();
       try {
-         User currentUser = manager.getCurrentUser();
-         users.add(new RedmineUser(currentUser, true));
+         users.add(currentUser);
          for (Membership m : manager.getMemberships(project)) {
-            if (m.getUser() != null && !currentUser.equals(m.getUser())) {
+            if (m.getUser() != null && !currentUser.getUser().equals(m.getUser())) {
                users.add(new RedmineUser(m.getUser()));
             }
          }
@@ -477,7 +477,7 @@ public class RedmineRepository {
       return lookup;
    }
 
-   public final RedmineManager getManager() {
+   public final RedmineManager getManager() throws RedmineException {
       AuthMode authMode = getAuthMode();
       if (manager == null) {
          if (authMode == null) {
@@ -487,16 +487,19 @@ public class RedmineRepository {
             manager = new RedmineManager(getUrl(), getAccessKey());
          } else {
             manager = new RedmineManager(getUrl());
+            manager.setLogin(getUsername());
+            manager.setPassword(getPassword() == null ? "" : String.valueOf(getPassword()));
          }
+         currentUser = new RedmineUser(manager.getCurrentUser(), true);
          manager.setObjectsPerPage(100);
-      }
-      if (authMode == AuthMode.Credentials) {
-         manager.setLogin(getUsername());
-         manager.setPassword(getPassword() == null ? "" : String.valueOf(getPassword()));
       }
       return manager;
    }
 
+   public RedmineUser getCurrentUser() {
+      return currentUser;
+   }
+   
    private RequestProcessor getRefreshProcessor() {
       if (refreshProcessor == null) {
          refreshProcessor = new RequestProcessor("Redmine refresh - " + getDisplayName()); // NOI18N
@@ -729,7 +732,7 @@ public class RedmineRepository {
       @Override
       public String getID(com.taskadapter.redmineapi.bean.Issue issue) {
          assert issue != null;
-         return new RedmineIssue(RedmineRepository.this, issue).getID();
+         return String.valueOf(issue.getId());
       }
    }
 }

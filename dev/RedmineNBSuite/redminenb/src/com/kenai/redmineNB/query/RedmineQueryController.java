@@ -72,7 +72,7 @@ import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
-
+import java.util.Collections;
 
 /**
  *
@@ -307,7 +307,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                onRefresh();
             }
          }
-
       });
    }
 
@@ -340,7 +339,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
             }
             return null;
          }
-
       };
       return SaveQueryPanel.show(v, new HelpCtx("com.kenai.redmineNB.query.savePanel"));
    }
@@ -372,7 +370,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                queryPanel.filterComboBox.setSelectedItem(filter);
                setIssueCount(issueCount);
             }
-
          };
          if (EventQueue.isDispatchThread()) {
             r.run();
@@ -411,7 +408,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
             }
             return true;
          }
-
       };
       final ProgressHandle handle = ProgressHandleFactory.createHandle(Bundle.MSG_Opening(issueId), c); // NOI18N
       t[0] = Redmine.getInstance().getRequestProcessor().create(new Runnable() {
@@ -424,7 +420,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                handle.finish();
             }
          }
-
       });
       t[0].schedule(0);
    }
@@ -460,7 +455,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                Redmine.LOG.warning("No URLDisplayer found.");             // NOI18N
             }
          }
-
       });
    }
 
@@ -523,7 +517,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                }
             }
          }
-
       });
    }
 
@@ -537,7 +530,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
             public void run() {
                remove();
             }
-
          });
       }
    }
@@ -575,7 +567,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
             }
             return true;
          }
-
       };
 
       final String msgPopulating = Bundle.MSG_Populating(repository.getDisplayName());
@@ -588,7 +579,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
             queryPanel.showRetrievingProgress(true, msgPopulating, !query.isSaved());
             handle.start();
          }
-
       });
 
       t[0] = rp.post(new Runnable() {
@@ -605,11 +595,9 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                      handle.finish();
                      queryPanel.showRetrievingProgress(false, null, !query.isSaved());
                   }
-
                });
             }
          }
-
       });
    }
 
@@ -628,7 +616,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                   queryPanel.refreshCheckBox.setSelected(autoRefresh);
                }
             }
-
          });
       } finally {
          if (Redmine.LOG.isLoggable(Level.FINE)) {
@@ -688,6 +675,10 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       return null;
    }
 
+   public Map<String, RedmineQueryParameter> getSearchParameters() {
+      return new HashMap<String, RedmineQueryParameter>(parameters);
+   }
+
    public Map<String, String> getSearchParameterMap() {
       Map<String, String> m = new HashMap<String, String>();
       m.put("project_id", String.valueOf(repository.getProject().getId()));
@@ -723,7 +714,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
          public void run() {
             queryPanel.tableSummaryLabel.setText(Bundle.LBL_MatchingIssues(count));
          }
-
       });
    }
 
@@ -760,7 +750,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       return issueTable;
    }
 
-
    private class QueryTask implements Runnable, Cancellable, QueryNotifyListener {
 
       private ProgressHandle handle;
@@ -786,7 +775,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                enableFields(false);
                queryPanel.showSearchingProgress(true, Bundle.MSG_Searching());
             }
-
          });
          handle.start();
       }
@@ -805,7 +793,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                queryPanel.showNoContentPanel(false);
                enableFields(true);
             }
-
          });
       }
 
@@ -840,7 +827,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
             public void run() {
                queryPanel.setQueryRunning(running);
             }
-
          });
       }
 
@@ -888,7 +874,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                public void run() {
                   queryPanel.showNoContentPanel(false);;
                }
-
             });
          }
       }
@@ -902,7 +887,5 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       @Override
       public void finished() {
       }
-
    }
-
 }

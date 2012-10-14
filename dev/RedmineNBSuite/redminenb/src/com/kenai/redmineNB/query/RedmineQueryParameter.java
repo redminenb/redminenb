@@ -49,7 +49,6 @@ import javax.swing.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
-
 /**
  *
  * @author Anchialas <anchialas@gmail.com>
@@ -127,32 +126,25 @@ public abstract class RedmineQueryParameter {
    private final String parameter;
    protected boolean alwaysDisabled = false;
 
-
    public RedmineQueryParameter(String parameter) {
       this.parameter = parameter;
    }
-
 
    public String getParameter() {
       return parameter;
    }
 
-
    abstract ParameterValue[] getValues();
-
 
 //   abstract void setValues(ParameterValue[] pvs);
    public abstract boolean isEmpty();
 
-
    abstract void setEnabled(boolean b);
-
 
    void setAlwaysDisabled(boolean bl) {
       this.alwaysDisabled = bl;
       setEnabled(false); // true or false, who cares. this is only to trigger the state change
    }
-
 
    public String getValueString() {
       StringBuilder sb = new StringBuilder();
@@ -164,7 +156,6 @@ public abstract class RedmineQueryParameter {
       }
       return sb.toString();
    }
-
 
    @Override
    public String toString() {
@@ -178,11 +169,9 @@ public abstract class RedmineQueryParameter {
       return sb.toString();
    }
 
-
    static class ComboParameter extends RedmineQueryParameter {
 
       private final JComboBox combo;
-
 
       public ComboParameter(JComboBox combo, String parameter) {
          super(parameter);
@@ -190,59 +179,36 @@ public abstract class RedmineQueryParameter {
          combo.setModel(new DefaultComboBoxModel());
       }
 
-
       @Override
       public ParameterValue[] getValues() {
-         ParameterValue value = (ParameterValue) combo.getSelectedItem();
+         ParameterValue value = (ParameterValue)combo.getSelectedItem();
          return value != null ? new ParameterValue[]{value} : EMPTY_PARAMETER_VALUE;
       }
-
 
       public final void setParameterValues(ParameterValue[] values) {
          combo.setModel(new DefaultComboBoxModel(values));
       }
 
-
-//
-//      @Override
-//      public void setValues(ParameterValue[] values) {
-//         assert values.length < 2;
-//         if (values.length == 0) {
-//            return;
-//         }
-//         ParameterValue pv = values[0];
-//
-//         // need the index as the given ParameterValue might have a different displayName
-//         int idx = ((DefaultComboBoxModel) combo.getModel()).getIndexOf(pv);
-//         if (idx != -1) {
-//            combo.setSelectedIndex(idx);
-//         }
-//      }
       @Override
       void setEnabled(boolean b) {
          combo.setEnabled(alwaysDisabled ? false : b);
       }
 
-
       @Override
       public boolean isEmpty() {
          return combo.getModel().getSize() == 0;
       }
-
    }
-
 
    static class ListParameter extends RedmineQueryParameter {
 
       private final JList list;
-
 
       public ListParameter(JList list, String parameter) {
          super(parameter);
          this.list = list;
          list.setModel(new DefaultListModel());
       }
-
 
       @Override
       public ParameterValue[] getValues() {
@@ -252,75 +218,34 @@ public abstract class RedmineQueryParameter {
          }
          ParameterValue[] ret = new ParameterValue[values.length];
          for (int i = 0; i < values.length; i++) {
-            ret[i] = (ParameterValue) values[i];
+            ret[i] = (ParameterValue)values[i];
          }
          return ret;
       }
 
-
       public void setParameterValues(List<ParameterValue> values) {
          list.setModel(new ListListModel(values));
       }
-
-//
-//      @Override
-//      public void setValues(ParameterValue[] values) {
-//         if (values.length == 0) {
-//            return; // should not happen        XXX do we need this?
-//         }
-//         list.clearSelection();
-//         if (values.length == 1 && "".equals(values[0].getValue().trim())) {
-//            return;    // 1 empty ParameterValue stands for no selection XXX rewrite this
-//         }
-//         List<Integer> selectionList = new LinkedList<Integer>();
-//         for (int i = 0; i < values.length; i++) {
-//            ListModel model = list.getModel();
-//            // need case sensitive compare
-//            for (int j = 0; j < model.getSize(); j++) {
-//               ParameterValue pv = (ParameterValue) model.getElementAt(j);
-//               if (pv.getValue().toLowerCase().equals(values[i].getValue().toLowerCase())) {
-//                  selectionList.add(j);
-//                  break;
-//               }
-//            }
-//         }
-//         int[] selection = new int[selectionList.size()];
-//         int i = 0;
-//         for (int s : selectionList) {
-//            selection[i++] = s;
-//         }
-//         list.setSelectedIndices(selection);
-//         int idx = selection.length > 0 ? selection[0] : -1;
-//         if (idx > -1) {
-//            list.scrollRectToVisible(list.getCellBounds(idx, idx));
-//         }
-//      }
-//
 
       @Override
       void setEnabled(boolean b) {
          list.setEnabled(alwaysDisabled ? false : b);
       }
 
-
       @Override
       public boolean isEmpty() {
          return list.getModel().getSize() == 0;
       }
-
    }
-
 
    static class TextFieldParameter extends RedmineQueryParameter {
 
       private final JTextField txt;
 
-
       public TextFieldParameter(JTextField txt, String parameter) {
          super(parameter);
          this.txt = txt;
       }
-
 
       @Override
       public ParameterValue[] getValues() {
@@ -328,96 +253,66 @@ public abstract class RedmineQueryParameter {
          if (value == null || value.equals("")) { // NOI18N
             return EMPTY_PARAMETER_VALUE;
          }
-         String[] split = value.split(" "); // NOI18N
-         StringBuffer sb = new StringBuffer();
-         for (int i = 0; i < split.length; i++) {
-            String s = split[i];
-            sb.append(s);
-            if (i < split.length - 1) {
-               sb.append("+"); // NOI18N
-            }
-         }
-         String v = sb.toString();
-         return new ParameterValue[]{new ParameterValue(v, v)};
-      }
-
-//
-//      @Override
-//      public void setValues(ParameterValue[] pvs) {
-//         assert pvs.length < 2;
-//         if (pvs.length == 0 || pvs[0] == null) {
-//            return;
+//         String[] split = value.split(" "); // NOI18N
+//         StringBuilder sb = new StringBuilder();
+//         for (int i = 0; i < split.length; i++) {
+//            String s = split[i];
+//            sb.append(s);
+//            if (i < split.length - 1) {
+//               sb.append("+"); // NOI18N
+//            }
 //         }
-//         txt.setText(pvs[0].getValue().replace("+", " ")); // NOI18N
-//      }
-//
+//         String v = sb.toString();
+//         return new ParameterValue[]{new ParameterValue(v, v)};
+         return new ParameterValue[]{new ParameterValue(value)};
+      }
 
       @Override
       void setEnabled(boolean b) {
          txt.setEnabled(alwaysDisabled ? false : b);
       }
 
-
       @Override
       public boolean isEmpty() {
          return false;
       }
-
    }
-
 
    static class CheckBoxParameter extends RedmineQueryParameter {
 
-      private ParameterValue[] selected = new ParameterValue[]{new ParameterValue("1")}; // NOI18N
+      private static ParameterValue[] SELECTED_VALUE = new ParameterValue[]{new ParameterValue("1")}; // NOI18N
+      //
       private final JCheckBox chk;
-
 
       public CheckBoxParameter(JCheckBox chk, String parameter) {
          super(parameter);
          this.chk = chk;
       }
 
-
       @Override
       public ParameterValue[] getValues() {
-         return chk.isSelected() ? selected : EMPTY_PARAMETER_VALUE;
+         return chk.isSelected() ? SELECTED_VALUE : EMPTY_PARAMETER_VALUE;
       }
-
-//
-//      @Override
-//      public void setValues(ParameterValue[] pvs) {
-//         assert pvs.length < 2;
-//         if (pvs.length == 0 || pvs[0] == null) {
-//            return;
-//         }
-//         chk.setSelected(pvs[0].getValue().equals("1")); // NOI18N
-//      }
-//
 
       @Override
       void setEnabled(boolean b) {
          chk.setEnabled(alwaysDisabled ? false : b);
       }
 
-
       @Override
       public boolean isEmpty() {
          return false;
       }
-
    }
-
 
    public static class SimpleQueryParameter extends RedmineQueryParameter {
 
       private final String[] values;
 
-
       public SimpleQueryParameter(String parameter, String[] values) {
          super(parameter);
          this.values = values;
       }
-
 
       @Override
       ParameterValue[] getValues() {
@@ -431,24 +326,14 @@ public abstract class RedmineQueryParameter {
          return ret;
       }
 
-//
-//      @Override
-//      void setValues(ParameterValue[] values) {
-//         // not interested
-//      }
-//
-
       @Override
       void setEnabled(boolean b) {
          // interested
       }
 
-
       @Override
       public boolean isEmpty() {
          return values == null || values.length == 0;
       }
-
    }
-
 }

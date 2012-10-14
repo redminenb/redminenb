@@ -7,7 +7,3 @@ OpenIDE-Module-Localizing-Bundle: com/kenai/redmineNB/Bundle.properties
 
 Name: com/kenai/redmineNB/project/ProjectComboBox.class
 Java-Bean: True
-
-Name: com/kenai/redmineNB/user/UserComboBox.class
-Java-Bean: True
-

@@ -19,6 +19,7 @@ import com.kenai.redmineNB.Redmine;
 import com.kenai.redminenb.api.AuthMode;
 import com.kenai.redmineNB.project.RedmineProjectPanel;
 import com.kenai.redmineNB.ui.Defaults;
+import com.kenai.redmineNB.util.ListComboBoxModel;
 import com.kenai.redmineNB.util.RedmineUtil;
 
 import java.awt.BorderLayout;
@@ -48,7 +49,6 @@ import org.openide.util.RequestProcessor.Task;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.User;
-
 
 /**
  * Redmine repository parameter controller.
@@ -130,7 +130,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    }
 
    private Project getProject() {
-      return (Project) panel.projectComboBox.getSelectedItem();
+      return (Project)panel.projectComboBox.getSelectedItem();
    }
 
    @Override
@@ -276,17 +276,15 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                      panel.userField.setText(repository.getUsername());
                      panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
 
-                     panel.projectComboBox.setProjects(Collections.singletonList(repository.getProject()));
+                     panel.projectComboBox.setModel(new ListComboBoxModel<Project>(Collections.singletonList(repository.getProject())));
                      panel.projectComboBox.setSelectedItem(repository.getProject());
                      panel.projectComboBox.setEnabled(false);
                   }
                   populated = true;
                   fireChange();
                }
-
             });
          }
-
       };
       taskRunner.startTask();
    }
@@ -324,7 +322,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                validate();
                fireChange();
             }
-
          });
       }
    }
@@ -355,28 +352,26 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 //                  }
 
                projects = repository.getManager().getProjects();
-               // check authentication
-               User currentUser = repository.getManager().getCurrentUser();
+               Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
 
                panel.progressPanel.removeAll();
-               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(currentUser.getFullName()),
+               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(repository.getCurrentUser().getFullName()),
                                                   Defaults.getIcon("info.png"),
                                                   SwingUtilities.LEADING));
                panel.progressPanel.setVisible(true);
 
                connectError = false;
                connected = true;
-               
+
                SwingUtilities.invokeLater(new Runnable() {
                   @Override
                   public void run() {
                      Object item = panel.projectComboBox.getSelectedItem();
-                     panel.projectComboBox.setProjects(projects);
+                     panel.projectComboBox.setModel(new ListComboBoxModel<Project>(projects));
                      panel.projectComboBox.setSelectedItem(item);
                      panel.projectComboBox.setEnabled(true);
                      onProjectSelected();
                   }
-
                });
 
             } catch (RedmineException ex) {
@@ -391,7 +386,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
             fireChange();
          }
-
       };
 
 //      }
@@ -404,12 +398,23 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    }
 
    private void onCreateNewProject() {
+      Object selectedProject = panel.projectComboBox.getSelectedItem();
+      
       RedmineProjectPanel projectPanel = new RedmineProjectPanel(repository);
 
       if (RedmineUtil.show(projectPanel, "New Redmine project", "OK")) {
          try {
-            panel.projectComboBox.setProjects(repository.getManager().getProjects());
-            panel.projectComboBox.setSelectedIndex(-1);
+            List<Project> projects = repository.getManager().getProjects();
+            Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
+            
+            panel.projectComboBox.setModel(new ListComboBoxModel<Project>(projects));
+            for (Project p : projects) {
+               if (p.getIdentifier().equals(projectPanel.getIdentifier())) {
+                  selectedProject = p;
+                  break;
+               }
+            }
+            panel.projectComboBox.setSelectedItem(selectedProject);
 
          } catch (RedmineException ex) {
             errorMessage = NbBundle.getMessage(Redmine.class,
@@ -426,7 +431,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
               || e.getDocument() == panel.userField.getDocument()
               || e.getDocument() == panel.pwdField.getDocument()) {
          connectError = false;
-         panel.projectComboBox.setProjects(null);
+         panel.projectComboBox.setModel(new ListComboBoxModel<Project>());
          panel.projectComboBox.setEnabled(false);
       }
    }
@@ -461,7 +466,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    //
    // inner classes
    //
-
    private abstract class TaskRunner implements Runnable, Cancellable, ActionListener {
 
       private Task task;
@@ -510,7 +514,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                panel.enableFields(false);
                panel.projectComboBox.setEnabled(false);
             }
-
          });
       }
 
@@ -538,7 +541,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                }
                validate();
             }
-
          });
       }
 
@@ -565,7 +567,5 @@ public class RedmineRepositoryController implements RepositoryController, Docume
             cancel();
          }
       }
-
    }
-
 }

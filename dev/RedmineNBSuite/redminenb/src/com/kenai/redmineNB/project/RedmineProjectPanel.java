@@ -13,20 +13,19 @@ import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Project;
 
-
 /**
  *
  * @author Mykolas
  */
 public class RedmineProjectPanel extends ActionListenerPanel implements DocumentListener {
 
+   private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-z0-9_]{1,100}");
+   //
    private RedmineRepository repository;
    private String projectName;
    private String description;
    private String identifier;
    private String errorMessage;
-   private Pattern identifierPattern = Pattern.compile("[a-z0-9_]{1,100}");
-
 
    /**
     * Creates new form RedmineProjectPanel
@@ -43,21 +42,17 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
       errorLabel.setVisible(false);
    }
 
-
    public String getProjectName() {
       return projectName;
    }
-
 
    public String getDescription() {
       return description;
    }
 
-
    public String getIdentifier() {
       return identifier;
    }
-
 
    private boolean isProjectError() {
       projectName = nameTextField.getText().trim();
@@ -70,15 +65,13 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
       description = descriptionTextArea.getText().trim();
       identifier = identifierTextField.getText().trim();
 
-      if (!identifierPattern.matcher(identifier).matches()) {
+      if (!IDENTIFIER_PATTERN.matcher(identifier).matches()) {
          errorMessage = "<html>Identifier length is between 1 and 100 characters. <br/>"
                  + "Only lower case letters (a-z), numbers and dashes are allowed.</html>";
          return true;
       }
-
       return false;
    }
-
 
    private boolean isProjectValid() {
       if (!isProjectError()) {
@@ -93,7 +86,6 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
 
       return false;
    }
-
 
    private boolean createNewProject() {
       final Project project = new Project();
@@ -119,7 +111,6 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
       return false;
    }
 
-
    @Override
    public void actionPerformed(ActionEvent e) {
       if (e.getSource() == okButton) {
@@ -133,24 +124,20 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
       }
    }
 
-
    @Override
    public void insertUpdate(DocumentEvent e) {
       isProjectValid();
    }
-
 
    @Override
    public void removeUpdate(DocumentEvent e) {
       isProjectValid();
    }
 
-
    @Override
    public void changedUpdate(DocumentEvent e) {
       isProjectValid();
    }
-
 
    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

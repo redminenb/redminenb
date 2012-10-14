@@ -16,15 +16,11 @@
 package com.kenai.redmineNB.query;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import javax.net.ssl.SSLEngineResult.Status;
-import com.taskadapter.redmineapi.bean.IssueStatus;
-import com.taskadapter.redmineapi.bean.Version;
-
+import org.netbeans.api.annotations.common.NonNull;
 
 /**
- * Immutable ParameterValue
+ * Immutable class representing a parameter value and displayName (both non-null).
  *
  * @author Anchialas <anchialas@gmail.com>
  */
@@ -33,27 +29,23 @@ public class ParameterValue {
    private final String displayName;
    private final String value;
 
-
-   public ParameterValue(String value) {
+   public ParameterValue(@NonNull String value) {
       this(value, value);
    }
 
-
-   public ParameterValue(String displayName, String value) {
+   public ParameterValue(@NonNull String displayName, @NonNull String value) {
       assert displayName != null;
       assert value != null;
       this.displayName = displayName;
       this.value = value;
    }
 
-
-   public ParameterValue(String displayName, Integer value) {
+   public ParameterValue(@NonNull String displayName, @NonNull Integer value) {
       assert displayName != null;
       assert value != null;
       this.displayName = displayName;
       this.value = String.valueOf(value);
    }
-
 
    static List<ParameterValue> convert(List<String> values) {
       List<ParameterValue> ret = new ArrayList<ParameterValue>(values.size());
@@ -63,16 +55,13 @@ public class ParameterValue {
       return ret;
    }
 
-
    public String getDisplayName() {
       return displayName;
    }
 
-
    public String getValue() {
       return value;
    }
-
 
    @Override
    public String toString() {
@@ -84,7 +73,6 @@ public class ParameterValue {
       return sb.toString();
    }
 
-
    @Override
    public boolean equals(Object obj) {
       if (this == obj) {
@@ -93,10 +81,9 @@ public class ParameterValue {
       if (!(obj instanceof ParameterValue)) {
          return false;
       }
-      ParameterValue other = (ParameterValue) obj;
+      ParameterValue other = (ParameterValue)obj;
       return value.equals(other.value); // value cannot be null!
    }
-
 
    @Override
    public int hashCode() {

@@ -120,11 +120,13 @@ public final class RedmineIssue {
       this(repository);
       setIssue(issue);
 
-//      try {
-//         repository.getIssueCache().setIssueData(this, issue);
-//      } catch (IOException ex) {
-//         Redmine.LOG.log(Level.SEVERE, "Can not set the Redmine issue", ex);
-//      }
+      if (issue != null) {
+         try {
+            repository.getIssueCache().setIssueData(this, issue);
+         } catch (IOException ex) {
+            Redmine.LOG.log(Level.SEVERE, "Can not cache the Redmine issue", ex);
+         }
+      }
    }
 
    public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -140,8 +142,11 @@ public final class RedmineIssue {
    }
 
    public static String getDisplayName(com.taskadapter.redmineapi.bean.Issue issue) {
-      return issue == null
-              ? Bundle.CTL_NewIssue()
+      if (issue == null) {
+         return Bundle.CTL_NewIssue();
+      }
+      return issue.getId() == null
+              ? issue.getSubject()
               : Bundle.CTL_Issue(issue.getTracker().getName(), issue.getId(), issue.getSubject());
    }
 
@@ -168,7 +173,7 @@ public final class RedmineIssue {
    }
 
    public boolean isNew() {
-      return issue == null;
+      return issue == null || issue.getId() == null || issue.getId() == 0;
    }
 
    public boolean isFinished() {
@@ -256,7 +261,7 @@ public final class RedmineIssue {
       }
 
       issue.setStatusId(oldStatusId);
-      getRepository().getIssueCache().wasSeen(getID());
+      wasSeen();
    }
 
    public void attachPatch(File file, String string) {
@@ -352,8 +357,7 @@ public final class RedmineIssue {
       repository.getIssueCache().setSeen(getID(), seen);
    }
 
-   private boolean wasSeen() {
-      // TODO: use this method
+   public boolean wasSeen() {
       return repository.getIssueCache().wasSeen(getID());
    }
 
@@ -363,7 +367,7 @@ public final class RedmineIssue {
 
       timeEntry.setIssueId(issue.getId());
       timeEntry.setProjectId(issue.getProject().getId());
-      timeEntry.setUserId(getRepository().getManager().getCurrentUser().getId());
+      timeEntry.setUserId(getRepository().getCurrentUser().getId());
       // TODO This works for default Redmine Settings only. Add activity ID configuration to Redmine Option.
       timeEntry.setActivityId(9);
       timeEntry.setComment(comment);

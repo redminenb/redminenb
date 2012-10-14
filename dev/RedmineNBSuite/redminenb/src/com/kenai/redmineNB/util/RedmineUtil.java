@@ -20,6 +20,9 @@ import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.issue.RedmineIssue;
 import com.kenai.redmineNB.query.RedmineQuery;
 import com.kenai.redmineNB.repository.RedmineRepository;
+import com.taskadapter.redmineapi.bean.Project;
+import java.util.Comparator;
+import java.util.logging.Level;
 import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.modules.bugtracking.api.Repository;
@@ -30,7 +33,6 @@ import org.openide.DialogDisplayer;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-
 
 /**
  * Redmine utility class.
@@ -85,6 +87,20 @@ public final class RedmineUtil {
       return DialogDisplayer.getDefault().notify(dd) == ok;
    }
 
+   public static class ProjectComparator implements Comparator<Project> {
+
+      public static ProjectComparator SINGLETON = new ProjectComparator();
+
+      private ProjectComparator() {
+         // suppressed to enforce using the SINGLETON
+      }
+
+      @Override
+      public int compare(Project a, Project b) {
+         return a.getName().compareTo(b.getName());
+      }
+   }
+
    public static Repository getRepository(RedmineRepository redmineRepository) {
       Repository repository = Redmine.getInstance().getBugtrackingFactory().getRepository(
               RedmineConnector.ID, redmineRepository.getID());
@@ -98,6 +114,21 @@ public final class RedmineUtil {
       return repository;
    }
 
+   /**
+    * Get the RedmineIssue from the cache or from the Redmine application.
+    *
+    * @param redmineRepository the RedmineRepository
+    * @param issueId           the id of the issue
+    * @return the RedmineIssue or {@code null} if no such issue available.
+    */
+   public static RedmineIssue getIssue(RedmineRepository redmineRepository, String issueId) {
+      RedmineIssue redmineIssue = redmineRepository.getIssueCache().getIssue(issueId);
+      if (redmineIssue == null) {
+         redmineIssue = redmineRepository.getIssue(issueId);
+      }
+      return redmineIssue;
+   }
+
    public static void openIssue(RedmineIssue redmineIssue) {
       Redmine.getInstance().getBugtrackingFactory().openIssue(
               getRepository(redmineIssue.getRepository()), redmineIssue);
@@ -107,5 +138,4 @@ public final class RedmineUtil {
       Redmine.getInstance().getBugtrackingFactory().openQuery(
               getRepository(redmineQuery.getRepository()), redmineQuery);
    }
-
 }

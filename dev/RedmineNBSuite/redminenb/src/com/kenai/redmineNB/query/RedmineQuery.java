@@ -44,7 +44,7 @@ import org.openide.util.Exceptions;
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
-
+import java.util.HashMap;
 
 /**
  * Redmine Query.
@@ -158,6 +158,7 @@ public final class RedmineQuery {
                // - and the obsolete ones
                Set<String> queryIssues = new HashSet<String>();
 
+               queryController.getIssueTable().started();
                issues.clear();
 //                    archivedIssues.clear();
                if (isSaved()) {
@@ -169,12 +170,12 @@ public final class RedmineQuery {
                }
                firstRun = false;
                try {
+//                  List<com.taskadapter.redmineapi.bean.Issue> issueArr = doSearch(queryController.getSearchParameters());
                   List<com.taskadapter.redmineapi.bean.Issue> issueArr = doSearch(queryController.getSearchParameterMap());
                   for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
                      getController().addProgressUnit(RedmineIssue.getDisplayName(issue));
                      try {
-                        RedmineIssue redmineIssue = (RedmineIssue)repository.getIssueCache().setIssueData(
-                                String.valueOf(issue.getId()), issue);
+                        RedmineIssue redmineIssue = repository.getIssueCache().setIssueData(String.valueOf(issue.getId()), issue);
                         issues.add(redmineIssue.getID());
 
                         fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
@@ -209,7 +210,6 @@ public final class RedmineQuery {
                Redmine.LOG.log(Level.FINE, "refresh finish - {0}", name); // NOI18N
             }
          }
-
       });
 
       return ret[0];
@@ -228,16 +228,17 @@ public final class RedmineQuery {
    }
 
    /**
-    * Performs the issue search with the attributes and values provided by the
-    * map.
-    *
+    * Performs the issue search with the attributes and values provided by the map.
+    * <p>
     * Note: The Redmine REST API does not support full search support for all
     * fields. So the issues are post filtered here.
     *
     * @see http://www.redmine.org/projects/redmine/wiki/Rest_Issues
-    * @param searchParameterMap
+    * @see RedmineQueryController#RedmineQueryController
+    * @param searchParameters
     */
-   private List<com.taskadapter.redmineapi.bean.Issue> doSearch(Map<String, String> searchParameterMap) throws IOException, AuthenticationException, NotFoundException, RedmineException {
+   private List<com.taskadapter.redmineapi.bean.Issue> doSearch(Map<String, String> searchParameterMap)
+           throws IOException, AuthenticationException, NotFoundException, RedmineException {
       // see RedmineQueryController constructor
       boolean isSubject = "1".equals(searchParameterMap.remove("is_subject"));
       boolean isDescription = "1".equals(searchParameterMap.remove("is_description"));
@@ -252,7 +253,9 @@ public final class RedmineQuery {
          List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>();
          for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
             if ((isSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
-                    || (isDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /* || (isComments && StringUtils.containsIgnoreCase(..., queryStr))*/) {
+                    || (isDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /*
+                    || (isComments && StringUtils.containsIgnoreCase(..., queryStr))
+                    */) {
                newArr.add(issue);
             }
          }
@@ -260,6 +263,80 @@ public final class RedmineQuery {
       }
       return issueArr;
    }
+//   private List<com.taskadapter.redmineapi.bean.Issue> doSearch(Map<String, RedmineQueryParameter> searchParameters)
+//           throws IOException, AuthenticationException, NotFoundException, RedmineException {
+//
+//      boolean searchSubject = false;
+//      boolean searchDescription = false;
+//      boolean searchComments = false;
+//      RedmineQueryParameter queryStringParameter = searchParameters.remove("query");
+//      Set<RedmineQueryParameter> multiValueParameters = new HashSet<RedmineQueryParameter>();
+//
+//      Map<String, String> m = new HashMap<String, String>();
+//      m.put("project_id", String.valueOf(repository.getProject().getId()));
+//
+//      for (RedmineQueryParameter p : searchParameters.values()) {
+//         if (!p.isEmpty()) {
+//            ParameterValue[] paramValues = p.getValues();
+//            if (paramValues.length == 1) {
+//               if ("is_subject".equals(p.getParameter())) {
+//                  searchSubject = "1".equals(paramValues[0].getValue());
+//               } else if ("is_description".equals(p.getParameter())) {
+//                  searchDescription = "1".equals(paramValues[0].getValue());
+//               } else if ("is_comments".equals(p.getParameter())) {
+//                  searchComments = "1".equals(paramValues[0].getValue());
+//               } else {
+//                  m.put(p.getParameter(), paramValues[0].getValue());
+//               }
+//            } else if (paramValues.length > 1) {
+//               multiValueParameters.add(p);
+//            }
+//         }
+//      }
+//
+//      // Perform search
+//      List<com.taskadapter.redmineapi.bean.Issue> issueArr = repository.getManager().getIssues(m);
+//
+//      // Post filtering: Query string
+//      if (queryStringParameter != null && !queryStringParameter.isEmpty()
+//              && (searchSubject || searchDescription || searchComments)) {
+//         String queryStr = queryStringParameter.getValueString();
+//         
+//         List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>(issueArr.size());
+//         for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
+//            if ((searchSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
+//                    || (searchDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /*
+//                     || (searchComments && StringUtils.containsIgnoreCase(..., queryStr))
+//                     */) {
+//               newArr.add(issue);
+//            }
+//         }
+//         issueArr = newArr;
+//      }
+//      // Post filtering: Multi-value parameters
+//      if (!multiValueParameters.isEmpty()) {
+//         List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>(issueArr.size());
+//         for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
+//            for (RedmineQueryParameter p : multiValueParameters) {
+//               // RedmineIssue.getFieldValue(RedmineIssue.FIELD_xxx)
+//               // TODO: map FIELD_xxx property to query parameter
+//               String paramName = p.getParameter();
+//               if ("status_id".equals(paramName)) {
+//                  for (ParameterValue pv : p.getValues()) {
+//                     if (String.valueOf(issue.getStatusId()).equals(pv.getValue())) {
+//                        newArr.add(issue);
+//                        break;
+//                     }
+//                  }
+//               }
+//               
+//            }
+//         }
+//         issueArr = newArr;
+//      }
+//      
+//      return issueArr;
+//   }
 
    public void remove() {
       repository.removeQuery(this);
@@ -386,7 +463,6 @@ public final class RedmineQuery {
       }
       return listeners;
    }
-
    private List<QueryNotifyListener> notifyListeners;
 
    private List<QueryNotifyListener> getNotifyListeners() {
@@ -399,5 +475,4 @@ public final class RedmineQuery {
    public String getUrlParameters() {
       throw new UnsupportedOperationException("Not yet implemented");
    }
-
 }

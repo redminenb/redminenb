@@ -19,7 +19,6 @@ import com.kenai.redmineNB.issue.RedmineTaskListProvider;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import org.netbeans.modules.bugtracking.api.Repository;
 import org.netbeans.modules.bugtracking.spi.BugtrackingConnector;
-import org.netbeans.modules.bugtracking.spi.IssueFinder;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.spi.TaskListIssueProvider;
 import org.openide.util.NbBundle;

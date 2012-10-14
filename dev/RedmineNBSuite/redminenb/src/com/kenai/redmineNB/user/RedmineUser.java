@@ -39,6 +39,10 @@ public class RedmineUser extends RepositoryUser {
       return isCurrentUser;
    }
 
+   public Integer getId() {
+      return user.getId();
+   }
+
    @Override
    public String toString() {
       return getFullName();

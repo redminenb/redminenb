@@ -18,6 +18,8 @@ package com.kenai.redmineNB.ui;
 import com.kenai.redmineNB.RedmineConfig;
 import com.kenai.redmineNB.query.ParameterValue;
 import com.kenai.redmineNB.user.RedmineUser;
+
+import com.kenai.redminenb.api.IssuePriority;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GradientPaint;
@@ -154,8 +156,7 @@ public class Defaults {
          Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
          if (c instanceof JLabel) {
             if (value instanceof ParameterValue) {
-               String prio = ((ParameterValue)value).getValue();
-               ((JLabel)c).setIcon(RedmineConfig.getInstance().getPriorityIcon(prio));
+               ((JLabel)c).setIcon(RedmineConfig.getInstance().getPriorityIcon(((ParameterValue)value).getDisplayName()));
             } else {
                ((JLabel)c).setIcon(null);
             }

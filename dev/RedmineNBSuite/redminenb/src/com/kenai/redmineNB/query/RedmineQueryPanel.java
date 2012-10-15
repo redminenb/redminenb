@@ -43,7 +43,6 @@
 package com.kenai.redmineNB.query;
 
 import com.kenai.redmineNB.ui.Defaults;
-import com.kenai.redmineNB.ui.Defaults.ParameterValueLCR;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -58,14 +57,25 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicTreeUI;
 import org.netbeans.modules.bugtracking.issuetable.Filter;
-import org.openide.util.ImageUtilities;
 
 /**
- *
+ * Redmine Query Panel.
+ * 
  * @author Anchialas <anchialas@gmail.com>
  */
 public class RedmineQueryPanel extends JPanel implements FocusListener {
@@ -122,23 +132,19 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       commenterCheckBox.setOpaque(false);
       refreshCheckBox.setOpaque(false);
 
+      ListCellRenderer parameterValueLCR = new Defaults.ParameterValueLCR();
+
       peopleComboBox.setModel(new DefaultComboBoxModel());
-
-      ListCellRenderer parameterValueLCR = new ParameterValueLCR();
       peopleComboBox.setRenderer(parameterValueLCR);
+      
       trackerList.setCellRenderer(parameterValueLCR);
-      trackerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // TODO redmine-java-api does not yet support multiple values
       categoryList.setCellRenderer(parameterValueLCR);
-      categoryList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // TODO redmine-java-api does not yet support multiple values
       versionList.setCellRenderer(parameterValueLCR);
-      versionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // TODO redmine-java-api does not yet support multiple values
       statusList.setCellRenderer(parameterValueLCR);
-      statusList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // TODO redmine-java-api does not yet support multiple values
-      priorityList.setCellRenderer(parameterValueLCR);
-      priorityList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // TODO redmine-java-api does not yet support multiple values
-
+      priorityList.setCellRenderer(new Defaults.PriorityLCR());
+      
       //resolutionList.setCellRenderer(parameterValueLCR);
-      //severityList.setCellRenderer(parameterValueLCR);
+      //severityList.setCellRenderer(parameterValueLCR);      
       resolutionLabel.setVisible(false);
       resolutionList.getParent().getParent().setVisible(false);
       severityLabel.setVisible(false);
@@ -299,7 +305,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       byDetailsPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("TextArea.background"));
 
-      versionLabel.setFont(versionLabel.getFont().deriveFont(versionLabel.getFont().getStyle() | java.awt.Font.BOLD));
+      versionLabel.setFont(versionLabel.getFont().deriveFont(versionLabel.getFont().getStyle() | java.awt.Font.BOLD, versionLabel.getFont().getSize()-2));
       versionLabel.setLabelFor(versionList);
       org.openide.awt.Mnemonics.setLocalizedText(versionLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionLabel.text")); // NOI18N
 
@@ -315,7 +321,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       jScrollPane2.setViewportView(versionList);
       versionList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionList.AccessibleContext.accessibleDescription")); // NOI18N
 
-      statusLabel.setFont(statusLabel.getFont().deriveFont(statusLabel.getFont().getStyle() | java.awt.Font.BOLD));
+      statusLabel.setFont(statusLabel.getFont().deriveFont(statusLabel.getFont().getStyle() | java.awt.Font.BOLD, statusLabel.getFont().getSize()-2));
       statusLabel.setLabelFor(statusList);
       org.openide.awt.Mnemonics.setLocalizedText(statusLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusLabel.text")); // NOI18N
 
@@ -331,11 +337,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       jScrollPane3.setViewportView(statusList);
       statusList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusList.AccessibleContext.accessibleDescription")); // NOI18N
 
-      resolutionLabel.setFont(resolutionLabel.getFont().deriveFont(resolutionLabel.getFont().getStyle() | java.awt.Font.BOLD));
-      resolutionLabel.setLabelFor(resolutionList);
-      org.openide.awt.Mnemonics.setLocalizedText(resolutionLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.resolutionLabel.text")); // NOI18N
-
-      priorityLabel.setFont(priorityLabel.getFont().deriveFont(priorityLabel.getFont().getStyle() | java.awt.Font.BOLD));
+      priorityLabel.setFont(priorityLabel.getFont().deriveFont(priorityLabel.getFont().getStyle() | java.awt.Font.BOLD, priorityLabel.getFont().getSize()-2));
       priorityLabel.setLabelFor(priorityList);
       org.openide.awt.Mnemonics.setLocalizedText(priorityLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityLabel.text")); // NOI18N
 
@@ -351,6 +353,10 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       jScrollPane4.setViewportView(priorityList);
       priorityList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityList.AccessibleContext.accessibleDescription")); // NOI18N
 
+      resolutionLabel.setFont(resolutionLabel.getFont().deriveFont(resolutionLabel.getFont().getStyle() | java.awt.Font.BOLD, resolutionLabel.getFont().getSize()-2));
+      resolutionLabel.setLabelFor(resolutionList);
+      org.openide.awt.Mnemonics.setLocalizedText(resolutionLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.resolutionLabel.text")); // NOI18N
+
       jScrollPane5.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
       resolutionList.setModel(new javax.swing.AbstractListModel() {
@@ -363,7 +369,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       jScrollPane5.setViewportView(resolutionList);
       resolutionList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.resolutionList.AccessibleContext.accessibleDescription")); // NOI18N
 
-      categoryLabel.setFont(categoryLabel.getFont().deriveFont(categoryLabel.getFont().getStyle() | java.awt.Font.BOLD));
+      categoryLabel.setFont(categoryLabel.getFont().deriveFont(categoryLabel.getFont().getStyle() | java.awt.Font.BOLD, categoryLabel.getFont().getSize()-2));
       categoryLabel.setLabelFor(categoryList);
       org.openide.awt.Mnemonics.setLocalizedText(categoryLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryLabel.text")); // NOI18N
 
@@ -379,7 +385,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       jScrollPane6.setViewportView(categoryList);
       categoryList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.componentList.AccessibleContext.accessibleDescription")); // NOI18N
 
-      severityLabel.setFont(severityLabel.getFont().deriveFont(severityLabel.getFont().getStyle() | java.awt.Font.BOLD));
+      severityLabel.setFont(severityLabel.getFont().deriveFont(severityLabel.getFont().getStyle() | java.awt.Font.BOLD, severityLabel.getFont().getSize()-2));
       severityLabel.setLabelFor(severityList);
       org.openide.awt.Mnemonics.setLocalizedText(severityLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.severityLabel.text")); // NOI18N
 
@@ -395,7 +401,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       severityScrollPane.setViewportView(severityList);
       severityList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.severityList.AccessibleContext.accessibleDescription")); // NOI18N
 
-      trackerLabel.setFont(trackerLabel.getFont().deriveFont(trackerLabel.getFont().getStyle() | java.awt.Font.BOLD));
+      trackerLabel.setFont(trackerLabel.getFont().deriveFont(trackerLabel.getFont().getStyle() | java.awt.Font.BOLD, trackerLabel.getFont().getSize()-2));
       trackerLabel.setLabelFor(trackerList);
       org.openide.awt.Mnemonics.setLocalizedText(trackerLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerLabel.text")); // NOI18N
 
@@ -427,23 +433,23 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addComponent(versionLabel)
                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGap(18, 18, 18)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addComponent(statusLabel)
                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+               .addComponent(priorityLabel)
+               .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addComponent(resolutionLabel)
                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-               .addComponent(jScrollPane4)
-               .addComponent(priorityLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addComponent(severityLabel)
                .addComponent(severityScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addContainerGap(184, Short.MAX_VALUE))
+            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
       );
       byDetailsPanelLayout.setVerticalGroup(
          byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -451,13 +457,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             .addContainerGap()
             .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                  .addComponent(trackerLabel)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(issueTypeScrollPane))
-               .addGroup(byDetailsPanelLayout.createSequentialGroup()
                   .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                     .addComponent(categoryLabel)
-                     .addComponent(versionLabel)
                      .addComponent(statusLabel)
                      .addComponent(resolutionLabel)
                      .addComponent(priorityLabel)
@@ -465,11 +465,21 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                   .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                   .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                      .addComponent(jScrollPane4)
-                     .addComponent(jScrollPane6)
-                     .addComponent(jScrollPane2)
                      .addComponent(jScrollPane3)
                      .addComponent(jScrollPane5)
-                     .addComponent(severityScrollPane))))
+                     .addComponent(severityScrollPane)))
+               .addGroup(byDetailsPanelLayout.createSequentialGroup()
+                  .addComponent(trackerLabel)
+                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                  .addComponent(issueTypeScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE))
+               .addGroup(byDetailsPanelLayout.createSequentialGroup()
+                  .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                     .addComponent(categoryLabel)
+                     .addComponent(versionLabel))
+                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                  .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                     .addComponent(jScrollPane6)
+                     .addComponent(jScrollPane2))))
             .addContainerGap())
       );
 
@@ -581,7 +591,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
          .addGroup(tableFieldsPanelLayout.createSequentialGroup()
             .addComponent(tableHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(tablePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 289, Short.MAX_VALUE)
+            .addComponent(tablePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 222, Short.MAX_VALUE)
             .addContainerGap())
       );
 
@@ -610,7 +620,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       criteriaPanel.setLayout(criteriaPanelLayout);
       criteriaPanelLayout.setHorizontalGroup(
          criteriaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addComponent(byTextContainer, javax.swing.GroupLayout.DEFAULT_SIZE, 711, Short.MAX_VALUE)
+         .addComponent(byTextContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
          .addComponent(byDetailsContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
          .addComponent(byPeopleContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
          .addGroup(criteriaPanelLayout.createSequentialGroup()
@@ -745,12 +755,12 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             .addContainerGap()
             .addComponent(gotoPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(criteriaPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(criteriaPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                .addComponent(saveChangesButton)
                .addComponent(cancelChangesButton))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addContainerGap())
       );
 
       cancelChangesButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
@@ -894,12 +904,12 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
          .addGroup(layout.createSequentialGroup()
             .addComponent(queryHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(searchPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
+            .addComponent(searchPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(tableFieldsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(tableFieldsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(noContentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addContainerGap())
+            .addComponent(noContentPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
       );
    }// </editor-fold>//GEN-END:initComponents
    // Variables declaration - do not modify//GEN-BEGIN:variables

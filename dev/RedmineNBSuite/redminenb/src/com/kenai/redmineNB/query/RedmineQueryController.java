@@ -26,6 +26,7 @@ import com.kenai.redmineNB.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.util.RedmineUtil;
 
+import com.kenai.redminenb.api.IssuePriority;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -129,16 +130,18 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       // set parameters
       parameters = new LinkedHashMap<String, RedmineQueryParameter>();
 
-      versionParameter = createQueryParameter(ListParameter.class, queryPanel.versionList, "fixed_version_id");
-      statusParameter = createQueryParameter(ListParameter.class, queryPanel.statusList, "status_id");
-      trackerParameter = createQueryParameter(ListParameter.class, queryPanel.trackerList, "tracker_id");
-      categoryParameter = createQueryParameter(ListParameter.class, queryPanel.categoryList, "category_id");
-      priorityParameter = createQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
+      trackerParameter = registerQueryParameter(ListParameter.class, queryPanel.trackerList, "tracker_id");
+      categoryParameter = registerQueryParameter(ListParameter.class, queryPanel.categoryList, "category_id");
+      versionParameter = registerQueryParameter(ListParameter.class, queryPanel.versionList, "fixed_version_id");
+      statusParameter = registerQueryParameter(ListParameter.class, queryPanel.statusList, "status_id");
+      priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
+      //resolutionParameter = 
+      //severityParameter = ...
 
-      createQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
-      createQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");
-      createQueryParameter(CheckBoxParameter.class, queryPanel.qDescriptionCheckBox, "is_description");
-      createQueryParameter(CheckBoxParameter.class, queryPanel.qCommentsCheckBox, "is_comments");
+      registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
+      registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");
+      registerQueryParameter(CheckBoxParameter.class, queryPanel.qDescriptionCheckBox, "is_description");
+      registerQueryParameter(CheckBoxParameter.class, queryPanel.qCommentsCheckBox, "is_comments");
 
 
       setListeners();
@@ -641,9 +644,9 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
 
       // Issue Status
       pvList = new ArrayList<ParameterValue>();
-      pvList.add(new ParameterValue("open"));
-      pvList.add(new ParameterValue("closed"));
-      pvList.add(null);
+//      pvList.add(new ParameterValue("open"));
+//      pvList.add(new ParameterValue("closed"));
+//      pvList.add(null);
       for (IssueStatus s : repository.getStatuses()) {
          pvList.add(new ParameterValue(s.getName(), s.getId()));
       }
@@ -656,21 +659,22 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       }
       categoryParameter.setParameterValues(pvList);
 
-
       // Issue Priorities
-      pvList = repository.getIssuePriorities();
+      pvList = new ArrayList<ParameterValue>();
+      for (IssuePriority p : repository.getIssuePriorities()) {
+         pvList.add(new ParameterValue(p.getName(), p.getId()));
+      };
       priorityParameter.setParameterValues(pvList);
-
    }
 
-   private <T extends RedmineQueryParameter> T createQueryParameter(Class<T> clazz, Component c, String parameter) {
+   private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
       try {
          Constructor<T> constructor = clazz.getConstructor(c.getClass(), String.class);
-         T t = constructor.newInstance(c, parameter);
-         parameters.put(parameter, t);
+         T t = constructor.newInstance(c, parameterName);
+         parameters.put(parameterName, t);
          return t;
       } catch (Exception ex) {
-         Redmine.LOG.log(Level.SEVERE, parameter, ex);
+         Redmine.LOG.log(Level.SEVERE, parameterName, ex);
       }
       return null;
    }
@@ -679,17 +683,17 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       return new HashMap<String, RedmineQueryParameter>(parameters);
    }
 
-   public Map<String, String> getSearchParameterMap() {
-      Map<String, String> m = new HashMap<String, String>();
-      m.put("project_id", String.valueOf(repository.getProject().getId()));
-      for (RedmineQueryParameter p : parameters.values()) {
-         String str = p.getValueString();
-         if (StringUtils.isNotBlank(str)) {
-            m.put(p.getParameter(), str);
-         }
-      }
-      return m;
-   }
+//   public Map<String, String> getSearchParameterMap() {
+//      Map<String, String> m = new HashMap<String, String>();
+//      m.put("project_id", String.valueOf(repository.getProject().getId()));
+//      for (RedmineQueryParameter p : parameters.values()) {
+//         String str = p.getValueString();
+//         if (StringUtils.isNotBlank(str)) {
+//            m.put(p.getParameter(), str);
+//         }
+//      }
+//      return m;
+//   }
 
    protected void enableFields(boolean bl) {
       // set all non parameter fields

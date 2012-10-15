@@ -4,6 +4,8 @@ import com.kenai.redmineNB.query.RedmineQuery;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.ui.Defaults;
 import com.kenai.redmineNB.util.RedminePreferences;
+
+import com.kenai.redminenb.api.IssuePriority;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -221,17 +223,16 @@ public class RedmineConfig {
       return getPreferences().get(LAST_CHANGE_FROM, "");                      // NOI18N
    }
 
-   public Icon getPriorityIcon(String priority) {
-      // ToDo
+   public Icon getPriorityIcon(String priorityName) {
       if (priorityIcons == null) {
          priorityIcons = new HashMap<String, Icon>();
-         priorityIcons.put("P1", ImageUtilities.loadImageIcon("org/netbeans/modules/bugzilla/resources/p1.png", true)); // NOI18N
-         priorityIcons.put("P2", ImageUtilities.loadImageIcon("org/netbeans/modules/bugzilla/resources/p2.png", true)); // NOI18N
-         priorityIcons.put("P3", ImageUtilities.loadImageIcon("org/netbeans/modules/bugzilla/resources/p3.png", true)); // NOI18N
-         priorityIcons.put("P4", ImageUtilities.loadImageIcon("org/netbeans/modules/bugzilla/resources/p4.png", true)); // NOI18N
-         priorityIcons.put("P5", ImageUtilities.loadImageIcon("org/netbeans/modules/bugzilla/resources/p5.png", true)); // NOI18N
+         priorityIcons.put("Immediate", Defaults.getIcon("blocker.png")); // NOI18N
+         priorityIcons.put("Urgent", Defaults.getIcon("critical.png")); // NOI18N
+         priorityIcons.put("High", Defaults.getIcon("major.png")); // NOI18N
+         priorityIcons.put("Normal", Defaults.getIcon("arrow_right.png")); // NOI18N
+         priorityIcons.put("Low", Defaults.getIcon("minor.png")); // NOI18N
       }
-      return priorityIcons.get(priority);
+      return priorityIcons.get(priorityName);
    }
 
    /**

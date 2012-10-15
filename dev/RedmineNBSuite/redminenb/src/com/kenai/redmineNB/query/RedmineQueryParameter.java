@@ -56,72 +56,72 @@ import org.apache.commons.lang.StringUtils;
 public abstract class RedmineQueryParameter {
 
    static final ParameterValue[] EMPTY_PARAMETER_VALUE = new ParameterValue[]{new ParameterValue("", "")}; // NOI18N
-   static final ParameterValue PV_CONTAINS = new ParameterValue("contains", "substring"); // NOI18N
-   static final ParameterValue PV_IS = new ParameterValue("is", "exact"); // NOI18N
-   static final ParameterValue PV_MATCHES_REGEX = new ParameterValue("matches the regexp", "regexp"); // NOI18N
-   static final ParameterValue PV_DOESNT_MATCH_REGEX = new ParameterValue("doesn't match the regexp", "notregexp"); // NOI18N
-   static final ParameterValue PV_FIELD_ALIAS = new ParameterValue("alias", "alias"); // NOI18N
-   static final ParameterValue PV_FIELD_ASSIGNED_TO = new ParameterValue("assigned_to", "assigned_to"); // NOI18N
-   static final ParameterValue PV_FIELD_LIST_ACCESSIBLE = new ParameterValue("cclist_accessible", "cclist_accessible"); // NOI18N
-   static final ParameterValue PV_FIELD_COMPONENT = new ParameterValue("component", "component"); // NOI18N
-   static final ParameterValue PV_FIELD_DEADLINE = new ParameterValue("deadline", "deadline"); // NOI18N
-   static final ParameterValue PV_FIELD_EVER_CONFIRMED = new ParameterValue("everconfirmed", "everconfirmed"); // NOI18N
-   static final ParameterValue PV_FIELD_REP_PLARFORM = new ParameterValue("rep_platform", "rep_platform"); // NOI18N
-   static final ParameterValue PV_FIELD_REMAINING_TIME = new ParameterValue("remaining_time", "remaining_time"); // NOI18N
-   static final ParameterValue PV_FIELD_WORK_TIME = new ParameterValue("work_time", "work_time"); // NOI18N
-   static final ParameterValue PV_FIELD_KEYWORDS = new ParameterValue("keywords", "keywords"); // NOI18N
-   static final ParameterValue PV_FIELD_ESTIMATED_TIME = new ParameterValue("estimated_time", "estimated_time"); // NOI18N
-   static final ParameterValue PV_FIELD_OP_SYS = new ParameterValue("op_sys", "op_sys"); // NOI18N
-   static final ParameterValue PV_FIELD_PRIORITY = new ParameterValue("priority", "priority"); // NOI18N
-   static final ParameterValue PV_FIELD_PRODUCT = new ParameterValue("product", "product"); // NOI18N
-   static final ParameterValue PV_FIELD_QA_CONTACT = new ParameterValue("qa_contact", "qa_contact"); // NOI18N
-   static final ParameterValue PV_FIELD_REPORTER_ACCESSIBLE = new ParameterValue("reporter_accessible", "reporter_accessible"); // NOI18N
-   static final ParameterValue PV_FIELD_RESOLUTION = new ParameterValue("resolution", "resolution"); // NOI18N
-   static final ParameterValue PV_FIELD_BUG_SEVERITY = new ParameterValue("bug_severity", "bug_severity"); // NOI18N
-   static final ParameterValue PV_FIELD_BUG_STATUS = new ParameterValue("bug_status", "bug_status"); // NOI18N
-   static final ParameterValue PV_FIELD_SHORT_DESC = new ParameterValue("short_desc", "short_desc"); // NOI18N
-   static final ParameterValue PV_FIELD_TARGET_MILESTONE = new ParameterValue("target_milestone", "target_milestone"); // NOI18N
-   static final ParameterValue PV_FIELD_BUG_FILE_LOC = new ParameterValue("bug_file_loc", "bug_file_loc"); // NOI18N
-   static final ParameterValue PV_FIELD_VERSION = new ParameterValue("version", "version"); // NOI18N
-   static final ParameterValue PV_FIELD_VOTES = new ParameterValue("votes", "votes"); // NOI18N
-   static final ParameterValue PV_FIELD_STATUS_WHITEBOARD = new ParameterValue("status_whiteboard", "status_whiteboard"); // NOI18N
-   static final ParameterValue[] PV_TEXT_SEARCH_VALUES = new ParameterValue[]{
-      PV_MATCHES_REGEX,
-      PV_DOESNT_MATCH_REGEX
-   };
-   static final ParameterValue[] PV_PEOPLE_VALUES = new ParameterValue[]{
-      PV_CONTAINS,
-      PV_IS,
-      PV_MATCHES_REGEX,
-      PV_DOESNT_MATCH_REGEX
-   };
-   static final ParameterValue[] PV_LAST_CHANGE = new ParameterValue[]{
-      PV_FIELD_ALIAS,
-      PV_FIELD_ASSIGNED_TO,
-      PV_FIELD_LIST_ACCESSIBLE,
-      PV_FIELD_COMPONENT,
-      PV_FIELD_DEADLINE,
-      PV_FIELD_EVER_CONFIRMED,
-      PV_FIELD_REP_PLARFORM,
-      PV_FIELD_REMAINING_TIME,
-      PV_FIELD_WORK_TIME,
-      PV_FIELD_KEYWORDS,
-      PV_FIELD_ESTIMATED_TIME,
-      PV_FIELD_OP_SYS,
-      PV_FIELD_PRIORITY,
-      PV_FIELD_PRODUCT,
-      PV_FIELD_QA_CONTACT,
-      PV_FIELD_REPORTER_ACCESSIBLE,
-      PV_FIELD_RESOLUTION,
-      PV_FIELD_BUG_SEVERITY,
-      PV_FIELD_BUG_STATUS,
-      PV_FIELD_SHORT_DESC,
-      PV_FIELD_TARGET_MILESTONE,
-      PV_FIELD_BUG_FILE_LOC,
-      PV_FIELD_VERSION,
-      PV_FIELD_VOTES,
-      PV_FIELD_STATUS_WHITEBOARD
-   };
+//   static final ParameterValue PV_CONTAINS = new ParameterValue("contains", "substring"); // NOI18N
+//   static final ParameterValue PV_IS = new ParameterValue("is", "exact"); // NOI18N
+//   static final ParameterValue PV_MATCHES_REGEX = new ParameterValue("matches the regexp", "regexp"); // NOI18N
+//   static final ParameterValue PV_DOESNT_MATCH_REGEX = new ParameterValue("doesn't match the regexp", "notregexp"); // NOI18N
+//   static final ParameterValue PV_FIELD_ALIAS = new ParameterValue("alias", "alias"); // NOI18N
+//   static final ParameterValue PV_FIELD_ASSIGNED_TO = new ParameterValue("assigned_to", "assigned_to"); // NOI18N
+//   static final ParameterValue PV_FIELD_LIST_ACCESSIBLE = new ParameterValue("cclist_accessible", "cclist_accessible"); // NOI18N
+//   static final ParameterValue PV_FIELD_COMPONENT = new ParameterValue("component", "component"); // NOI18N
+//   static final ParameterValue PV_FIELD_DEADLINE = new ParameterValue("deadline", "deadline"); // NOI18N
+//   static final ParameterValue PV_FIELD_EVER_CONFIRMED = new ParameterValue("everconfirmed", "everconfirmed"); // NOI18N
+//   static final ParameterValue PV_FIELD_REP_PLARFORM = new ParameterValue("rep_platform", "rep_platform"); // NOI18N
+//   static final ParameterValue PV_FIELD_REMAINING_TIME = new ParameterValue("remaining_time", "remaining_time"); // NOI18N
+//   static final ParameterValue PV_FIELD_WORK_TIME = new ParameterValue("work_time", "work_time"); // NOI18N
+//   static final ParameterValue PV_FIELD_KEYWORDS = new ParameterValue("keywords", "keywords"); // NOI18N
+//   static final ParameterValue PV_FIELD_ESTIMATED_TIME = new ParameterValue("estimated_time", "estimated_time"); // NOI18N
+//   static final ParameterValue PV_FIELD_OP_SYS = new ParameterValue("op_sys", "op_sys"); // NOI18N
+//   static final ParameterValue PV_FIELD_PRIORITY = new ParameterValue("priority", "priority"); // NOI18N
+//   static final ParameterValue PV_FIELD_PRODUCT = new ParameterValue("product", "product"); // NOI18N
+//   static final ParameterValue PV_FIELD_QA_CONTACT = new ParameterValue("qa_contact", "qa_contact"); // NOI18N
+//   static final ParameterValue PV_FIELD_REPORTER_ACCESSIBLE = new ParameterValue("reporter_accessible", "reporter_accessible"); // NOI18N
+//   static final ParameterValue PV_FIELD_RESOLUTION = new ParameterValue("resolution", "resolution"); // NOI18N
+//   static final ParameterValue PV_FIELD_BUG_SEVERITY = new ParameterValue("bug_severity", "bug_severity"); // NOI18N
+//   static final ParameterValue PV_FIELD_BUG_STATUS = new ParameterValue("bug_status", "bug_status"); // NOI18N
+//   static final ParameterValue PV_FIELD_SHORT_DESC = new ParameterValue("short_desc", "short_desc"); // NOI18N
+//   static final ParameterValue PV_FIELD_TARGET_MILESTONE = new ParameterValue("target_milestone", "target_milestone"); // NOI18N
+//   static final ParameterValue PV_FIELD_BUG_FILE_LOC = new ParameterValue("bug_file_loc", "bug_file_loc"); // NOI18N
+//   static final ParameterValue PV_FIELD_VERSION = new ParameterValue("version", "version"); // NOI18N
+//   static final ParameterValue PV_FIELD_VOTES = new ParameterValue("votes", "votes"); // NOI18N
+//   static final ParameterValue PV_FIELD_STATUS_WHITEBOARD = new ParameterValue("status_whiteboard", "status_whiteboard"); // NOI18N
+//   static final ParameterValue[] PV_TEXT_SEARCH_VALUES = new ParameterValue[]{
+//      PV_MATCHES_REGEX,
+//      PV_DOESNT_MATCH_REGEX
+//   };
+//   static final ParameterValue[] PV_PEOPLE_VALUES = new ParameterValue[]{
+//      PV_CONTAINS,
+//      PV_IS,
+//      PV_MATCHES_REGEX,
+//      PV_DOESNT_MATCH_REGEX
+//   };
+//   static final ParameterValue[] PV_LAST_CHANGE = new ParameterValue[]{
+//      PV_FIELD_ALIAS,
+//      PV_FIELD_ASSIGNED_TO,
+//      PV_FIELD_LIST_ACCESSIBLE,
+//      PV_FIELD_COMPONENT,
+//      PV_FIELD_DEADLINE,
+//      PV_FIELD_EVER_CONFIRMED,
+//      PV_FIELD_REP_PLARFORM,
+//      PV_FIELD_REMAINING_TIME,
+//      PV_FIELD_WORK_TIME,
+//      PV_FIELD_KEYWORDS,
+//      PV_FIELD_ESTIMATED_TIME,
+//      PV_FIELD_OP_SYS,
+//      PV_FIELD_PRIORITY,
+//      PV_FIELD_PRODUCT,
+//      PV_FIELD_QA_CONTACT,
+//      PV_FIELD_REPORTER_ACCESSIBLE,
+//      PV_FIELD_RESOLUTION,
+//      PV_FIELD_BUG_SEVERITY,
+//      PV_FIELD_BUG_STATUS,
+//      PV_FIELD_SHORT_DESC,
+//      PV_FIELD_TARGET_MILESTONE,
+//      PV_FIELD_BUG_FILE_LOC,
+//      PV_FIELD_VERSION,
+//      PV_FIELD_VOTES,
+//      PV_FIELD_STATUS_WHITEBOARD
+//   };
    //
    private final String parameter;
    protected boolean alwaysDisabled = false;
@@ -207,7 +207,7 @@ public abstract class RedmineQueryParameter {
       public ListParameter(JList list, String parameter) {
          super(parameter);
          this.list = list;
-         list.setModel(new DefaultListModel());
+         //list.setModel(new DefaultListModel());
       }
 
       @Override
@@ -224,7 +224,13 @@ public abstract class RedmineQueryParameter {
       }
 
       public void setParameterValues(List<ParameterValue> values) {
-         list.setModel(new ListListModel(values));
+         if (values.isEmpty()) {
+            list.setModel(new DefaultListModel());
+            list.setPrototypeCellValue("    ");
+         } else {
+            list.setModel(new ListListModel(values));
+            list.setPrototypeCellValue(null);
+         }
       }
 
       @Override

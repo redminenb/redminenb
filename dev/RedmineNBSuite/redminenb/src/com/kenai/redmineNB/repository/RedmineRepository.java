@@ -27,6 +27,7 @@ import com.kenai.redmineNB.user.RedmineUser;
 import com.kenai.redmineNB.util.Is;
 import com.kenai.redmineNB.util.RedmineUtil;
 import com.kenai.redminenb.api.AuthMode;
+import com.kenai.redminenb.api.IssuePriority;
 import java.awt.EventQueue;
 import java.awt.Image;
 import java.io.IOException;
@@ -49,6 +50,7 @@ import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.bean.*;
+import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 
 /**
  * Redmine repository manager.
@@ -425,14 +427,14 @@ public class RedmineRepository {
       return Collections.<Version>emptyList();
    }
 
-   public List<ParameterValue> getIssuePriorities() {
+   public List<IssuePriority> getIssuePriorities() {
       // XXX not yet supported by redmine-java-api
       return Arrays.asList(
-              new ParameterValue("Low", 3),
-              new ParameterValue("Normal", 4),
-              new ParameterValue("High", 5),
-              new ParameterValue("Urgent", 6),
-              new ParameterValue("Immediate", 7));
+              new IssuePriority(7, "Immediate"),
+              new IssuePriority(6, "Urgent"),
+              new IssuePriority(5, "High"),
+              new IssuePriority(4, "Normal"),
+              new IssuePriority(3, "Low"));
    }
 
    public IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> getIssueCache() {
@@ -499,7 +501,7 @@ public class RedmineRepository {
    public RedmineUser getCurrentUser() {
       return currentUser;
    }
-   
+
    private RequestProcessor getRefreshProcessor() {
       if (refreshProcessor == null) {
          refreshProcessor = new RequestProcessor("Redmine refresh - " + getDisplayName()); // NOI18N

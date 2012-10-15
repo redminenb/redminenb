@@ -28,6 +28,7 @@ public class ParameterValue {
 
    private final String displayName;
    private final String value;
+   private Object userObject;
 
    public ParameterValue(@NonNull String value) {
       this(value, value);
@@ -47,6 +48,11 @@ public class ParameterValue {
       this.value = String.valueOf(value);
    }
 
+   public ParameterValue(@NonNull String displayName, @NonNull Integer value, Object userObject) {
+      this(displayName, value);
+      this.userObject = userObject;
+   }
+
    static List<ParameterValue> convert(List<String> values) {
       List<ParameterValue> ret = new ArrayList<ParameterValue>(values.size());
       for (String v : values) {
@@ -61,6 +67,10 @@ public class ParameterValue {
 
    public String getValue() {
       return value;
+   }
+
+   public Object getUserObject() {
+      return userObject;
    }
 
    @Override

@@ -117,6 +117,15 @@ public class Defaults {
       @Override
       public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
          RedmineUser user = null;
+         if (value instanceof ParameterValue) {
+            ParameterValue pv = (ParameterValue)value;
+            if (pv.getUserObject() instanceof RedmineUser) {
+               value = pv.getUserObject();
+            } else {
+               value = ((ParameterValue)value).getDisplayName();
+            }
+         }
+         
          if (value instanceof RedmineUser) {
             user = (RedmineUser)value;
             value = user.getFullName();
@@ -126,10 +135,8 @@ public class Defaults {
             value = " ";
          }
          Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-         if (user != null && user.isIsCurrentUser()) {
-            setIcon(Defaults.getIcon("user.png"));
-         } else if (StringUtils.isNotBlank(getText())) {
-            setIcon(Defaults.getIcon("user_gray.png"));
+         if (user != null) {
+            setIcon(Defaults.getIcon(user.isIsCurrentUser() ? "user.png" : "user_gray.png"));
          }
          return c;
       }

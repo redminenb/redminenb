@@ -24,6 +24,7 @@ import com.kenai.redmineNB.query.RedmineQueryParameter.CheckBoxParameter;
 import com.kenai.redmineNB.query.RedmineQueryParameter.ListParameter;
 import com.kenai.redmineNB.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redmineNB.repository.RedmineRepository;
+import com.kenai.redmineNB.user.RedmineUser;
 import com.kenai.redmineNB.util.RedmineUtil;
 
 import com.kenai.redminenb.api.IssuePriority;
@@ -113,6 +114,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
    private final ListParameter priorityParameter;
    //private final ListParameter resolutionParameter;
    //private final ListParameter severityParameter;
+   private final ListParameter assigneeParameter;
    private final Map<String, RedmineQueryParameter> parameters;
    //
    private final Object REFRESH_LOCK = new Object();
@@ -137,6 +139,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
       //resolutionParameter = 
       //severityParameter = ...
+      assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
 
       registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
       registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");
@@ -166,15 +169,16 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       queryPanel.cloneQueryButton.addActionListener(this);
 
       queryPanel.issueIdTextField.addActionListener(this);
+
       queryPanel.categoryList.addKeyListener(this);
       queryPanel.versionList.addKeyListener(this);
       queryPanel.statusList.addKeyListener(this);
       queryPanel.resolutionList.addKeyListener(this);
       queryPanel.severityList.addKeyListener(this);
       queryPanel.priorityList.addKeyListener(this);
+      queryPanel.assigneeList.addKeyListener(this);
 
       queryPanel.queryTextField.addActionListener(this);
-      queryPanel.peopleTextField.addActionListener(this);
    }
 
    @Override
@@ -252,8 +256,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
                onGotoIssue();
             }
          } else if (e.getSource() == queryPanel.issueIdTextField
-                 || e.getSource() == queryPanel.queryTextField
-                 || e.getSource() == queryPanel.peopleTextField) {
+                 || e.getSource() == queryPanel.queryTextField) {
             onRefresh();
          }
       } catch (RedmineException ex) {
@@ -280,7 +283,8 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
               || e.getSource() == queryPanel.versionList
               || e.getSource() == queryPanel.statusList
               || e.getSource() == queryPanel.resolutionList
-              || e.getSource() == queryPanel.priorityList) {
+              || e.getSource() == queryPanel.priorityList
+              || e.getSource() == queryPanel.assigneeList) {
          onRefresh();
       }
    }
@@ -665,6 +669,14 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
          pvList.add(new ParameterValue(p.getName(), p.getId()));
       };
       priorityParameter.setParameterValues(pvList);
+      
+      // Assignee (assigned to)
+      pvList = new ArrayList<ParameterValue>();
+      pvList.add(new ParameterValue("(none)", "!*"));
+      for (RedmineUser redmineUser : repository.getUsers()) {
+         pvList.add(new ParameterValue(redmineUser.getFullName(), redmineUser.getId(), redmineUser));
+      }
+      assigneeParameter.setParameterValues(pvList);
    }
 
    private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
@@ -694,7 +706,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
 //      }
 //      return m;
 //   }
-
    protected void enableFields(boolean bl) {
       // set all non parameter fields
       queryPanel.enableFields(bl);

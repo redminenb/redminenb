@@ -668,7 +668,7 @@
           <Group type="102" alignment="1" attributes="0">
               <Component id="queryHeaderPanel" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="searchPanel" min="-2" max="-2" attributes="0"/>
+              <Component id="searchPanel" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="tableFieldsPanel" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -873,7 +873,6 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="byTextContainer" alignment="0" max="32767" attributes="2"/>
                   <Component id="byDetailsContainer" alignment="0" max="32767" attributes="1"/>
-                  <Component id="byPeopleContainer" alignment="0" max="32767" attributes="1"/>
                   <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -894,7 +893,6 @@
                       <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
                       <Component id="byDetailsContainer" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
-                      <Component id="byPeopleContainer" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -927,13 +925,6 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
             </Container>
-            <Container class="javax.swing.JPanel" name="byDetailsContainer">
-              <AuxValues>
-                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-              </AuxValues>
-
-              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
-            </Container>
             <Component class="javax.swing.JLabel" name="byDetailsLabel">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
@@ -949,7 +940,7 @@
                 <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
               </AuxValues>
             </Component>
-            <Container class="javax.swing.JPanel" name="byPeopleContainer">
+            <Container class="javax.swing.JPanel" name="byDetailsContainer">
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
               </AuxValues>

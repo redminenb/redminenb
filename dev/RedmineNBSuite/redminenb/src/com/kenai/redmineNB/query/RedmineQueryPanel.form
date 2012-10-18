@@ -23,16 +23,6 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="categoryLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="jScrollPane6" alignment="0" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="versionLabel" alignment="0" min="-2" max="-2" attributes="1"/>
-                      <Component id="jScrollPane2" alignment="0" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="statusLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="jScrollPane3" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -43,6 +33,21 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="assigneeLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="assigneeScrollPane" alignment="0" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="categoryLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="jScrollPane6" alignment="0" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="versionLabel" alignment="0" min="-2" max="-2" attributes="1"/>
+                      <Component id="jScrollPane2" alignment="0" min="-2" max="-2" attributes="1"/>
+                  </Group>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="resolutionLabel" alignment="0" min="-2" max="-2" attributes="1"/>
                       <Component id="jScrollPane5" alignment="0" min="-2" max="-2" attributes="1"/>
                   </Group>
@@ -50,11 +55,6 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="severityLabel" alignment="0" min="-2" max="-2" attributes="1"/>
                       <Component id="severityScrollPane" alignment="0" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="assigneeLabel" min="-2" max="-2" attributes="0"/>
-                      <Component id="assigneeScrollPane" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
@@ -668,7 +668,7 @@
           <Group type="102" alignment="1" attributes="0">
               <Component id="queryHeaderPanel" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="searchPanel" max="32767" attributes="0"/>
+              <Component id="searchPanel" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="tableFieldsPanel" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -842,8 +842,8 @@
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Component id="gotoPanel" min="-2" pref="26" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
-                  <Component id="criteriaPanel" pref="36" max="32767" attributes="0"/>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <Component id="criteriaPanel" max="32767" attributes="0"/>
+                  <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="saveChangesButton" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="cancelChangesButton" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -892,7 +892,6 @@
                       <Component id="byDetailsLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
                       <Component id="byDetailsContainer" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>

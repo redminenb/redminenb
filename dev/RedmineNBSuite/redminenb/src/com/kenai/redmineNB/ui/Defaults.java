@@ -125,7 +125,7 @@ public class Defaults {
                value = ((ParameterValue)value).getDisplayName();
             }
          }
-         
+
          if (value instanceof RedmineUser) {
             user = (RedmineUser)value;
             value = user.getFullName();
@@ -136,8 +136,28 @@ public class Defaults {
          }
          Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
          if (user != null) {
-            setIcon(Defaults.getIcon(user.isIsCurrentUser() ? "user.png" : "user_gray.png"));
+            ((JLabel)c).setIcon(Defaults.getIcon(user.isIsCurrentUser() ? "user.png" : "user_gray.png"));
          }
+         return c;
+      }
+   }
+
+   public static class PriorityLCR extends DefaultListCellRenderer {
+
+      @Override
+      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+         if (value instanceof IssuePriority) {
+            value = ((IssuePriority)value).getName();
+         } else if (value instanceof ParameterValue) {
+            value = ((ParameterValue)value).getDisplayName();
+         } else if (value == null) {
+            value = " ";
+         } else {
+            value = value.toString();
+         }
+
+         Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+         ((JLabel)c).setIcon(RedmineConfig.getInstance().getPriorityIcon((String)value));
          return c;
       }
    }
@@ -153,22 +173,6 @@ public class Defaults {
             }
          }
          return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      }
-   }
-
-   public static class PriorityLCR extends ParameterValueLCR {
-
-      @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-         Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-         if (c instanceof JLabel) {
-            if (value instanceof ParameterValue) {
-               ((JLabel)c).setIcon(RedmineConfig.getInstance().getPriorityIcon(((ParameterValue)value).getDisplayName()));
-            } else {
-               ((JLabel)c).setIcon(null);
-            }
-         }
-         return c;
       }
    }
 }

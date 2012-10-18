@@ -21,13 +21,17 @@ import com.kenai.redmineNB.issue.RedmineIssue;
 import com.kenai.redmineNB.issue.RedmineIssueNode;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.util.RedmineUtil;
+
+import com.taskadapter.redmineapi.AuthenticationException;
+import com.taskadapter.redmineapi.NotFoundException;
+import com.taskadapter.redmineapi.RedmineException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +45,6 @@ import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
 import org.netbeans.modules.bugtracking.util.LogUtils;
 import org.openide.nodes.Node.Property;
 import org.openide.util.Exceptions;
-import com.taskadapter.redmineapi.AuthenticationException;
-import com.taskadapter.redmineapi.NotFoundException;
-import com.taskadapter.redmineapi.RedmineException;
-import java.util.HashMap;
 
 /**
  * Redmine Query.
@@ -171,7 +171,6 @@ public final class RedmineQuery {
                firstRun = false;
                try {
                   List<com.taskadapter.redmineapi.bean.Issue> issueArr = doSearch(queryController.getSearchParameters());
-//                  List<com.taskadapter.redmineapi.bean.Issue> issueArr = doSearch(queryController.getSearchParameterMap());
                   for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
                      getController().addProgressUnit(RedmineIssue.getDisplayName(issue));
                      try {
@@ -191,11 +190,11 @@ public final class RedmineQuery {
                }
 
                // only issues not returned by the query are obsolete
-//                    archivedIssues.removeAll(issues);
+               //archivedIssues.removeAll(issues);
                if (isSaved()) {
                   // ... and store all issues you got
                   repository.getIssueCache().storeQueryIssues(getStoredQueryName(), issues.toArray(new String[issues.size()]));
-//                        repository.getIssueCache().storeArchivedQueryIssues(getStoredQueryName(), archivedIssues.toArray(new String[0]));
+                  //repository.getIssueCache().storeArchivedQueryIssues(getStoredQueryName(), archivedIssues.toArray(new String[0]));
                }
 
                // now get the task data for
@@ -237,32 +236,6 @@ public final class RedmineQuery {
     * @see RedmineQueryController#RedmineQueryController
     * @param searchParameters
     */
-//   private List<com.taskadapter.redmineapi.bean.Issue> doSearch(Map<String, String> searchParameterMap)
-//           throws IOException, AuthenticationException, NotFoundException, RedmineException {
-//      // see RedmineQueryController constructor
-//      boolean isSubject = "1".equals(searchParameterMap.remove("is_subject"));
-//      boolean isDescription = "1".equals(searchParameterMap.remove("is_description"));
-//      boolean isComments = "1".equals(searchParameterMap.remove("is_comments"));
-//      String queryStr = searchParameterMap.remove("query");
-//
-//      // Perform search
-//      List<com.taskadapter.redmineapi.bean.Issue> issueArr = repository.getManager().getIssues(searchParameterMap);
-//
-//      // Post filtering
-//      if (StringUtils.isNotBlank(queryStr) && (isSubject || isDescription || isComments)) {
-//         List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>();
-//         for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
-//            if ((isSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
-//                    || (isDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /*
-//                    || (isComments && StringUtils.containsIgnoreCase(..., queryStr))
-//                    */) {
-//               newArr.add(issue);
-//            }
-//         }
-//         issueArr = newArr;
-//      }
-//      return issueArr;
-//   }
    private List<com.taskadapter.redmineapi.bean.Issue> doSearch(Map<String, RedmineQueryParameter> searchParameters)
            throws IOException, AuthenticationException, NotFoundException, RedmineException {
 
@@ -313,7 +286,7 @@ public final class RedmineQuery {
          }
          issueArr = newArr;
       }
-      
+
       // Post filtering: Multi-value parameters
       if (!multiValueParameters.isEmpty()) {
          List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>(issueArr.size());
@@ -329,20 +302,6 @@ public final class RedmineQuery {
                         break;
                      }
                   }
-               } else if ("category_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if (String.valueOf(issue.getCategory().getId()).equals(pv.getValue())) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
-               } else if ("fixed_version_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if (String.valueOf(issue.getTargetVersion().getId()).equals(pv.getValue())) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
                } else if ("status_id".equals(paramName)) {
                   for (ParameterValue pv : p.getValues()) {
                      if (String.valueOf(issue.getStatusId()).equals(pv.getValue())) {
@@ -353,6 +312,30 @@ public final class RedmineQuery {
                } else if ("priority_id".equals(paramName)) {
                   for (ParameterValue pv : p.getValues()) {
                      if (String.valueOf(issue.getPriorityId()).equals(pv.getValue())) {
+                        newArr.add(issue);
+                        break;
+                     }
+                  }
+               } else if ("assigned_to_id".equals(paramName)) {
+                  for (ParameterValue pv : p.getValues()) {
+                     if ((pv == ParameterValue.NONE_PARAMETERVALUE && issue.getAssignee() == null)
+                             || (issue.getAssignee() != null && String.valueOf(issue.getAssignee().getId()).equals(pv.getValue()))) {
+                        newArr.add(issue);
+                        break;
+                     }
+                  }
+               } else if ("category_id".equals(paramName)) {
+                  for (ParameterValue pv : p.getValues()) {
+                     if ((pv == ParameterValue.NONE_PARAMETERVALUE && issue.getCategory() == null)
+                             || (issue.getCategory() != null && String.valueOf(issue.getCategory().getId()).equals(pv.getValue()))) {
+                        newArr.add(issue);
+                        break;
+                     }
+                  }
+               } else if ("fixed_version_id".equals(paramName)) {
+                  for (ParameterValue pv : p.getValues()) {
+                     if ((pv == ParameterValue.NONE_PARAMETERVALUE && issue.getTargetVersion() == null)
+                             || (issue.getTargetVersion() != null && String.valueOf(issue.getTargetVersion().getId()).equals(pv.getValue()))) {
                         newArr.add(issue);
                         break;
                      }

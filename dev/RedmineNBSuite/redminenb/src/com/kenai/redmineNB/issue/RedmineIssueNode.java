@@ -242,6 +242,12 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       }
 
       @Override
+      public String toString() {
+         T value = getValue();
+         return value == null ? null : value.toString();
+      }
+
+      @Override
       public T getValue() {
          return getIssueData().getFieldValue(fieldName);
       }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.apisupport.project</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
+            <code-name-base>org.eclipse.mylyn.wikitext</code-name-base>
+            <suite-component/>
+            <module-dependencies/>
+            <public-packages>
+                <package>org.eclipse.mylyn.internal.wikitext.core</package>
+                <package>org.eclipse.mylyn.internal.wikitext.core.parser.builder</package>
+                <package>org.eclipse.mylyn.internal.wikitext.core.parser.html</package>
+                <package>org.eclipse.mylyn.internal.wikitext.core.util</package>
+                <package>org.eclipse.mylyn.internal.wikitext.core.util.css</package>
+                <package>org.eclipse.mylyn.internal.wikitext.core.validation</package>
+                <package>org.eclipse.mylyn.internal.wikitext.textile.core</package>
+                <package>org.eclipse.mylyn.internal.wikitext.textile.core.block</package>
+                <package>org.eclipse.mylyn.internal.wikitext.textile.core.phrase</package>
+                <package>org.eclipse.mylyn.internal.wikitext.textile.core.token</package>
+                <package>org.eclipse.mylyn.internal.wikitext.textile.core.validation</package>
+                <package>org.eclipse.mylyn.wikitext.core</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser.builder</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser.markup</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser.markup.block</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser.markup.phrase</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser.markup.token</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser.outline</package>
+                <package>org.eclipse.mylyn.wikitext.core.parser.util</package>
+                <package>org.eclipse.mylyn.wikitext.core.util</package>
+                <package>org.eclipse.mylyn.wikitext.core.util.anttask</package>
+                <package>org.eclipse.mylyn.wikitext.core.validation</package>
+                <package>org.eclipse.mylyn.wikitext.textile.core</package>
+            </public-packages>
+            <class-path-extension>
+                <runtime-relative-path>ext/org.eclipse.mylyn.wikitext.core_1.8.0.I20121016-1804.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/org.eclipse.mylyn.wikitext.core_1.8.0.I20121016-1804.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/org.eclipse.mylyn.wikitext.textile.core_1.8.0.I20121016-1804.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/org.eclipse.mylyn.wikitext.textile.core_1.8.0.I20121016-1804.jar</binary-origin>
+            </class-path-extension>
+        </data>
+    </configuration>
+</project>

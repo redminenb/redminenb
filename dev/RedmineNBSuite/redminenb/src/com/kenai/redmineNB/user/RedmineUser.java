@@ -69,6 +69,10 @@ public class RedmineUser extends RepositoryUser {
       return hash;
    }
 
+   public static RedmineUser get(User user) {
+      return user == null ? null : new RedmineUser(user);
+   }
+   
    public static Collection<RepositoryUser> convert(List<User> users) {
       Collection<RepositoryUser> convertedUsers = new LinkedList<RepositoryUser>();
       for (User user : users) {

@@ -18,14 +18,19 @@ package com.kenai.redmineNB.query;
 import java.util.ArrayList;
 import java.util.List;
 import org.netbeans.api.annotations.common.NonNull;
+import org.openide.util.NbBundle;
 
 /**
  * Immutable class representing a parameter value and displayName (both non-null).
  *
  * @author Anchialas <anchialas@gmail.com>
  */
+@NbBundle.Messages("LBL_PVNone=(none)")
 public class ParameterValue {
 
+   static final String NONE_VALUE = "!*";
+   static final ParameterValue NONE_PARAMETERVALUE = new ParameterValue(Bundle.LBL_PVNone(), NONE_VALUE);
+   
    private final String displayName;
    private final String value;
    private Object userObject;

@@ -632,13 +632,8 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
    }
 
    private void populateProjectDetails() {
-      // Versions
-      List<ParameterValue> pvList = new ArrayList<ParameterValue>();
-      for (Version v : repository.getVersions()) {
-         pvList.add(new ParameterValue(v.getName(), v.getId()));
-      }
-      versionParameter.setParameterValues(pvList);
-
+      List<ParameterValue> pvList;
+      
       // Tracker
       pvList = new ArrayList<ParameterValue>();
       for (Tracker t : repository.getTrackers()) {
@@ -646,7 +641,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       }
       trackerParameter.setParameterValues(pvList);
 
-      // Issue Status
+      // Status
       pvList = new ArrayList<ParameterValue>();
 //      pvList.add(new ParameterValue("open"));
 //      pvList.add(new ParameterValue("closed"));
@@ -655,28 +650,37 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
          pvList.add(new ParameterValue(s.getName(), s.getId()));
       }
       statusParameter.setParameterValues(pvList);
-
-      // Issue Category
-      pvList = new ArrayList<ParameterValue>();
-      for (IssueCategory c : repository.getIssueCategories()) {
-         pvList.add(new ParameterValue(c.getName(), c.getId()));
-      }
-      categoryParameter.setParameterValues(pvList);
-
-      // Issue Priorities
+      
+      // Priority
       pvList = new ArrayList<ParameterValue>();
       for (IssuePriority p : repository.getIssuePriorities()) {
          pvList.add(new ParameterValue(p.getName(), p.getId()));
       };
       priorityParameter.setParameterValues(pvList);
       
-      // Assignee (assigned to)
+       // Assignee (assigned to)
       pvList = new ArrayList<ParameterValue>();
-      pvList.add(new ParameterValue("(none)", "!*"));
+      pvList.add(ParameterValue.NONE_PARAMETERVALUE);
       for (RedmineUser redmineUser : repository.getUsers()) {
          pvList.add(new ParameterValue(redmineUser.getFullName(), redmineUser.getId(), redmineUser));
       }
       assigneeParameter.setParameterValues(pvList);
+
+      // Category
+      pvList = new ArrayList<ParameterValue>();
+      pvList.add(ParameterValue.NONE_PARAMETERVALUE);
+      for (IssueCategory c : repository.getIssueCategories()) {
+         pvList.add(new ParameterValue(c.getName(), c.getId()));
+      }
+      categoryParameter.setParameterValues(pvList);
+
+      // Target Version
+      pvList = new ArrayList<ParameterValue>();
+      pvList.add(ParameterValue.NONE_PARAMETERVALUE);
+      for (Version v : repository.getVersions()) {
+         pvList.add(new ParameterValue(v.getName(), v.getId()));
+      }
+      versionParameter.setParameterValues(pvList);
    }
 
    private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
@@ -695,17 +699,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       return new HashMap<String, RedmineQueryParameter>(parameters);
    }
 
-//   public Map<String, String> getSearchParameterMap() {
-//      Map<String, String> m = new HashMap<String, String>();
-//      m.put("project_id", String.valueOf(repository.getProject().getId()));
-//      for (RedmineQueryParameter p : parameters.values()) {
-//         String str = p.getValueString();
-//         if (StringUtils.isNotBlank(str)) {
-//            m.put(p.getParameter(), str);
-//         }
-//      }
-//      return m;
-//   }
    protected void enableFields(boolean bl) {
       // set all non parameter fields
       queryPanel.enableFields(bl);

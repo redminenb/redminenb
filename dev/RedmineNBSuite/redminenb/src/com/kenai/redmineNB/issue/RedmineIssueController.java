@@ -3,6 +3,8 @@ package com.kenai.redmineNB.issue;
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.ui.Defaults;
 import com.kenai.redmineNB.util.RedmineUtil;
+import com.kenai.redmineNB.util.markup.TextileUtil;
+
 import com.taskadapter.redmineapi.bean.Issue;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,6 +14,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.netbeans.modules.bugtracking.spi.BugtrackingController;
 import org.netbeans.modules.bugtracking.util.UIUtils;
 import org.openide.awt.HtmlBrowser;
@@ -32,8 +36,10 @@ public class RedmineIssueController extends BugtrackingController {
    public RedmineIssueController(RedmineIssue issue) {
       this.redmineIssue = issue;
       issuePanel = new RedmineIssuePanel(issue);
-      initActions();
       //issuePane.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+
+      initActions();
+      initListeners();
 
       JScrollPane scrollPane = new JScrollPane(issuePanel);
       scrollPane.setBorder(null);
@@ -88,23 +94,42 @@ public class RedmineIssueController extends BugtrackingController {
    private RedmineIssue createSubTask() {
       Issue issue = redmineIssue.getIssue();
       // TODO: check if issue is available (id != 0)
-      
+
       Issue subIssue = new Issue();
       subIssue.setParentId(issue.getId());
       subIssue.setAssignee(issue.getAssignee());
       //subIssue.setAuthor(issue.getAuthor());
       subIssue.setAuthor(redmineIssue.getRepository().getCurrentUser().getUser());
       subIssue.setCategory(issue.getCategory());
-      
+
       subIssue.setPriorityText(issue.getPriorityText());
       subIssue.setPriorityId(issue.getPriorityId());
-      
+
       subIssue.setTargetVersion(issue.getTargetVersion());
       subIssue.setTracker(issue.getTracker());
       subIssue.setStatusId(issue.getStatusId());
       subIssue.setDoneRatio(0);
       subIssue.setSubject("New Subtask");
       return new RedmineIssue(redmineIssue.getRepository(), subIssue);
+   }
+
+   private void initListeners() {
+      issuePanel.descriptionTextArea.getDocument().addDocumentListener(new DocumentListener() {
+         @Override
+         public void insertUpdate(DocumentEvent e) {
+            changedUpdate(e);
+         }
+
+         @Override
+         public void removeUpdate(DocumentEvent e) {
+            changedUpdate(e);
+         }
+
+         @Override
+         public void changedUpdate(DocumentEvent e) {
+            issuePanel.updateTextileOutput();
+         }
+      });
    }
 
    @NbBundle.Messages({

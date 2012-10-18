@@ -314,7 +314,7 @@ public class RedmineRepository {
       try {
          users.add(currentUser);
          for (Membership m : manager.getMemberships(project)) {
-            if (m.getUser() != null && !currentUser.getUser().equals(m.getUser())) {
+            if (m.getUser() != null && !currentUser.getUser().getId().equals(m.getUser().getId())) {
                users.add(new RedmineUser(m.getUser()));
             }
          }

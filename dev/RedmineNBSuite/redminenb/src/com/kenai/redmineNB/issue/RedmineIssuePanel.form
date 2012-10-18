@@ -43,7 +43,7 @@
               <Component id="buttonPane" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="issuePane" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="42" max="32767" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -66,7 +66,7 @@
                           <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
                           <Component id="headerLabel" max="32767" attributes="0"/>
                       </Group>
-                      <Component id="parentHeaderPanel" alignment="0" pref="822" max="32767" attributes="0"/>
+                      <Component id="parentHeaderPanel" alignment="0" pref="1074" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -116,7 +116,7 @@
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Component id="infoLabel" min="-2" pref="400" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Component id="toolbar" pref="220" max="32767" attributes="0"/>
+                  <Component id="toolbar" pref="472" max="32767" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -215,65 +215,71 @@
                           </Group>
                           <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="jScrollPane1" alignment="1" max="32767" attributes="0"/>
                               <Component id="subjectTextField" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <Component id="trackerComboBox" min="-2" pref="180" max="-2" attributes="0"/>
-                                          <EmptySpace type="separate" max="-2" attributes="0"/>
-                                          <Component id="privateCheckBox" min="-2" max="-2" attributes="0"/>
-                                      </Group>
+                                  <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                                      <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
                                       <Group type="102" alignment="0" attributes="0">
                                           <Group type="103" groupAlignment="0" attributes="0">
-                                              <Group type="103" groupAlignment="1" attributes="0">
-                                                  <Component id="targetVersionComboBox" min="-2" pref="233" max="-2" attributes="0"/>
-                                                  <Group type="102" attributes="0">
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <Component id="trackerComboBox" min="-2" pref="180" max="-2" attributes="0"/>
+                                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                                  <Component id="privateCheckBox" min="-2" max="-2" attributes="0"/>
+                                              </Group>
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <Group type="103" groupAlignment="0" attributes="0">
                                                       <Group type="103" groupAlignment="1" attributes="0">
-                                                          <Component id="statusComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
-                                                          <Component id="priorityComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
+                                                          <Component id="targetVersionComboBox" min="-2" pref="233" max="-2" attributes="0"/>
+                                                          <Group type="102" attributes="0">
+                                                              <Group type="103" groupAlignment="1" attributes="0">
+                                                                  <Component id="statusComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
+                                                                  <Component id="priorityComboBox" alignment="0" min="-2" pref="180" max="-2" attributes="0"/>
+                                                              </Group>
+                                                              <EmptySpace min="-2" pref="53" max="-2" attributes="0"/>
+                                                          </Group>
                                                       </Group>
-                                                      <EmptySpace min="-2" pref="53" max="-2" attributes="0"/>
+                                                      <Component id="assigneeComboBox" min="-2" pref="233" max="-2" attributes="0"/>
+                                                  </Group>
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Group type="103" groupAlignment="0" attributes="0">
+                                                      <Component id="versionAddButton" min="-2" pref="18" max="-2" attributes="0"/>
+                                                      <Component id="assignToMeButton" alignment="0" min="-2" max="-2" attributes="0"/>
                                                   </Group>
                                               </Group>
-                                              <Component id="assigneeComboBox" min="-2" pref="233" max="-2" attributes="0"/>
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <Component id="categoryComboBox" min="-2" pref="233" max="-2" attributes="0"/>
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Component id="categoryAddButton" min="-2" pref="18" max="-2" attributes="0"/>
+                                              </Group>
                                           </Group>
-                                          <EmptySpace max="-2" attributes="0"/>
+                                          <EmptySpace min="-2" pref="60" max="-2" attributes="0"/>
                                           <Group type="103" groupAlignment="0" attributes="0">
-                                              <Component id="versionAddButton" min="-2" pref="18" max="-2" attributes="0"/>
-                                              <Component id="assignToMeButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="dueDateLabel" min="-2" max="-2" attributes="0"/>
+                                              <Component id="startDateLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="parentIdLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="subjectLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="doneLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="estimateTimeLabel" min="-2" max="-2" attributes="0"/>
+                                          </Group>
+                                          <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Group type="102" attributes="0">
+                                                  <Component id="estimateTimeTextField" min="-2" pref="93" max="-2" attributes="0"/>
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Component id="estimateTimeLabel1" min="-2" max="-2" attributes="0"/>
+                                              </Group>
+                                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                                  <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
+                                                  <Component id="startDateChooser" alignment="0" pref="138" max="32767" attributes="0"/>
+                                                  <Component id="dueDateChooser" alignment="0" max="32767" attributes="0"/>
+                                                  <Component id="parentTaskTextField" min="-2" pref="74" max="-2" attributes="0"/>
+                                                  <Component id="projectNameButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              </Group>
                                           </Group>
                                       </Group>
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <Component id="categoryComboBox" min="-2" pref="233" max="-2" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="categoryAddButton" min="-2" pref="18" max="-2" attributes="0"/>
-                                      </Group>
                                   </Group>
-                                  <EmptySpace min="-2" pref="60" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="dueDateLabel" min="-2" max="-2" attributes="0"/>
-                                      <Component id="startDateLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="parentIdLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="subjectLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="doneLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="estimateTimeLabel" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Group type="102" attributes="0">
-                                          <Component id="estimateTimeTextField" min="-2" pref="93" max="-2" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="estimateTimeLabel1" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                          <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
-                                          <Component id="startDateChooser" alignment="0" pref="138" max="32767" attributes="0"/>
-                                          <Component id="dueDateChooser" alignment="0" max="32767" attributes="0"/>
-                                          <Component id="parentTaskTextField" min="-2" pref="74" max="-2" attributes="0"/>
-                                          <Component id="projectNameButton" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                  </Group>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Component id="htmlOutputLabel" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
@@ -301,62 +307,67 @@
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" attributes="0">
-                          <Component id="descriptionLabel" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="102" attributes="0">
+                                  <Component id="descriptionLabel" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="seenButton" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="jScrollPane1" min="-2" pref="94" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="statusComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="statusLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="parentIdLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="parentTaskTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="1" attributes="0">
+                              <Group type="103" alignment="1" groupAlignment="3" attributes="0">
+                                  <Component id="priorityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="priorityComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Group type="103" alignment="1" groupAlignment="0" attributes="0">
+                                  <Component id="startDateLabel" alignment="0" min="-2" pref="20" max="-2" attributes="0"/>
+                                  <Component id="startDateChooser" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
+                          <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                                  <Component id="assigneeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="dueDateLabel" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
+                                  <Component id="assignToMeButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="assigneeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="dueDateChooser" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="seenButton" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="categoryAddButton" alignment="1" max="32767" attributes="0"/>
+                              <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                                  <Component id="categoryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="categoryComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="estimateTimeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="estimateTimeTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="estimateTimeLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="versionAddButton" alignment="1" max="32767" attributes="0"/>
+                              <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                                  <Component id="targetVersionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="targetVersionComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="doneLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="doneComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
                       </Group>
-                      <Component id="jScrollPane1" min="-2" pref="94" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="statusComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="statusLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="parentIdLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="parentTaskTextField" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="1" attributes="0">
-                      <Group type="103" alignment="1" groupAlignment="3" attributes="0">
-                          <Component id="priorityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="priorityComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Group type="103" alignment="1" groupAlignment="0" attributes="0">
-                          <Component id="startDateLabel" alignment="0" min="-2" pref="20" max="-2" attributes="0"/>
-                          <Component id="startDateChooser" alignment="0" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                  <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                          <Component id="assigneeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="dueDateLabel" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
-                          <Component id="assignToMeButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="assigneeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Component id="dueDateChooser" min="-2" max="-2" attributes="0"/>
+                      <Component id="htmlOutputLabel" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="categoryAddButton" alignment="1" max="32767" attributes="0"/>
-                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                          <Component id="categoryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="categoryComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="estimateTimeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="estimateTimeTextField" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="estimateTimeLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="versionAddButton" alignment="1" max="32767" attributes="0"/>
-                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                          <Component id="targetVersionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="targetVersionComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="doneLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="doneComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -521,6 +532,9 @@
               <Properties>
                 <Property name="columns" type="int" value="20"/>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+              </AuxValues>
             </Component>
           </SubComponents>
         </Container>
@@ -671,6 +685,12 @@
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redmineNB/issue/Bundle.properties" key="RedmineIssuePanel.privateCheckBox.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="htmlOutputLabel">
+          <Properties>
+            <Property name="verticalAlignment" type="int" value="1"/>
+            <Property name="verticalTextPosition" type="int" value="1"/>
           </Properties>
         </Component>
       </SubComponents>

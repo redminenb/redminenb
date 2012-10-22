@@ -3,25 +3,27 @@ package com.kenai.redmineNB;
 import com.kenai.redmineNB.query.RedmineQuery;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.ui.Defaults;
-import com.kenai.redmineNB.util.RedminePreferences;
 
-import com.kenai.redminenb.api.IssuePriority;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
-import java.util.*;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Icon;
 import org.apache.commons.io.FileUtils;
-import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
-import org.openide.awt.NotificationDisplayer;
-import org.openide.util.Exceptions;
-import org.openide.util.ImageUtilities;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
-
 
 /**
  *
@@ -122,48 +124,6 @@ public class RedmineConfig {
       return getPreferences().getBoolean(CHECK_UPDATES, true);
    }
 
-//   public void putRepository(RedmineRepository repository) throws IllegalArgumentException,
-//                                                                  IllegalAccessException,
-//                                                                  BackingStoreException {
-//      String baseKey = getRepositoryKey(repository);
-//      RedminePreferences.putObject(baseKey, repository);
-//      RedminePreferences.getPreferences().put(baseKey + ".authMode", repository.getAuthMode().name());
-//      RedminePreferences.getPreferences().put(baseKey + ".project.id", repository.getProject().getIdentifier());
-//
-//      BugtrackingUtil.savePassword(String.valueOf(repository.getPassword()),
-//                                   null,
-//                                   repository.getUsername(),
-//                                   repository.getUrl());
-//   }
-//
-//   @Messages("MSG_HostNotReachable=Redmine host ''{0}'' is not reachable!")
-//   public RedmineRepository getRepository(String id) throws InstantiationException,
-//                                                            IllegalAccessException,
-//                                                            BackingStoreException {
-//      String baseKey = getRepositoryKey(id);
-//      RedmineRepository repo = RedminePreferences.getObject(baseKey, RedmineRepository.class);
-////      repo.setPassword(BugtrackingUtil.readPassword("", null, repo.getUsername(), repo.getUrl()));
-////      repo.setAuthMode(AuthMode.valueOf(RedminePreferences.getPreferences().get(baseKey + ".authMode", AuthMode.AccessKey.name())));
-//      String projectId = RedminePreferences.getPreferences().get(baseKey + ".project.id", null);
-//      try {
-//         URL url = new URL(repo.getUrl());
-//         if (repo.isReachable()) {
-//            repo.setProject(repo.getManager().getProjectByKey(projectId));
-//         } else {
-//            NotificationDisplayer.getDefault().notify("Redmine: " + repo.getDisplayName(),
-//                                                      Defaults.getIcon("error.png"),
-//                                                      Bundle.MSG_HostNotReachable(url.getHost()), null);
-//         }
-//      } catch (Exception ex) {
-//         Exceptions.printStackTrace(ex);
-//      }
-//      return repo;
-//   }
-
-   public void removeRepository(RedmineRepository repository) throws BackingStoreException {
-      RedminePreferences.removeObject(getRepositoryKey(repository));
-   }
-
    private String[] getKeysWithPrefix(String prefix) {
       String[] keys = null;
       try {
@@ -181,38 +141,6 @@ public class RedmineConfig {
          }
       }
       return ret.toArray(keys);
-   }
-
-//   public Set<RedmineRepository> getRepositories() throws BackingStoreException,
-//                                                          InstantiationException,
-//                                                          IllegalAccessException {
-//      Set<RedmineRepository> repositories = new HashSet<RedmineRepository>();
-//      Set<String> repositorySet = new HashSet<String>();
-//
-//      for (String string : RedminePreferences.getPreferences().keys()) {
-//         if (string.startsWith(REPO_ID)) {
-//            String id = getRepositoryId(string);
-//
-//            if (!repositorySet.contains(id)) {
-//               repositories.add(getRepository(id));
-//               repositorySet.add(id);
-//            }
-//         }
-//      }
-//
-//      return repositories;
-//   }
-
-   private String getRepositoryId(String key) {
-      return key.substring(REPO_ID.length() + 1, key.indexOf('.', REPO_ID.length() + 1));
-   }
-
-   private String getRepositoryKey(RedmineRepository repository) {
-      return getRepositoryKey(repository.getID());
-   }
-
-   private String getRepositoryKey(String id) {
-      return REPO_ID + "." + id;
    }
 
    public void setLastChangeFrom(String value) {
@@ -248,12 +176,12 @@ public class RedmineConfig {
          Redmine.LOG.warning("setActionItemIssues: Cannot create perm storage"); //NOI18N
          return;
       }
-      java.io.ObjectOutputStream out = null;
+      ObjectOutputStream out = null;
       File file = new File(f, ACTIONITEMISSUES_STORAGE_FILE + ".tmp");
       boolean success = false;
       try {
          // saving to a temp file
-         out = new java.io.ObjectOutputStream(new java.io.BufferedOutputStream(new java.io.FileOutputStream(file)));
+         out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
          out.writeInt(issues.size());
          for (Map.Entry<String, List<String>> entry : issues.entrySet()) {
             out.writeUTF(entry.getKey());
@@ -299,14 +227,14 @@ public class RedmineConfig {
    public Map<String, List<String>> getActionItemIssues() {
       Redmine.LOG.fine("loadActionItemIssues: loading issues");            //NOI18N
       File f = new File(getConfigPath());
-      java.io.ObjectInputStream ois = null;
+      ObjectInputStream ois = null;
       File file = new File(f, ACTIONITEMISSUES_STORAGE_FILE);
       if (!file.canRead()) {
          Redmine.LOG.fine("loadActionItemIssues: no saved data");         //NOI18N
          return Collections.emptyMap();
       }
       try {
-         ois = new java.io.ObjectInputStream(new java.io.BufferedInputStream(new java.io.FileInputStream(file)));
+         ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
          int size = ois.readInt();
          Redmine.LOG.log(Level.FINE, "loadActionItemIssues: loading {0} records", size); //NOI18N
          HashMap<String, List<String>> issuesPerRepo = new HashMap<String, List<String>>(size);
@@ -350,10 +278,8 @@ public class RedmineConfig {
       return nbHome + "/config/issue-tracking/com-kenai-redmineNB";     //NOI18N
    }
 
-
    private static class LazyHolder {
 
       private static final RedmineConfig INSTANCE = new RedmineConfig();
    }
-
 }

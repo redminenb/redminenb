@@ -6,29 +6,22 @@ import java.util.Set;
 import org.netbeans.modules.bugtracking.spi.IssueFinder;
 import org.openide.ErrorManager;
 import org.openide.util.lookup.ServiceProvider;
-import org.openide.util.lookup.ServiceProviders;
-
 
 /**
  * Redmine {@link IssueFinder}
- * 
+ *
  * @author Anchialas <anchialas@gmail.com>
  */
-@ServiceProviders({
-   @ServiceProvider(service = IssueFinder.class),
-   @ServiceProvider(service = RedmineIssueFinder.class)
-})
+@ServiceProvider(service = IssueFinder.class)
 public class RedmineIssueFinder extends IssueFinder {
 
    private static final int[] EMPTY_INT_ARR = new int[0];
-
 
    @Override
    public int[] getIssueSpans(CharSequence text) {
       int[] result = findBoundaries(text);
       return (result != null) ? result : EMPTY_INT_ARR;
    }
-
 
    @Override
    public String getIssueId(String issueHyperlinkText) {
@@ -39,7 +32,6 @@ public class RedmineIssueFinder extends IssueFinder {
       return issueHyperlinkText.substring(pos + 1);
    }
 
-
    private static int[] findBoundaries(CharSequence str) {
       try {
          return getImpl().findBoundaries(str);
@@ -49,18 +41,15 @@ public class RedmineIssueFinder extends IssueFinder {
       }
    }
 
-
    private static Impl getImpl() {
       return new Impl();
    }
-
 
    static RedmineIssueFinder getTestInstance() {
       return new RedmineIssueFinder();
    }
 
    //--------------------------------------------------------------------------
-
    private static final class Impl {
 
       /*
@@ -100,7 +89,6 @@ public class RedmineIssueFinder extends IssueFinder {
       private int pos;
       private int state;
 
-
       static {
          BUGNUM_PREFIX_PARTS = BUG_NUMBER_PREFIX.split(" ");         //NOI18N
 
@@ -139,10 +127,8 @@ public class RedmineIssueFinder extends IssueFinder {
       int end;
       int[] result;
 
-
       private Impl() {
       }
-
 
       private int[] findBoundaries(CharSequence str) {
          reset();
@@ -158,7 +144,6 @@ public class RedmineIssueFinder extends IssueFinder {
          return result;
       }
 
-
       private void reset() {
          str = null;
          pos = 0;
@@ -172,7 +157,6 @@ public class RedmineIssueFinder extends IssueFinder {
 
          result = null;
       }
-
 
       private void handleChar(int c) {
          int newState;
@@ -305,17 +289,14 @@ public class RedmineIssueFinder extends IssueFinder {
          state = newState;
       }
 
-
       private int getInitialState(int c) {
          return isSpaceOrPunct(c) ? INIT : GARBAGE;
       }
-
 
       private void rememberIsStart() {
          start = pos;
          startOfWord = pos;
       }
-
 
       private void storeResult(int start, int end) {
          assert (start != -1);
@@ -330,7 +311,6 @@ public class RedmineIssueFinder extends IssueFinder {
          }
       }
 
-
       private static boolean isLetter(int c) {
          /*
           * relies on precondition #1 (see the top of the class)
@@ -339,22 +319,18 @@ public class RedmineIssueFinder extends IssueFinder {
          return ((c >= LOWER_A) && (c <= LOWER_Z));
       }
 
-
       private static boolean isDigit(int c) {
          return ((c >= '0') && (c <= '9'));
       }
-
 
       private static boolean isSpaceOrPunct(int c) {
          return (c == '\r') || (c == '\n')
                  || Character.isSpaceChar(c) || isPunct(c);
       }
 
-
       private static boolean isPunct(int c) {
          return PUNCT_CHARS.indexOf(c) != -1;
       }
-
 
       private boolean isBugword() {
          /*
@@ -368,7 +344,6 @@ public class RedmineIssueFinder extends IssueFinder {
          }
          return false;
       }
-
 
       private boolean tryHandleBugnumPrefixPart() {
          CharSequence word = str.subSequence(startOfWord, pos);
@@ -389,23 +364,19 @@ public class RedmineIssueFinder extends IssueFinder {
          }
       }
 
-
       private boolean isBugnumPrefix() {
          return (bugnumPrefixPartsProcessed != 0);
       }
-
 
       private boolean isPartialBugnumPrefix() {
          return (bugnumPrefixPartsProcessed > 0)
                  && (bugnumPrefixPartsProcessed < BUGNUM_PREFIX_PARTS.length);
       }
 
-
       private boolean isFullBugnumPrefix() {
          return bugnumPrefixPartsProcessed == BUGNUM_PREFIX_PARTS.length;
       }
    }
-
 
    private static boolean equalsIgnoreCase(CharSequence pattern, CharSequence str) {
       final int patternLength = pattern.length();

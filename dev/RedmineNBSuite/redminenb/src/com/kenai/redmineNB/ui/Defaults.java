@@ -18,20 +18,24 @@ package com.kenai.redmineNB.ui;
 import com.kenai.redmineNB.RedmineConfig;
 import com.kenai.redmineNB.query.ParameterValue;
 import com.kenai.redmineNB.user.RedmineUser;
-
 import com.kenai.redminenb.api.IssuePriority;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
-import javax.swing.*;
-import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
-import org.openide.util.ImageUtilities;
+
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
-import org.apache.commons.lang.StringUtils;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JSeparator;
+import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
+import org.openide.util.ImageUtilities;
 
 /**
  * RedmineNB UI Defaults.
@@ -52,6 +56,11 @@ public class Defaults {
 
    public static Icon getIcon(String iconBaseName) {
       return ImageUtilities.loadImageIcon("com/kenai/redmineNB/resources/" + iconBaseName, false);
+   }
+
+   public static void setBoldFont(JLabel label) {
+      Font f = label.getFont().deriveFont(Font.BOLD);
+      label.setFont(f);
    }
 
    public static Graphics2D paintGradient(Graphics2D g2d, int width, int height) {

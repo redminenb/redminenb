@@ -1033,10 +1033,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       // do nothing
    }
 
-   private void setBoldFont(JLabel label) {
-      Font f = label.getFont().deriveFont(Font.BOLD);
-      label.setFont(f);
-   }
+
 
    @Override
    protected void paintComponent(Graphics g) {

@@ -27,7 +27,6 @@ import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 
-
 /**
  * Redmine specific {@link IssueNode} that is rendered in the IssuesTable.
  *
@@ -43,23 +42,21 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
    public final Node.Property<?>[] getProperties() {
       return new Node.Property<?>[]{
                  new IDProperty(),
+                 new SummaryProperty(),
                  new TrackerProperty(),
-                 //new SeverityProperty(),
                  new PriorityProperty(),
                  new StatusProperty(),
-                 new CategoryProperty(),
                  new RedmineFieldProperty(RedmineIssue.FIELD_ASSIGNEE, String.class),
-                 new SummaryProperty(),
-                 new UpdatedProperty(),
-                 new VersionProperty()
-              };
+                 new CategoryProperty(),
+                 new VersionProperty(),
+                 //new SeverityProperty(),
+                 new UpdatedProperty(),};
    }
 
    @Override
    public void fireDataChanged() {
       super.fireDataChanged();
    }
-
 
    private class IDProperty extends RedmineFieldProperty<String> {
 
@@ -81,9 +78,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
          Integer i2 = Integer.parseInt(p.getIssue().getID());
          return i1.compareTo(i2);
       }
-
    }
-
 
    private class TrackerProperty extends RedmineFieldProperty<Tracker> {
 
@@ -110,9 +105,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
             return e.getLocalizedMessage();
          }
       }
-
    }
-
 
    private class PriorityProperty extends RedmineFieldProperty<String> {
 
@@ -128,9 +121,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
             return super.getValue(attributeName);
          }
       }
-
    }
-
 
    private class StatusProperty extends RedmineFieldProperty<String> {
 
@@ -146,9 +137,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
             return super.getValue(attributeName);
          }
       }
-
    }
-
 
    private class VersionProperty extends RedmineFieldProperty<Version> {
 
@@ -177,9 +166,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
             return e.getLocalizedMessage();
          }
       }
-
    }
-
 
    private class CategoryProperty extends RedmineFieldProperty<IssueCategory> {
 
@@ -208,18 +195,14 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
             return e.getLocalizedMessage();
          }
       }
-
    }
-
 
    private class UpdatedProperty extends RedmineFieldProperty<Date> {
 
       public UpdatedProperty() {
          super(RedmineIssue.FIELD_UPDATED, Date.class);
       }
-
    }
-
 
    private class RedmineFieldProperty<T> extends IssueProperty<T> {
 
@@ -267,7 +250,5 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
          }
          return 0;
       }
-
    }
-
 }

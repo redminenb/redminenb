@@ -32,6 +32,10 @@ public class IssuePriority implements Identifiable {
       this.id = id;
       this.name = name;
    }
+   
+   public static IssuePriority fromIssue(com.taskadapter.redmineapi.bean.Issue issue) {
+      return new IssuePriority(issue.getPriorityId(), issue.getPriorityText());
+   }
 
    @Override
    public Integer getId() {

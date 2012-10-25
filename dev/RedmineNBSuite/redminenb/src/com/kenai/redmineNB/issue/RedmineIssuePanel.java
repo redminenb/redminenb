@@ -161,6 +161,17 @@ public class RedmineIssuePanel extends JPanel {
          headerLabel.setText(redmineIssue.getDisplayName());
          headerLabel.setVisible(true);
 
+         createdValueLabel.setText(RedmineIssue.DATETIME_FORMAT.format(issue.getCreatedOn()) + " by " + issue.getAuthor().getFullName());
+         if (issue.getUpdatedOn() == null) {
+            updatedLabel.setVisible(false);
+            updatedValueLabel.setVisible(false);
+            updatedValueLabel.setText(null);
+         } else {
+            updatedLabel.setVisible(true);
+            updatedValueLabel.setVisible(true);
+            updatedValueLabel.setText(RedmineIssue.DATETIME_FORMAT.format(issue.getUpdatedOn()));
+         }
+         
          subjectTextField.setText(issue.getSubject());
          parentTaskTextField.setValue(issue.getParentId());
          descriptionTextArea.setText(issue.getDescription());
@@ -428,6 +439,10 @@ public class RedmineIssuePanel extends JPanel {
       headPane = new javax.swing.JPanel();
       headerLabel = new javax.swing.JLabel();
       parentHeaderPanel = new javax.swing.JPanel();
+      updatedLabel = new javax.swing.JLabel();
+      createdLabel = new javax.swing.JLabel();
+      createdValueLabel = new javax.swing.JLabel();
+      updatedValueLabel = new javax.swing.JLabel();
       buttonPane = new javax.swing.JPanel();
       updateButton = new javax.swing.JButton();
       createButton = new javax.swing.JButton();
@@ -453,19 +468,14 @@ public class RedmineIssuePanel extends JPanel {
       subjectTextField = new javax.swing.JTextField();
       jScrollPane1 = new javax.swing.JScrollPane();
       descriptionTextArea = new javax.swing.JTextArea();
-      seenButton = new org.netbeans.modules.bugtracking.util.LinkButton();
       categoryLabel = new javax.swing.JLabel();
       statusLabel = new javax.swing.JLabel();
       parentTaskTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
-      categoryAddButton = new org.netbeans.modules.bugtracking.util.LinkButton();
       targetVersionComboBox = new javax.swing.JComboBox();
       targetVersionLabel = new javax.swing.JLabel();
-      versionAddButton = new org.netbeans.modules.bugtracking.util.LinkButton();
       assigneeLabel = new javax.swing.JLabel();
       startDateChooser = new com.toedter.calendar.JDateChooser();
       subjectLabel2 = new javax.swing.JLabel();
-      projectNameButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-      assignToMeButton = new org.netbeans.modules.bugtracking.util.LinkButton();
       assigneeComboBox = new javax.swing.JComboBox();
       privateCheckBox = new javax.swing.JCheckBox();
       htmlOutputLabel = new javax.swing.JLabel();
@@ -476,6 +486,22 @@ public class RedmineIssuePanel extends JPanel {
 
       headerLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.headerLabel.text")); // NOI18N
 
+      updatedLabel.setFont(updatedLabel.getFont().deriveFont(updatedLabel.getFont().getSize()-2f));
+      updatedLabel.setForeground(new java.awt.Color(128, 128, 128));
+      updatedLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updatedLabel.text")); // NOI18N
+
+      createdLabel.setFont(createdLabel.getFont().deriveFont(createdLabel.getFont().getSize()-2f));
+      createdLabel.setForeground(new java.awt.Color(128, 128, 128));
+      createdLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createdLabel.text")); // NOI18N
+
+      createdValueLabel.setFont(createdValueLabel.getFont().deriveFont(createdValueLabel.getFont().getSize()-2f));
+      createdValueLabel.setForeground(new java.awt.Color(22, 75, 123));
+      createdValueLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createdValueLabel.text")); // NOI18N
+
+      updatedValueLabel.setFont(updatedValueLabel.getFont().deriveFont(updatedValueLabel.getFont().getSize()-2f));
+      updatedValueLabel.setForeground(new java.awt.Color(22, 75, 123));
+      updatedValueLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updatedValueLabel.text")); // NOI18N
+
       javax.swing.GroupLayout headPaneLayout = new javax.swing.GroupLayout(headPane);
       headPane.setLayout(headPaneLayout);
       headPaneLayout.setHorizontalGroup(
@@ -484,9 +510,16 @@ public class RedmineIssuePanel extends JPanel {
             .addGap(12, 12, 12)
             .addGroup(headPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                .addGroup(headPaneLayout.createSequentialGroup()
-                  .addGap(10, 10, 10)
-                  .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-               .addComponent(parentHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 768, Short.MAX_VALUE))
+                  .addComponent(createdLabel)
+                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                  .addComponent(createdValueLabel)
+                  .addGap(18, 18, 18)
+                  .addComponent(updatedLabel)
+                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                  .addComponent(updatedValueLabel)
+                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+               .addComponent(parentHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+               .addComponent(headerLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addContainerGap())
       );
       headPaneLayout.setVerticalGroup(
@@ -495,8 +528,14 @@ public class RedmineIssuePanel extends JPanel {
             .addContainerGap()
             .addComponent(parentHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGap(1, 1, 1)
-            .addComponent(headerLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addContainerGap(13, Short.MAX_VALUE))
+            .addComponent(headerLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGap(3, 3, 3)
+            .addGroup(headPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+               .addComponent(createdLabel)
+               .addComponent(updatedLabel)
+               .addComponent(createdValueLabel)
+               .addComponent(updatedValueLabel))
+            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
       );
 
       buttonPane.setOpaque(false);
@@ -533,10 +572,10 @@ public class RedmineIssuePanel extends JPanel {
             .addComponent(createButton)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(updateButton)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(infoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 360, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(infoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
+            .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addContainerGap())
       );
       buttonPaneLayout.setVerticalGroup(
@@ -673,8 +712,8 @@ public class RedmineIssuePanel extends JPanel {
                   .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                      .addComponent(subjectTextField)
                      .addGroup(issuePaneLayout.createSequentialGroup()
-                        .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                           .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                           .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 613, javax.swing.GroupLayout.PREFERRED_SIZE)
                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, issuePaneLayout.createSequentialGroup()
                               .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                  .addGroup(issuePaneLayout.createSequentialGroup()
@@ -683,13 +722,12 @@ public class RedmineIssuePanel extends JPanel {
                                     .addComponent(privateCheckBox))
                                  .addGroup(issuePaneLayout.createSequentialGroup()
                                     .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                       .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                          .addComponent(targetVersionComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                          .addGroup(issuePaneLayout.createSequentialGroup()
-                                             .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                .addComponent(statusComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(priorityComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                             .addGap(53, 53, 53)))
+                                       .addComponent(targetVersionComboBox, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
+                                          .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                             .addComponent(statusComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                             .addComponent(priorityComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                          .addGap(53, 53, 53))
                                        .addComponent(assigneeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                     .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -720,7 +758,7 @@ public class RedmineIssuePanel extends JPanel {
                                     .addComponent(parentTaskTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(projectNameButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(htmlOutputLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                        .addComponent(htmlOutputLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE)))))
             .addContainerGap())
       );
       issuePaneLayout.setVerticalGroup(
@@ -904,14 +942,16 @@ public class RedmineIssuePanel extends JPanel {
       }
    }//GEN-LAST:event_seenButtonActionPerformed
    // Variables declaration - do not modify//GEN-BEGIN:variables
-   private org.netbeans.modules.bugtracking.util.LinkButton assignToMeButton;
+   final org.netbeans.modules.bugtracking.util.LinkButton assignToMeButton = new org.netbeans.modules.bugtracking.util.LinkButton();
    private javax.swing.JComboBox assigneeComboBox;
    private javax.swing.JLabel assigneeLabel;
    javax.swing.JPanel buttonPane;
-   private org.netbeans.modules.bugtracking.util.LinkButton categoryAddButton;
+   final org.netbeans.modules.bugtracking.util.LinkButton categoryAddButton = new org.netbeans.modules.bugtracking.util.LinkButton();
    private javax.swing.JComboBox categoryComboBox;
    private javax.swing.JLabel categoryLabel;
    private javax.swing.JButton createButton;
+   private javax.swing.JLabel createdLabel;
+   private javax.swing.JLabel createdValueLabel;
    private javax.swing.JLabel descriptionLabel;
    javax.swing.JTextArea descriptionTextArea;
    private javax.swing.JComboBox doneComboBox;
@@ -933,8 +973,8 @@ public class RedmineIssuePanel extends JPanel {
    private javax.swing.JComboBox priorityComboBox;
    private javax.swing.JLabel priorityLabel;
    private javax.swing.JCheckBox privateCheckBox;
-   private org.netbeans.modules.bugtracking.util.LinkButton projectNameButton;
-   private org.netbeans.modules.bugtracking.util.LinkButton seenButton;
+   final org.netbeans.modules.bugtracking.util.LinkButton projectNameButton = new org.netbeans.modules.bugtracking.util.LinkButton();
+   final org.netbeans.modules.bugtracking.util.LinkButton seenButton = new org.netbeans.modules.bugtracking.util.LinkButton();
    private com.toedter.calendar.JDateChooser startDateChooser;
    private javax.swing.JLabel startDateLabel;
    private javax.swing.JComboBox statusComboBox;
@@ -948,6 +988,8 @@ public class RedmineIssuePanel extends JPanel {
    private org.openide.awt.Toolbar toolbar;
    private javax.swing.JComboBox trackerComboBox;
    private javax.swing.JButton updateButton;
-   private org.netbeans.modules.bugtracking.util.LinkButton versionAddButton;
+   private javax.swing.JLabel updatedLabel;
+   private javax.swing.JLabel updatedValueLabel;
+   final org.netbeans.modules.bugtracking.util.LinkButton versionAddButton = new org.netbeans.modules.bugtracking.util.LinkButton();
    // End of variables declaration//GEN-END:variables
 }

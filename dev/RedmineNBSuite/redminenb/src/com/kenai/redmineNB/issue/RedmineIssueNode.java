@@ -35,8 +35,6 @@ import java.util.Collections;
  * @author Anchialas <anchialas@gmail.com>
  */
 public class RedmineIssueNode extends IssueNode<RedmineIssue> {
-
-   private static final SimpleDateFormat DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
    
    public RedmineIssueNode(RedmineIssue issue) {
       super(RedmineUtil.getRepository(issue.getRepository()), issue);
@@ -223,7 +221,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
 
       @Override
       public String toString() {
-         return DATEFORMAT.format(getValue());
+         return RedmineIssue.DATETIME_FORMAT.format(getValue());
       }
    }
 

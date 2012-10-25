@@ -40,7 +40,8 @@ import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.TimeEntry;
-import com.taskadapter.redmineapi.bean.TimeEntry;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 /**
  *
@@ -102,6 +103,8 @@ public final class RedmineIssue {
    static final String FIELD_VERSION = "targetVersion";           // NOI18N
    static final String FIELD_CATEGORY = "category";               // NOI18N
    //
+   static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance(); //  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
+
    private static final int SHORTENED_SUMMARY_LENGTH = 22;
    //
    private com.taskadapter.redmineapi.bean.Issue issue;

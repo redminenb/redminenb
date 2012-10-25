@@ -7,6 +7,7 @@ import com.kenai.redmineNB.util.ListComboBoxModel;
 import com.kenai.redmineNB.util.RedmineUtil;
 import com.kenai.redmineNB.util.markup.TextileUtil;
 
+import com.kenai.redminenb.api.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Tracker;
@@ -169,12 +170,14 @@ public class RedmineIssuePanel extends JPanel {
          statusComboBox.setSelectedItem(redmineIssue.getRepository().getStatus(issue.getStatusId()));
          categoryComboBox.setSelectedItem(issue.getCategory());
 
-         priorityComboBox.setSelectedItem(issue.getPriorityText());
+         IssuePriority ip = IssuePriority.fromIssue(issue);
+         priorityComboBox.setSelectedItem(ip);
          if (priorityComboBox.getSelectedIndex() < 0) {
-            priorityComboBox.addItem(issue.getPriorityText());
-            priorityComboBox.setSelectedItem(issue.getPriorityText());
+            priorityComboBox.addItem(ip);
+            priorityComboBox.setSelectedItem(ip);
          }
-         assigneeComboBox.setSelectedItem(RedmineUser.get(issue.getAssignee()));
+         assigneeComboBox.setSelectedItem(RedmineUser.fromIssue(issue));
+         
          targetVersionComboBox.setSelectedItem(issue.getTargetVersion());
          startDateChooser.setDate(issue.getStartDate());
          dueDateChooser.setDate(issue.getDueDate());

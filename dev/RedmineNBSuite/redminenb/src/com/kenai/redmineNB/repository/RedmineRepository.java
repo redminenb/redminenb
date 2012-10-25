@@ -325,7 +325,7 @@ public class RedmineRepository {
       return users;
    }
 
-   public Collection<Tracker> getTrackers() {
+   public List<Tracker> getTrackers() {
       try {
          return getManager().getTrackers();
       } catch (NotFoundException ex) {
@@ -392,16 +392,18 @@ public class RedmineRepository {
       } catch (Exception ex) {
          Redmine.LOG.log(Level.SEVERE, "Can't get Issue Categories for Redmine Project " + project.getName(), ex);
       }
+      if (c != null) {
 //      if (c.isEmpty()) {
 //         IssueCategory category = new IssueCategory();
 //         category.setId(-1);
 //         category.setName("[n/a]");
 //         c = Collections.singleton(category);
 //      }
-      for (IssueCategory category : c) {
-         category.setProject(null);
-         category.setAssignee(null);
-         ic.add(category);
+         for (IssueCategory category : c) {
+            category.setProject(null);
+            category.setAssignee(null);
+            ic.add(category);
+         }
       }
       return c;
    }
@@ -413,7 +415,7 @@ public class RedmineRepository {
       return getVersions();
    }
 
-   public Collection<Version> getVersions() {
+   public List<Version> getVersions() {
       try {
          return getManager().getVersions(project.getId());
       } catch (NotFoundException ex) {

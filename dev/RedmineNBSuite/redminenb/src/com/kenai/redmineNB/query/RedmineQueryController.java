@@ -75,6 +75,7 @@ import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.util.Collections;
+import org.netbeans.modules.bugtracking.issuetable.QueryTableCellRenderer;
 
 /**
  *
@@ -126,7 +127,8 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
 
       issueTable = new IssueTable<RedmineQuery>(RedmineUtil.getRepository(repository),
                                                 query, query.getColumnDescriptors());
-      //issueTable.setRenderer(...);
+      issueTable.setRenderer(new RedmineQueryCellRenderer(issueTable.getRenderer()));
+
       queryPanel = new RedmineQueryPanel(issueTable.getComponent(), this);
 
       // set parameters
@@ -633,7 +635,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
 
    private void populateProjectDetails() {
       List<ParameterValue> pvList;
-      
+
       // Tracker
       pvList = new ArrayList<ParameterValue>();
       for (Tracker t : repository.getTrackers()) {
@@ -650,15 +652,15 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
          pvList.add(new ParameterValue(s.getName(), s.getId()));
       }
       statusParameter.setParameterValues(pvList);
-      
+
       // Priority
       pvList = new ArrayList<ParameterValue>();
       for (IssuePriority p : repository.getIssuePriorities()) {
          pvList.add(new ParameterValue(p.getName(), p.getId()));
       };
       priorityParameter.setParameterValues(pvList);
-      
-       // Assignee (assigned to)
+
+      // Assignee (assigned to)
       pvList = new ArrayList<ParameterValue>();
       pvList.add(ParameterValue.NONE_PARAMETERVALUE);
       for (RedmineUser redmineUser : repository.getUsers()) {

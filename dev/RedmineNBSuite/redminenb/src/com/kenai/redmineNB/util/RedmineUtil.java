@@ -20,9 +20,11 @@ import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.issue.RedmineIssue;
 import com.kenai.redmineNB.query.RedmineQuery;
 import com.kenai.redmineNB.repository.RedmineRepository;
+
+import com.taskadapter.redmineapi.bean.Identifiable;
 import com.taskadapter.redmineapi.bean.Project;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.logging.Level;
 import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.modules.bugtracking.api.Repository;
@@ -59,6 +61,26 @@ public final class RedmineUtil {
     */
    public static String capitalize(String s) {
       return StringUtils.isBlank(s) ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+   }
+
+   public static int indexOfEqualId(Collection<? extends Identifiable> c, Identifiable idObject) {
+      int i = 0;
+      if (idObject == null) {
+         for (Identifiable identifiable : c) {
+            if (identifiable == null) {
+               return i;
+            }
+            ++i;
+         }
+      } else {
+         for (Identifiable identifiable : c) {
+            if (Is.equals(idObject.getId(), identifiable == null ? null : identifiable.getId())) {
+               return i;
+            }
+            ++i;
+         }
+      }
+      return -1;
    }
 
    public static boolean show(ActionListenerPanel panel, String title, String okName) {

@@ -26,6 +26,8 @@ import org.openide.util.NbBundle;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
 
 /**
  * Redmine specific {@link IssueNode} that is rendered in the IssuesTable.
@@ -34,6 +36,8 @@ import com.taskadapter.redmineapi.bean.Version;
  */
 public class RedmineIssueNode extends IssueNode<RedmineIssue> {
 
+   private static final SimpleDateFormat DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
+   
    public RedmineIssueNode(RedmineIssue issue) {
       super(RedmineUtil.getRepository(issue.getRepository()), issue);
    }
@@ -50,7 +54,8 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
                  new CategoryProperty(),
                  new VersionProperty(),
                  //new SeverityProperty(),
-                 new UpdatedProperty(),};
+                 new UpdatedProperty()
+              };
    }
 
    @Override
@@ -67,6 +72,11 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       @Override
       public String getValue() {
          return getIssue().getID();
+      }
+
+      @Override
+      public Object getValue(String attributeName) {
+         return Integer.valueOf(getValue());
       }
 
       @Override
@@ -90,7 +100,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       public Object getValue(String attributeName) {
          Tracker tracker = getValue();
          if ("sortkey".equals(attributeName)) {
-            return tracker.getId();
+            return getIssueData().getRepository().getTrackers().indexOf(getValue());
          } else {
             return tracker.getName();
          }
@@ -107,7 +117,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       }
    }
 
-   private class PriorityProperty extends RedmineFieldProperty<String> {
+   public class PriorityProperty extends RedmineFieldProperty<String> {
 
       public PriorityProperty() {
          super(RedmineIssue.FIELD_PRIORITY_TEXT, String.class);
@@ -132,7 +142,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       @Override
       public Object getValue(String attributeName) {
          if ("sortkey".equals(attributeName)) {
-            return getIssueData().getFieldValue(RedmineIssue.FIELD_STATUS_ID);
+            return getIssueData().getFieldValue(RedmineIssue.FIELD_STATUS_ID); // TODO: replace with correct order
          } else {
             return super.getValue(attributeName);
          }
@@ -147,11 +157,10 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
 
       @Override
       public Object getValue(String attributeName) {
-         Version version = getValue();
          if ("sortkey".equals(attributeName)) {
-            return version.getId();
+            return RedmineUtil.indexOfEqualId(getIssueData().getRepository().getVersions(), getValue());
          } else {
-            return version.getName();
+            return toString();
          }
       }
 
@@ -178,7 +187,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       public Object getValue(String attributeName) {
          IssueCategory ic = getValue();
          if ("sortkey".equals(attributeName)) {
-            return ic.getId();
+            return RedmineUtil.indexOfEqualId(getIssueData().getRepository().getIssueCategories(), ic);
          } else {
             return ic.getName();
          }
@@ -201,6 +210,20 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
 
       public UpdatedProperty() {
          super(RedmineIssue.FIELD_UPDATED, Date.class);
+      }
+
+      @Override
+      public Object getValue(String attributeName) {
+         if ("sortkey".equals(attributeName)) {
+            return (int)getValue().getTime();
+         } else {
+            return toString();
+         }
+      }
+
+      @Override
+      public String toString() {
+         return DATEFORMAT.format(getValue());
       }
    }
 

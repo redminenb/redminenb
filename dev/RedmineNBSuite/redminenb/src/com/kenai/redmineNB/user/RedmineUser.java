@@ -69,6 +69,10 @@ public class RedmineUser extends RepositoryUser {
       return hash;
    }
 
+   public static RedmineUser fromIssue(com.taskadapter.redmineapi.bean.Issue issue) {
+      return get(issue.getAssignee());
+   }
+   
    public static RedmineUser get(User user) {
       return user == null ? null : new RedmineUser(user);
    }

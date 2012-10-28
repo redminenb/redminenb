@@ -23,6 +23,7 @@ import com.kenai.redmineNB.repository.RedmineRepository;
 
 import com.taskadapter.redmineapi.bean.Identifiable;
 import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.User;
 import java.util.Collection;
 import java.util.Comparator;
 import javax.swing.JButton;
@@ -48,11 +49,12 @@ public final class RedmineUtil {
       // default constructor suppressed for non-instantiability
    }
 
-   public static <T> ColumnDescriptor<T> convertNodePropertyToColumnDescriptor(Node.Property<T> prop) {
+   public static <T> ColumnDescriptor<T> convertNodePropertyToColumnDescriptor(Node.Property<T> prop, Integer width) {
       return new ColumnDescriptor<T>(prop.getName(),
                                      prop.getValueType(),
                                      prop.getDisplayName(),
-                                     prop.getShortDescription());
+                                     prop.getShortDescription(),
+                                     width == null ? 0 : width);
    }
 
    /**

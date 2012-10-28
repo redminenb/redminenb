@@ -126,7 +126,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       this.query = query;
 
       issueTable = new IssueTable<RedmineQuery>(RedmineUtil.getRepository(repository),
-                                                query, query.getColumnDescriptors());
+                                                query, RedmineIssue.getColumnDescriptors(repository));
       issueTable.setRenderer(new RedmineQueryCellRenderer(issueTable.getRenderer()));
 
       queryPanel = new RedmineQueryPanel(issueTable.getComponent(), this);

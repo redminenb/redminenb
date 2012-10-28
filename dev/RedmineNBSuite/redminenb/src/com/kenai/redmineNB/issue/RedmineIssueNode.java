@@ -257,7 +257,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       }
 
       @Override
-      public int compareTo(IssueProperty p) {
+      public int compareTo(IssueProperty<T> p) {
          if (p == null) {
             return 1;
          }

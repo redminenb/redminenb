@@ -17,6 +17,7 @@ package com.kenai.redmineNB.issue;
 
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.repository.RedmineRepository;
+import com.kenai.redmineNB.util.RedmineUtil;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
@@ -42,6 +43,11 @@ import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import javax.swing.JTable;
+import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
+import org.netbeans.modules.bugtracking.util.UIUtils;
+import org.openide.nodes.Node;
 
 /**
  *
@@ -104,8 +110,12 @@ public final class RedmineIssue {
    static final String FIELD_CATEGORY = "category";               // NOI18N
    //
    static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance(); //  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
-
    private static final int SHORTENED_SUMMARY_LENGTH = 22;
+   //
+   /**
+    * Defines columns for a view table.
+    */
+   public static ColumnDescriptor[] columnDescriptors;
    //
    private com.taskadapter.redmineapi.bean.Issue issue;
    private RedmineRepository repository;
@@ -327,14 +337,14 @@ public final class RedmineIssue {
       return getTooltip();
    }
 
-   public IssueNode getNode() {
+   public IssueNode<RedmineIssue> getNode() {
       if (node == null) {
          node = createNode();
       }
       return node;
    }
 
-   private IssueNode createNode() {
+   private RedmineIssueNode createNode() {
       return new RedmineIssueNode(this);
    }
 
@@ -400,5 +410,23 @@ public final class RedmineIssue {
          Exceptions.printStackTrace(ex);
       }
       return null;
+   }
+
+   public static ColumnDescriptor[] getColumnDescriptors(RedmineRepository repo) {
+      if (columnDescriptors == null) {
+         // setup column widths
+         JTable t = new JTable();
+         Map<String, Integer> widths = new HashMap<String, Integer>();
+         widths.put("issue." + FIELD_ID, UIUtils.getColumnWidthInPixels(20, t));
+         widths.put("issue." + FIELD_SUBJECT, -1);
+         
+         Node.Property<?>[] props = new RedmineIssueNode(new RedmineIssue(repo)).getProperties();
+         columnDescriptors = new ColumnDescriptor[props.length];
+         for (int i = 0; i < props.length; i++) {
+            Node.Property<?> p = props[i];
+            columnDescriptors[i] = RedmineUtil.convertNodePropertyToColumnDescriptor(p, widths.get(p.getName()));
+         }
+      }
+      return columnDescriptors;
    }
 }

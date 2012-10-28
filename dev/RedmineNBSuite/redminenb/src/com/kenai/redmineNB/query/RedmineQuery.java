@@ -65,7 +65,6 @@ public final class RedmineQuery {
    private final PropertyChangeSupport support;
    //
    private RedmineQueryController queryController;
-   private ColumnDescriptor[] columnDescriptors;
 
    public RedmineQuery(RedmineRepository repository) {
       this(null, repository, null, false, false, true);
@@ -122,17 +121,7 @@ public final class RedmineQuery {
       return repository;
    }
 
-   public ColumnDescriptor[] getColumnDescriptors() {
-      if (columnDescriptors == null) {
-         Property<?>[] props = new RedmineIssueNode(new RedmineIssue(repository)).getProperties();
-         columnDescriptors = new ColumnDescriptor[props.length];
-         for (int i = 0; i < props.length; i++) {
-            Property<?> p = props[i];
-            columnDescriptors[i] = RedmineUtil.convertNodePropertyToColumnDescriptor(p);
-         }
-      }
-      return columnDescriptors;
-   }
+ 
 
    void refresh(boolean autoReresh) {
       doRefresh(autoReresh);

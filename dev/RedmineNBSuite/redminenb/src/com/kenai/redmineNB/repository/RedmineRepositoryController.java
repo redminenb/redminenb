@@ -66,6 +66,7 @@ import com.taskadapter.redmineapi.bean.User;
    "MSG_MissingProject=No Project is selected",
    "MSG_TrackerAlreadyExists=Issue Tracker with the same name already exists",
    "MSG_RepositoryAlreadyExists=The same Issue Tracker already exists",
+   "# {0} - the user name",
    "MSG_AuthSuccessful=Successfully authenticated as ''{0}''"
 })
 public class RedmineRepositoryController implements RepositoryController, DocumentListener, ActionListener {

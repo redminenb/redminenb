@@ -20,12 +20,16 @@
                 <binary-origin>release/modules/ext/commons-logging-1.1.1.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
-                <runtime-relative-path>ext/slf4j-api-1.6.6.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/slf4j-api-1.6.6.jar</binary-origin>
+                <runtime-relative-path>ext/slf4j-api-1.7.1.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/slf4j-api-1.7.1.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
                 <runtime-relative-path>ext/httpclient-4.2.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/httpclient-4.2.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/redmine-java-api-1.18.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/redmine-java-api-1.18.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
                 <runtime-relative-path>ext/commons-codec-1.6.jar</runtime-relative-path>
@@ -34,10 +38,6 @@
             <class-path-extension>
                 <runtime-relative-path>ext/json-20090211.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/json-20090211.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/redmine-java-api-1.15.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/redmine-java-api-1.15.jar</binary-origin>
             </class-path-extension>
         </data>
     </configuration>

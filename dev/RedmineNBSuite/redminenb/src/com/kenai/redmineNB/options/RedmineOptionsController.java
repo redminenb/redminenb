@@ -23,6 +23,7 @@ import javax.swing.JComponent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.spi.options.OptionsPanelController;
+import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
 /**
@@ -30,6 +31,15 @@ import org.openide.util.NbBundle;
  * 
  * @author Anchialas <>anchialas@gmail.com>
  */
+@NbBundle.Messages({
+    "RedmineOptions.displayName=Redmine",
+    "MSG_INVALID_VALUE=Invalid value.",
+    "MSG_MUST_BE_GREATER_THEN_5=Must be a number greater then 5."
+})
+@OptionsPanelController.SubRegistration(id = "RedmineNB", 
+                                        displayName = "#RedmineOptions.displayName",
+                                        keywords = "Redmine",
+                                        keywordsCategory = "Issue Tracker")
 public final class RedmineOptionsController extends OptionsPanelController implements DocumentListener {
 
     private final RedmineOptionsPanel panel;
@@ -97,7 +107,7 @@ public final class RedmineOptionsController extends OptionsPanelController imple
 
     @Override
     public org.openide.util.HelpCtx getHelpCtx() {
-        return new org.openide.util.HelpCtx(getClass());
+        return HelpCtx.DEFAULT_HELP;
     }
 
     @Override

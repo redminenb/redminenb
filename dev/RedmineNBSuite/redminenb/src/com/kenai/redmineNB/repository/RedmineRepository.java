@@ -20,23 +20,29 @@ import com.kenai.redmineNB.RedmineConfig;
 import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.issue.RedmineIssue;
 import com.kenai.redmineNB.issue.RedmineTaskListProvider;
-import com.kenai.redmineNB.query.ParameterValue;
 import com.kenai.redmineNB.query.RedmineQuery;
 import com.kenai.redmineNB.query.RedmineQueryController;
 import com.kenai.redmineNB.user.RedmineUser;
 import com.kenai.redmineNB.util.Is;
 import com.kenai.redmineNB.util.RedmineUtil;
+
 import com.kenai.redminenb.api.AuthMode;
-import com.kenai.redminenb.api.IssuePriority;
+import com.kenai.redminenb.api.Helper;
+import com.taskadapter.redmineapi.NotFoundException;
+import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.bean.*;
 import java.awt.EventQueue;
 import java.awt.Image;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
-import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
+import org.netbeans.modules.bugtracking.spi.RepositoryProvider;
 import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -46,11 +52,6 @@ import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import com.taskadapter.redmineapi.NotFoundException;
-import com.taskadapter.redmineapi.RedmineException;
-import com.taskadapter.redmineapi.RedmineManager;
-import com.taskadapter.redmineapi.bean.*;
-import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 
 /**
  * Redmine repository manager.
@@ -59,8 +60,11 @@ import org.netbeans.modules.bugtracking.issuetable.IssueNode;
  * @author Anchialas <anchialas@gmail.com>
  */
 @NbBundle.Messages({
-   "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}",
-   "LBL_RepositoryTooltipNoUser=\"{0} : {1}"
+   "# {0} - repo name",
+   "# {1} - user name",
+   "# {2} - redmine url",
+   "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}"
+//   "LBL_RepositoryTooltipNoUser=\"{0} : {1}"
 })
 public class RedmineRepository {
 
@@ -90,23 +94,25 @@ public class RedmineRepository {
    /**
     * Default constructor required for deserializing.
     */
-   public RedmineRepository() {
+   private RedmineRepository() {
       this.ic = new InstanceContent();
    }
 
-   public RedmineRepository(RepositoryInfo info) {
-      this();
-      this.info = info;
-
-      try {
-         String projectId = info.getValue(PROPERTY_PROJECT_ID);
-         if (projectId != null) {
-            setProject(getManager().getProjectByKey(projectId));
+   public static RedmineRepository create(RepositoryInfo info) {
+      RedmineRepository rr = new RedmineRepository();
+      if (info != null) {
+         rr.info = info;
+         try {
+            String projectId = info.getValue(PROPERTY_PROJECT_ID);
+            if (projectId != null) {
+               rr.setProject(rr.getManager().getProjectByKey(projectId));
+            }
+         } catch (RedmineException ex) {
+            Exceptions.printStackTrace(ex);
          }
-      } catch (RedmineException ex) {
-         Exceptions.printStackTrace(ex);
       }
-      RedmineTaskListProvider.getInstance().notifyRepositoryCreated(this);
+      RedmineTaskListProvider.getInstance().notifyRepositoryCreated(rr);
+      return rr;
    }
 
    public Image getIcon() {
@@ -204,7 +210,7 @@ public class RedmineRepository {
       return project;
    }
 
-   public void setProject(Project project) {
+   public final void setProject(Project project) {
       this.project = project;
       info.putValue(PROPERTY_PROJECT_ID, project == null ? null : String.valueOf(project.getId()));
    }
@@ -212,7 +218,7 @@ public class RedmineRepository {
    public RedmineIssue getIssue(String issueId) {
       try {
          com.taskadapter.redmineapi.bean.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
-         RedmineIssue redmineIssue = (RedmineIssue)getIssueCache().setIssueData(issueId, issue);
+         RedmineIssue redmineIssue = getIssueCache().setIssueData(issueId, issue);
          //ensureConfigurationUptodate(issue);
          return redmineIssue;
 
@@ -276,12 +282,19 @@ public class RedmineRepository {
       getIssueCache().removeQuery(query.getStoredQueryName());
       doGetQueries().remove(query);
       stopRefreshing(query);
+      fireQueryListChanged();
    }
 
    public void saveQuery(RedmineQuery query) {
       assert info != null;
       RedmineConfig.getInstance().putQuery(this, query);
       doGetQueries().add(query);
+      fireQueryListChanged();
+   }
+
+   private void fireQueryListChanged() {
+      Redmine.LOG.log(Level.FINER, "firing query list changed for repository {0}", new Object[]{getDisplayName()}); // NOI18N
+      propertyChangeSupport.firePropertyChange(RepositoryProvider.EVENT_QUERY_LIST_CHANGED, null, null);
    }
 
    private Collection<RedmineQuery> doGetQueries() {
@@ -418,25 +431,22 @@ public class RedmineRepository {
    public List<Version> getVersions() {
       try {
          return getManager().getVersions(project.getId());
-      } catch (NotFoundException ex) {
-         // TODO Notify user that the issue no longer exists
-         Redmine.LOG.log(Level.SEVERE, "Can't get Versions for Redmine Project " + project.getName(), ex);
-      } catch (RedmineException ex) {
-         // TODO Notify user that Redmine internal error has happened
-         Redmine.LOG.log(Level.SEVERE, "Can't get Versions for Redmine Project " + project.getName(), ex);
+      } catch (Exception ex) {
+         Redmine.LOG.log(Level.SEVERE, "Can't get versions for project " + project.getName(), ex);
       }
       // TODO: return a default set of Categories
       return Collections.<Version>emptyList();
    }
 
-   public List<IssuePriority> getIssuePriorities() {
-      // XXX not yet supported by redmine-java-api
-      return Arrays.asList(
-              new IssuePriority(7, "Immediate"),
-              new IssuePriority(6, "Urgent"),
-              new IssuePriority(5, "High"),
-              new IssuePriority(4, "Normal"),
-              new IssuePriority(3, "Low"));
+   public Collection<IssuePriority> getIssuePriorities() {
+      try {
+         // since Redmine V2.2.0
+         return Helper.getIssuePriorities(getManager());
+      } catch (Exception ex) {
+         Redmine.LOG.log(Level.SEVERE, "Can't get issue priorities", ex);
+      }
+      Redmine.LOG.log(Level.INFO, "Using default issue priorities");
+      return Helper.storeIssuePriorities(Helper.getDefaultIssuePriorities());
    }
 
    public IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> getIssueCache() {
@@ -683,7 +693,22 @@ public class RedmineRepository {
       hash = 97 * hash + (this.project != null ? this.project.hashCode() : 0);
       return hash;
    }
+   // 
+   // Change Support
+   //
+   private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
+   public void addPropertyChangeListener(PropertyChangeListener listener) {
+      propertyChangeSupport.addPropertyChangeListener(listener);
+   }
+
+   public void removePropertyChangeListener(PropertyChangeListener listener) {
+      propertyChangeSupport.removePropertyChangeListener(listener);
+   }
+
+   //
+   // Inner classes
+   // 
    private class RedmineIssueCache extends IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> {
 
       RedmineIssueCache() {

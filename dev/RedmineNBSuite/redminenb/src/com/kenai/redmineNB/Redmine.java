@@ -33,8 +33,6 @@ public final class Redmine {
    public static final String IMAGE_PATH = "com/kenai/redmineNB/resources/";
    public static final String ICON_IMAGE = "redmine.png";
    //
-   private static Redmine instance;
-   //
 //   private Set<RedmineRepository> repositories;
    private RedmineConnector connector;
    private RequestProcessor rp;

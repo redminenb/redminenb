@@ -17,6 +17,7 @@ package com.kenai.redmineNB;
 
 import com.kenai.redmineNB.issue.RedmineTaskListProvider;
 import com.kenai.redmineNB.repository.RedmineRepository;
+
 import org.netbeans.modules.bugtracking.api.Repository;
 import org.netbeans.modules.bugtracking.spi.BugtrackingConnector;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
@@ -46,9 +47,8 @@ public class RedmineConnector extends BugtrackingConnector {
  
    @Override
    public Repository createRepository(RepositoryInfo info) {
-      RedmineRepository redmineRepository = new RedmineRepository(info);
       return Redmine.getInstance().getBugtrackingFactory().createRepository(
-              redmineRepository,
+              RedmineRepository.create(info),
               Redmine.getInstance().getRepositoryProvider(),
               Redmine.getInstance().getQueryProvider(),
               Redmine.getInstance().getIssueProvider());
@@ -56,12 +56,7 @@ public class RedmineConnector extends BugtrackingConnector {
 
    @Override
    public Repository createRepository() {
-      RedmineRepository redmineRepository = new RedmineRepository();
-      return Redmine.getInstance().getBugtrackingFactory().createRepository(
-              redmineRepository,
-              Redmine.getInstance().getRepositoryProvider(),
-              Redmine.getInstance().getQueryProvider(),
-              Redmine.getInstance().getIssueProvider());
+      return createRepository(null);
    }
 
 //   @Override

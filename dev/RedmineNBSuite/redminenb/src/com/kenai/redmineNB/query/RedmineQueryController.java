@@ -27,7 +27,11 @@ import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.user.RedmineUser;
 import com.kenai.redmineNB.util.RedmineUtil;
 
-import com.kenai.redminenb.api.IssuePriority;
+import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.IssuePriority;
+import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.Tracker;
+import com.taskadapter.redmineapi.bean.Version;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -70,12 +74,6 @@ import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
-import com.taskadapter.redmineapi.bean.IssueCategory;
-import com.taskadapter.redmineapi.bean.IssueStatus;
-import com.taskadapter.redmineapi.bean.Tracker;
-import com.taskadapter.redmineapi.bean.Version;
-import java.util.Collections;
-import org.netbeans.modules.bugtracking.issuetable.QueryTableCellRenderer;
 
 /**
  *
@@ -442,9 +440,9 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
    }
 
    private void onWeb() throws RedmineException {
-      String params = ""; //query.getUrlParameters();
+      String params = null; //query.getUrlParameters();
       String repoURL = repository.getUrl();
-      final String urlString = repoURL + (params != null && !params.equals("") ? params : ""); // NOI18N
+      final String urlString = repoURL + (StringUtils.isNotBlank(params) ? params : ""); // NOI18N
 
       Redmine.getInstance().getRequestProcessor().post(new Runnable() {
          @Override
@@ -653,10 +651,10 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       }
       statusParameter.setParameterValues(pvList);
 
-      // Priority
+      // Issue Priority
       pvList = new ArrayList<ParameterValue>();
-      for (IssuePriority p : repository.getIssuePriorities()) {
-         pvList.add(new ParameterValue(p.getName(), p.getId()));
+      for (IssuePriority ip : repository.getIssuePriorities()) {
+         pvList.add(new ParameterValue(ip.getName(), ip.getId()));
       };
       priorityParameter.setParameterValues(pvList);
 
@@ -756,7 +754,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
    }
 
    @Override
-   public IssueTable getIssueTable() {
+   public IssueTable<RedmineQuery> getIssueTable() {
       return issueTable;
    }
 

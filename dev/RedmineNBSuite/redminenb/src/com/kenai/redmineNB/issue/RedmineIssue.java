@@ -18,36 +18,35 @@ package com.kenai.redmineNB.issue;
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.util.RedmineUtil;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import javax.swing.SwingUtilities;
-import org.netbeans.modules.bugtracking.issuetable.IssueNode;
-import org.netbeans.modules.bugtracking.spi.BugtrackingController;
-import org.netbeans.modules.bugtracking.util.TextUtils;
-import org.openide.util.Exceptions;
-import org.openide.util.NbBundle;
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.TimeEntry;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
+import org.netbeans.modules.bugtracking.issuetable.IssueNode;
+import org.netbeans.modules.bugtracking.spi.BugtrackingController;
+import org.netbeans.modules.bugtracking.util.TextUtils;
 import org.netbeans.modules.bugtracking.util.UIUtils;
 import org.openide.nodes.Node;
+import org.openide.util.Exceptions;
+import org.openide.util.NbBundle;
 
 /**
  *
@@ -115,12 +114,12 @@ public final class RedmineIssue {
    /**
     * Defines columns for a view table.
     */
-   public static ColumnDescriptor[] columnDescriptors;
+   public static ColumnDescriptor<?>[] columnDescriptors;
    //
    private com.taskadapter.redmineapi.bean.Issue issue;
    private RedmineRepository repository;
    private RedmineIssueController controller;
-   private IssueNode node;
+   private IssueNode<RedmineIssue> node;
    //
    private final PropertyChangeSupport support;
 
@@ -188,6 +187,10 @@ public final class RedmineIssue {
    public boolean isNew() {
       return issue == null || issue.getId() == null || issue.getId() == 0;
    }
+   
+   public boolean hasParent() {
+      return  issue.getParentId() != null;
+   }
 
    public boolean isFinished() {
       // TODO: improve this
@@ -234,7 +237,6 @@ public final class RedmineIssue {
                getRepository().getIssueCache().setIssueData(this, issue);
             }
          }
-
          return true;
       } catch (IOException ex) {
          // TODO Notify user that it is not possible to connect to Redmine
@@ -246,7 +248,6 @@ public final class RedmineIssue {
          // TODO Notify user that Redmine internal error has happened
          Redmine.LOG.log(Level.SEVERE, "Can't refresh Redmine issue", ex);
       }
-
       return false;
    }
 
@@ -398,6 +399,7 @@ public final class RedmineIssue {
     * @param fieldName the name of the field
     * @return value of the field
     */
+   @SuppressWarnings("unchecked")
    public <T> T getFieldValue(String fieldName) {
       try {
          Field f = issue.getClass().getDeclaredField(fieldName);
@@ -412,7 +414,7 @@ public final class RedmineIssue {
       return null;
    }
 
-   public static ColumnDescriptor[] getColumnDescriptors(RedmineRepository repo) {
+   public static ColumnDescriptor<?>[] getColumnDescriptors(RedmineRepository repo) {
       if (columnDescriptors == null) {
          // setup column widths
          JTable t = new JTable();
@@ -421,7 +423,7 @@ public final class RedmineIssue {
          widths.put("issue." + FIELD_SUBJECT, -1);
          
          Node.Property<?>[] props = new RedmineIssueNode(new RedmineIssue(repo)).getProperties();
-         columnDescriptors = new ColumnDescriptor[props.length];
+         columnDescriptors = new ColumnDescriptor<?>[props.length];
          for (int i = 0; i < props.length; i++) {
             Node.Property<?> p = props[i];
             columnDescriptors[i] = RedmineUtil.convertNodePropertyToColumnDescriptor(p, widths.get(p.getName()));

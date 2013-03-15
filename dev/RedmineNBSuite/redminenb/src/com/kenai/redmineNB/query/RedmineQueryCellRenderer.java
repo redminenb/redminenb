@@ -17,12 +17,11 @@ package com.kenai.redmineNB.query;
 
 import com.kenai.redmineNB.RedmineConfig;
 import com.kenai.redmineNB.issue.RedmineIssueNode.PriorityProperty;
-import com.kenai.redminenb.api.IssuePriority;
+
 import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 
 /**
  * Custom table cell renderer for query result table.
@@ -41,9 +40,9 @@ public class RedmineQueryCellRenderer implements TableCellRenderer {
    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       JLabel renderer = (JLabel)defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-      IssueNode.IssueProperty nodeProperty = (IssueNode.IssueProperty)value;
       try {
-         if (nodeProperty instanceof PriorityProperty) {
+         if (value instanceof PriorityProperty) {
+            PriorityProperty nodeProperty = (PriorityProperty)value;
             renderer.setIcon(RedmineConfig.getInstance().getPriorityIcon(nodeProperty.toString()));
          }
       } catch (Exception ex) {

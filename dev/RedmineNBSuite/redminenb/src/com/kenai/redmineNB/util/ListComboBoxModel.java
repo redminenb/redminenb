@@ -18,13 +18,13 @@ package com.kenai.redmineNB.util;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.ComboBoxModel;
 import javax.swing.MutableComboBoxModel;
 
 /**
  *
  * @author Anchialas <anchialas@gmail.com>
  */
+@SuppressWarnings("unchecked")
 public class ListComboBoxModel<T> extends ListListModel<T> implements MutableComboBoxModel, Serializable {
 
    private T selectedObject;

@@ -17,7 +17,9 @@ package com.kenai.redmineNB.repository;
 
 import com.kenai.redmineNB.issue.RedmineIssue;
 import com.kenai.redmineNB.query.RedmineQuery;
+
 import java.awt.Image;
+import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
@@ -81,6 +83,22 @@ public class RedmineRepositoryProvider extends RepositoryProvider<RedmineReposit
    @Override
    public Lookup getLookup(RedmineRepository r) {
       return r.getLookup();
+   }
+
+   /**
+    * @since NetBeans V7.3 
+    */
+   @Override
+   public void removePropertyChangeListener(RedmineRepository r, PropertyChangeListener listener) {
+      r.removePropertyChangeListener(listener);
+   }
+
+   /**
+    * @since NetBeans V7.3 
+    */
+   @Override
+   public void addPropertyChangeListener(RedmineRepository r, PropertyChangeListener listener) {
+      r.addPropertyChangeListener(listener);
    }
 
 }

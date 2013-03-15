@@ -3,7 +3,6 @@ package com.kenai.redmineNB.issue;
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.ui.Defaults;
 import com.kenai.redmineNB.util.RedmineUtil;
-import com.kenai.redmineNB.util.markup.TextileUtil;
 
 import com.taskadapter.redmineapi.bean.Issue;
 import java.awt.*;
@@ -101,8 +100,6 @@ public class RedmineIssueController extends BugtrackingController {
       //subIssue.setAuthor(issue.getAuthor());
       subIssue.setAuthor(redmineIssue.getRepository().getCurrentUser().getUser());
       subIssue.setCategory(issue.getCategory());
-
-      subIssue.setPriorityText(issue.getPriorityText());
       subIssue.setPriorityId(issue.getPriorityId());
 
       subIssue.setTargetVersion(issue.getTargetVersion());
@@ -114,7 +111,7 @@ public class RedmineIssueController extends BugtrackingController {
    }
 
    private void initListeners() {
-      issuePanel.descriptionTextArea.getDocument().addDocumentListener(new DocumentListener() {
+      issuePanel.descTextArea.getDocument().addDocumentListener(new DocumentListener() {
          @Override
          public void insertUpdate(DocumentEvent e) {
             changedUpdate(e);

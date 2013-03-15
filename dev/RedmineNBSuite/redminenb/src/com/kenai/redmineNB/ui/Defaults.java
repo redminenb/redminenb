@@ -18,9 +18,9 @@ package com.kenai.redmineNB.ui;
 import com.kenai.redmineNB.RedmineConfig;
 import com.kenai.redmineNB.query.ParameterValue;
 import com.kenai.redmineNB.user.RedmineUser;
-import com.kenai.redminenb.api.IssuePriority;
 
 import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;

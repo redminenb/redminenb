@@ -23,7 +23,6 @@ import com.kenai.redmineNB.repository.RedmineRepository;
 
 import com.taskadapter.redmineapi.bean.Identifiable;
 import com.taskadapter.redmineapi.bean.Project;
-import com.taskadapter.redmineapi.bean.User;
 import java.util.Collection;
 import java.util.Comparator;
 import javax.swing.JButton;
@@ -88,16 +87,14 @@ public final class RedmineUtil {
    public static boolean show(ActionListenerPanel panel, String title, String okName) {
       JButton ok = new JButton(okName);
       JButton cancel = new JButton(NbBundle.getMessage(BugtrackingUtil.class, "LBL_Cancel")); // NOI18N
-      final DialogDescriptor dd =
-              new DialogDescriptor(
-              panel,
-              title,
-              true,
-              new Object[]{ok, cancel},
-              ok,
-              DialogDescriptor.DEFAULT_ALIGN,
-              new HelpCtx(panel.getClass()),
-              panel);
+      final DialogDescriptor dd = new DialogDescriptor(panel,
+                                                       title,
+                                                       true,
+                                                       new Object[]{ok, cancel},
+                                                       ok,
+                                                       DialogDescriptor.DEFAULT_ALIGN,
+                                                       HelpCtx.DEFAULT_HELP,
+                                                       panel);
 
       ok.getAccessibleContext().setAccessibleDescription(ok.getText());
       cancel.getAccessibleContext().setAccessibleDescription(cancel.getText());

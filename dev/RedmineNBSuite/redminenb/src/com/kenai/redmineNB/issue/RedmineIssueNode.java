@@ -15,19 +15,18 @@
  */
 package com.kenai.redmineNB.issue;
 
+import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.util.RedmineUtil;
 
-import java.util.Date;
-import java.util.logging.Level;
-import org.netbeans.modules.bugtracking.BugtrackingManager;
-import org.netbeans.modules.bugtracking.issuetable.IssueNode;
-import org.openide.nodes.Node;
-import org.openide.util.NbBundle;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
+import java.util.logging.Level;
+import org.netbeans.modules.bugtracking.issuetable.IssueNode;
+import org.openide.nodes.Node;
+import org.openide.util.NbBundle;
 
 /**
  * Redmine specific {@link IssueNode} that is rendered in the IssuesTable.
@@ -48,7 +47,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
                  new TrackerProperty(),
                  new PriorityProperty(),
                  new StatusProperty(),
-                 new RedmineFieldProperty(RedmineIssue.FIELD_ASSIGNEE, String.class),
+                 new RedmineFieldProperty<String>(RedmineIssue.FIELD_ASSIGNEE, String.class),
                  new CategoryProperty(),
                  new VersionProperty(),
                  //new SeverityProperty(),
@@ -78,7 +77,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
       }
 
       @Override
-      public int compareTo(IssueProperty p) {
+      public int compareTo(IssueProperty<String> p) {
          if (p == null) {
             return 1;
          }
@@ -109,7 +108,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
          try {
             return getValue().getName();
          } catch (Exception e) {
-            BugtrackingManager.LOG.log(Level.INFO, null, e);
+            Redmine.LOG.log(Level.INFO, null, e);
             return e.getLocalizedMessage();
          }
       }
@@ -169,7 +168,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
          } catch (NullPointerException e) {
             return null;
          } catch (Exception e) {
-            BugtrackingManager.LOG.log(Level.INFO, null, e);
+            Redmine.LOG.log(Level.INFO, null, e);
             return e.getLocalizedMessage();
          }
       }
@@ -198,7 +197,7 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
          } catch (NullPointerException e) {
             return null;
          } catch (Exception e) {
-            BugtrackingManager.LOG.log(Level.INFO, null, e);
+            Redmine.LOG.log(Level.INFO, null, e);
             return e.getLocalizedMessage();
          }
       }
@@ -262,12 +261,19 @@ public class RedmineIssueNode extends IssueNode<RedmineIssue> {
             return 1;
          }
          T o1 = getValue();
-         T o2 = ((RedmineFieldProperty<T>)p).getValue();
+         T o2;
+         try {
+            o2 = p.getValue();
+         } catch (IllegalAccessException ex) {
+            return 1;
+         } catch (InvocationTargetException ex) {
+            return 1;
+         }
          if (o1 == null) {
             return o2 == null ? 0 : 1;
          }
          if (o1 instanceof Comparable) {
-            return o2 == null ? -1 : ((Comparable)o1).compareTo(o2);
+            return o2 == null ? -1 : ((Comparable<T>)o1).compareTo(o2);
          }
          return 0;
       }

@@ -1,7 +1,7 @@
 package com.kenai.redmineNB.util;
 
-import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.RedmineConfig;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -21,6 +21,7 @@ public class RedminePreferences {
         return NbPreferences.forModule(RedmineConfig.class);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> void putObject(final String key, T object) throws IllegalArgumentException,
                                                                         IllegalAccessException, BackingStoreException {
         Preferences preferences = getPreferences();
@@ -44,7 +45,7 @@ public class RedminePreferences {
                                     String.valueOf(((Date) field.get(object)).getTime()));
                 } else if (field.getType() == Collection.class
                         || field.getType() == List.class) {
-                    Collection collection = (Collection) field.get(object);
+                    Collection<Object> collection = (Collection) field.get(object);
 
                     if (collection != null) {
                         int i = 1;
@@ -100,7 +101,7 @@ public class RedminePreferences {
                         }
                     } else if (field.getType().getName().equals(Collection.class.getName())
                             || field.getType().getName().equals(List.class.getName())) {
-                        Collection collection = (Collection) field.get(object);
+                        Collection<Object> collection = (Collection) field.get(object);
                         int i = 1;
 
                         while (isKeyExists(key + "." + field.getName() + "." + i)) {

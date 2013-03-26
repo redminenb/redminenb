@@ -20,8 +20,9 @@ import com.kenai.redmineNB.RedmineConfig;
 import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.repository.RedmineRepository;
 import com.kenai.redmineNB.util.RedmineUtil;
-import java.beans.PropertyChangeEvent;
+
 import java.awt.EventQueue;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.lang.ref.WeakReference;
@@ -441,7 +442,7 @@ public final class RedmineTaskListProvider extends TaskListIssueProvider impleme
             @Override
             public void run() {
                LOG.log(Level.FINE, "getIssue: creating issue {0}", repository.getUrl() + "#" + issueId); //NOI18N
-               issue[0] = (RedmineIssue)repository.getIssue(issueId);
+               issue[0] = repository.getIssue(issueId);
             }
 
          };

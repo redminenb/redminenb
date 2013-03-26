@@ -419,7 +419,7 @@ public final class RedmineIssue {
          // setup column widths
          JTable t = new JTable();
          Map<String, Integer> widths = new HashMap<String, Integer>();
-         widths.put("issue." + FIELD_ID, UIUtils.getColumnWidthInPixels(20, t));
+         widths.put("issue." + FIELD_ID, UIUtils.getColumnWidthInPixels(4, t));
          widths.put("issue." + FIELD_SUBJECT, -1);
          
          Node.Property<?>[] props = new RedmineIssueNode(new RedmineIssue(repo)).getProperties();

@@ -16,7 +16,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.modules.bugtracking.spi.BugtrackingController;
-import org.netbeans.modules.bugtracking.util.UIUtils;
 import org.openide.awt.HtmlBrowser;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
@@ -42,7 +41,7 @@ public class RedmineIssueController extends BugtrackingController {
 
       JScrollPane scrollPane = new JScrollPane(issuePanel);
       scrollPane.setBorder(null);
-      UIUtils.keepFocusedComponentVisible(scrollPane);
+      //UIUtils.keepFocusedComponentVisible(scrollPane);
 
       JPanel pane = new JPanel(new BorderLayout());
       pane.setBorder(null);

@@ -422,7 +422,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
          public void run() {
             handle.start();
             try {
-               openIssue((RedmineIssue)repository.getIssue(String.valueOf(issueId)));
+               openIssue(repository.getIssue(String.valueOf(issueId)));
             } finally {
                handle.finish();
             }

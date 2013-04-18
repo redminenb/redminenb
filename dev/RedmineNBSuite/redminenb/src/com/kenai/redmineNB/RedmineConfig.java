@@ -22,7 +22,9 @@ import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Icon;
-import org.apache.commons.io.FileUtils;
+import org.openide.filesystems.FileLock;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.NbPreferences;
 
 /**
@@ -40,7 +42,8 @@ public class RedmineConfig {
    private static final String DELIMITER = "<=>";                                   // NOI18N
    private static final String CHECK_UPDATES = "redmine.check_updates";             // NOI18N
    private static final String LAST_CHANGE_FROM = "redmine.last_change_from";       // NOI18N
-   private static final String ACTIONITEMISSUES_STORAGE_FILE = "actionitemissues.data"; //NOI18N
+   private static final String ACTIONITEMISSUES_STORAGE = "actionitemissues"; //NOI18N
+   private static final String ACTIONITEMISSUES_STORAGE_FILE = ACTIONITEMISSUES_STORAGE + ".data"; //NOI18N
    //
    public static final int DEFAULT_QUERY_REFRESH = 30;
    public static final int DEFAULT_ISSUE_REFRESH = 15;
@@ -177,7 +180,7 @@ public class RedmineConfig {
          return;
       }
       ObjectOutputStream out = null;
-      File file = new File(f, ACTIONITEMISSUES_STORAGE_FILE + ".tmp");
+      File file = new File(f, ACTIONITEMISSUES_STORAGE + ".tmp");
       boolean success = false;
       try {
          // saving to a temp file
@@ -203,12 +206,18 @@ public class RedmineConfig {
       }
       if (success) {
          // rename the temp file to the permanent one
-         File newFile = new File(f, ACTIONITEMISSUES_STORAGE_FILE);
+         FileLock lock = null;
          try {
-            FileUtils.moveFile(file, newFile);
+            FileObject foStorage = FileUtil.toFileObject(file);
+            lock = foStorage.lock();
+            FileUtil.toFileObject(file).rename(lock, ACTIONITEMISSUES_STORAGE, "data");
          } catch (IOException ex) {
             Redmine.LOG.log(Level.FINE, null, ex);
             success = false;
+         } finally {
+            if (lock != null) {
+               lock.releaseLock();
+            }
          }
       }
       if (!success) {

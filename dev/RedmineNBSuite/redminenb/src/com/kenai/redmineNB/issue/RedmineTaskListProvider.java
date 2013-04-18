@@ -237,7 +237,7 @@ public final class RedmineTaskListProvider extends TaskListIssueProvider impleme
     */
    public void notifyIssueCreated(RedmineIssue issue) {
       URL url = getUrl(issue);
-      RedmineLazyIssue lazyIssue = null;
+      RedmineLazyIssue lazyIssue;
       synchronized (LOCK) {
          lazyIssue = watchedIssues.get(url.toString());
       }
@@ -327,7 +327,8 @@ public final class RedmineTaskListProvider extends TaskListIssueProvider impleme
                   issueAttributes.add(issue.issueId);            // issue id
                   issueAttributes.add(issue.getName());          // description
                   if (LOG.isLoggable(Level.FINE)) {
-                     LOG.fine("saveIntern: saving " + issueAttributes + " for repo: " + repositoryIdent); //NOI18N
+                     LOG.log(Level.FINE, "saveIntern: saving {0} for repo: {1}", 
+                             new Object[]{issueAttributes, repositoryIdent}); //NOI18N
                   }
                   issues.put(repositoryIdent, issueAttributes);
                }

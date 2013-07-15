@@ -16,6 +16,7 @@
 package com.kenai.redmineNB.util;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.AbstractListModel;
 
@@ -31,6 +32,10 @@ public class ListListModel<T> extends AbstractListModel {
       this.list = list;
    }
 
+   public List<T> getElements() {
+      return Collections.unmodifiableList(list);
+   }
+   
    public void add(T e) {
       list.add(e);
       fireIntervalAdded(this, list.size() - 1, list.size() - 1);

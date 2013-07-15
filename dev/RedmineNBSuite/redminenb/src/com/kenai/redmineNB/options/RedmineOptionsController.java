@@ -29,17 +29,12 @@ import org.openide.util.NbBundle;
 /**
  * RedmineOptionsController
  * 
- * @author Anchialas <>anchialas@gmail.com>
+ * @author Anchialas <anchialas@gmail.com>
  */
 @NbBundle.Messages({
-    "RedmineOptions.displayName=Redmine",
     "MSG_INVALID_VALUE=Invalid value.",
     "MSG_MUST_BE_GREATER_THEN_5=Must be a number greater then 5."
 })
-@OptionsPanelController.SubRegistration(id = "RedmineNB", 
-                                        displayName = "#RedmineOptions.displayName",
-                                        keywords = "Redmine",
-                                        keywordsCategory = "Issue Tracker")
 public final class RedmineOptionsController extends OptionsPanelController implements DocumentListener {
 
     private final RedmineOptionsPanel panel;

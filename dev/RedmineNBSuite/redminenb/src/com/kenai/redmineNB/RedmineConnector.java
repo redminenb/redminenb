@@ -36,7 +36,8 @@ import org.openide.util.NbBundle;
 })
 @BugtrackingConnector.Registration(id = RedmineConnector.ID,
                                    displayName = "#LBL_ConnectorName",
-                                   tooltip = "#LBL_ConnectorTooltip")
+                                   tooltip = "#LBL_ConnectorTooltip",
+                                   iconPath = "com/kenai/redmineNB/resources/redmine.png")
 public class RedmineConnector extends BugtrackingConnector {
 
    public static final String ID = "com.kenai.redmineNB";

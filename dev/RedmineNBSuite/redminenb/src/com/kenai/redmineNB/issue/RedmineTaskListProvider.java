@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.modules.bugtracking.api.Repository;
@@ -247,7 +248,8 @@ public final class RedmineTaskListProvider extends TaskListIssueProvider impleme
    }
 
    public void notifyRepositoryCreated(RedmineRepository repository) {
-      if (repository.getInfo() != null) {
+      if (repository.getInfo() != null 
+              && StringUtils.isNotBlank(repository.getID())) {
          redmineRepositories.put(repository.getID(), repository);
       }
    }

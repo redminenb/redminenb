@@ -17,6 +17,7 @@ package org.anchialas.nb.issuetracking.customizer;
 
 import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.util.ListComboBoxModel;
+
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,18 +25,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -45,29 +37,23 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import org.anchialas.nb.issuetracking.IssueTrackerData;
+import org.anchialas.nb.issuetracking.IssueTrackingManager;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.apisupport.project.NbModuleProject;
 import org.netbeans.modules.apisupport.project.api.UIUtil;
 import org.netbeans.modules.apisupport.project.ui.ApisupportAntUIUtils;
-import org.netbeans.modules.apisupport.project.ui.customizer.ModuleProperties;
-import org.netbeans.modules.apisupport.project.ui.customizer.ModuleProperties;
-import org.netbeans.modules.apisupport.project.ui.customizer.SingleModuleProperties;
-import org.netbeans.modules.bugtracking.BugtrackingManager;
 import org.netbeans.modules.bugtracking.DelegatingConnector;
-import org.netbeans.modules.bugtracking.RepositoryImpl;
-import org.netbeans.modules.bugtracking.RepositoryRegistry;
 import org.netbeans.modules.bugtracking.api.Repository;
-import org.netbeans.modules.bugtracking.jira.JiraUpdater;
-import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
-import org.netbeans.modules.bugtracking.ui.selectors.SelectorPanel;
 import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
 import org.netbeans.modules.bugtracking.util.RepositoryComboSupport;
+import org.netbeans.spi.project.support.ant.AntProjectEvent;
+import org.netbeans.spi.project.support.ant.AntProjectListener;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
-import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.WeakListeners;
 
 /**
  * Represents <em>Issue Tracking</em> panel in various NetBeans project customizer.
@@ -77,28 +63,30 @@ import org.openide.util.NbBundle.Messages;
 public class CustomizerIssueTracking extends JPanel implements
         /* ModuleProperties.LazyStorage, */ PropertyChangeListener, HelpCtx.Provider {
 
-   public static final String KEY_ENABLED = "issuetracking.enabled"; // NOI18N
-   public static final String KEY_NAME = "issuetracking.name"; // NOI18N
-   public static final String KEY_URL = "issuetracking.url"; // NOI18N
-   public static final String KEY_CONNECTOR = "issuetracking.connector"; // NOI18N
    /** Property whether this panel is valid. */
    static final String VALID_PROPERTY = "isPanelValid"; // NOI18N
    /** Property for error message of this panel. */
    static final String ERROR_MESSAGE_PROPERTY = "errorMessage"; // NOI18N
    //
-   protected ModuleProperties props;
-   protected final ProjectCustomizer.Category category;
+   private final ProjectCustomizer.Category category;
+   private final IssueTrackerData data;
+//   private final ModuleProperties props;
+   private final NbModuleProject p;
+   //
    private RepositoryComboSupport repoComboSupport;
 
    //private final RepositoryComboSupport rs;
    //SingleModuleProperties
    //SuiteProperties
-   public CustomizerIssueTracking(ModuleProperties props,
-                                  ProjectCustomizer.Category category,
-                                  @NonNull NbModuleProject p) {
+   public CustomizerIssueTracking(//ModuleProperties props,
+           ProjectCustomizer.Category category,
+           @NonNull NbModuleProject p) {
       super();
-      this.props = props;
       this.category = category;
+//      this.props = props;
+//      this.data = IssueTrackingManager.getData(props);
+      this.data = IssueTrackerData.create(p.getHelper());
+      this.p = p;
 
       initComponents();
       init();
@@ -170,7 +158,21 @@ public class CustomizerIssueTracking extends JPanel implements
          }
       });
 
-      props.addPropertyChangeListener(this);
+//      props.addPropertyChangeListener(this);
+      AntProjectListener antProjectListener = new AntProjectListener() {
+         @Override
+         public void configurationXmlChanged(AntProjectEvent ev) {
+            // do nothing
+         }
+
+         @Override
+         public void propertiesChanged(AntProjectEvent ev) {
+            refresh(false);
+         }
+      };
+      
+      p.getHelper().addAntProjectListener(WeakListeners.create(AntProjectListener.class, antProjectListener, p.getHelper()));
+
 
       enableCheckBox.addItemListener(new ItemListener() {
          @Override
@@ -187,6 +189,16 @@ public class CustomizerIssueTracking extends JPanel implements
       };
       nameTextField.getDocument().addDocumentListener(dl);
       urlTextField.getDocument().addDocumentListener(dl);
+      
+      ItemListener itemListener = new ItemListener() {
+         @Override
+         public void itemStateChanged(ItemEvent e) {
+            checkValidity();
+         }
+      };
+      
+      enableCheckBox.addItemListener(itemListener);
+      connectorComboBox.addItemListener(itemListener);
 
       repoComboBox.addItemListener(new ItemListener() {
          @Override
@@ -204,11 +216,11 @@ public class CustomizerIssueTracking extends JPanel implements
 
    private List<DelegatingConnector> findConnectors() {
       List<DelegatingConnector> list = new ArrayList<DelegatingConnector>(
-              Arrays.asList(BugtrackingManager.getInstance().getConnectors()));
-      // add JIRA proxy if needed
-      if (!BugtrackingUtil.isJiraInstalled()) {
-         list.add(JiraUpdater.getInstance().getConnector());
-      }
+              IssueTrackingManager.getConnectors());
+      // TODO: add JIRA proxy if needed
+//      if (!BugtrackingUtil.isJiraInstalled()) {
+//         list.add(JiraUpdater.getInstance().getConnector());
+//      }
       return list;
    }
 
@@ -239,8 +251,8 @@ public class CustomizerIssueTracking extends JPanel implements
                }
             });
          }
-      } else if (ModuleProperties.PROPERTIES_REFRESHED.equals(evt.getPropertyName())) {
-         refresh(false);
+//      } else if (ModuleProperties.PROPERTIES_REFRESHED.equals(evt.getPropertyName())) {
+//         refresh(false);
       }
    }
 
@@ -272,46 +284,33 @@ public class CustomizerIssueTracking extends JPanel implements
     * This method is called whenever {@link ModuleProperties} are refreshed.
     */
    protected void refresh(boolean initial) {
-      boolean enabled = Boolean.valueOf(props.getProperty(KEY_ENABLED));
-      setIssueTrackingEnabled(enabled);
+
+      setIssueTrackingEnabled(data.isEnabled());
 
       // set Connector ComboBox
-      connectorComboBox.setSelectedIndex(-1);
-      String connectorID = props.getProperty(KEY_CONNECTOR);
-      if (StringUtils.isNotBlank(connectorID)) {
-         for (int i = 0; i < connectorComboBox.getItemCount(); i++) {
-            DelegatingConnector dc = connectorComboBox.getItemAt(i);
-            if (connectorID.equalsIgnoreCase(dc.getID())) {
-               connectorComboBox.setSelectedIndex(i);
-               break;
-            }
-         }
-         if (connectorComboBox.getSelectedIndex() < 0) {
-            // connector with given ID is not available
-            DelegatingConnector dc = new DelegatingConnector(
-                    null,
-                    connectorID,
-                    Bundle.MSG_ConnectorUnknown(connectorID),
-                    null, null);
-            connectorComboBox.addItem(dc);
-            connectorComboBox.setSelectedItem(dc);
-         }
+      DelegatingConnector connector = IssueTrackingManager.getConnector(data.getConnectorId());
+      connectorComboBox.setSelectedItem(connector);
+      if (connector != null && connectorComboBox.getSelectedIndex() < 0) {
+         // connector with given ID is not available
+         DelegatingConnector dc = new DelegatingConnector(
+                 null,
+                 data.getConnectorId(),
+                 Bundle.MSG_ConnectorUnknown(data.getConnectorId()),
+                 null, null);
+         connectorComboBox.addItem(dc);
+         connectorComboBox.setSelectedItem(dc);
       }
-
       // set Issue Tracker ComboBox (repository)
-      String repoName = props.getProperty(KEY_NAME);
       if (initial) {
-         repoComboBox.putClientProperty("initial", repoName);
+         repoComboBox.putClientProperty("initial", data.getName());
       } else {
          repoComboBox.putClientProperty("initial", null);
       }
       //Object repository = repoComboBox.getSelectedItem();
       //connectorComboBox.setEnabled(repository == null);
-
-
       // set text fields
-      ApisupportAntUIUtils.setText(nameTextField, repoName);
-      ApisupportAntUIUtils.setText(urlTextField, props.getProperty(KEY_URL));
+      ApisupportAntUIUtils.setText(nameTextField, data.getName());
+      ApisupportAntUIUtils.setText(urlTextField, data.getUrl());
 
 
       checkValidity();
@@ -327,50 +326,49 @@ public class CustomizerIssueTracking extends JPanel implements
 
    //@Override
    public void store() {
-      props.setProperty(KEY_ENABLED, String.valueOf(enableCheckBox.isSelected()));
-      props.setProperty(KEY_NAME, getRepoName());
-      props.setProperty(KEY_URL, getRepoUrl());
+      data.setEnabled(enableCheckBox.isSelected());
 
       Object connector = connectorComboBox.getSelectedItem();
       if (connector instanceof DelegatingConnector) {
-         props.setProperty(KEY_CONNECTOR, ((DelegatingConnector)connector).getID());
+         data.setConnectorId(((DelegatingConnector)connector).getID());
       } else {
          // TODO: remove property or leave existing value in this case?
          //props.removeProperty(KEY_CONNECTOR);
       }
-      // TODO: can't use package private ModuleProperties.LazyStorage
-      // -> call props.storeProperties() by reflection
-      try {
-         Method m = ModuleProperties.class.getDeclaredMethod("storeProperties");
-         m.setAccessible(true);
-         m.invoke(props);
-      } catch (Exception ex) {
-         Exceptions.printStackTrace(ex);
-      }
+
+      data.setName(getRepoName());
+      data.setUrl(getRepoUrl());
+      data.store();
    }
 
    @Messages({
       "# {0} - field name",
       "MSG_RequiredValue={0} value is required",
       "# {0} - Repository Name",
-      "MSG_ConnectorUnknown=Unknown Issue Tracker ''{0}'': Please choose an existing or create a new Issue Tracker",
+      "MSG_RepositoryUnknown=Unknown Issue Tracker ''{0}'': Please choose an existing or create a new Issue Tracker.",
       "# {0} - connector ID",
-      "MSG_RepositoryUnknown=<html><i>Connector ''{0}'' not installed</i>",
-      
-   })
+      "MSG_ConnectorUnknown=Connector ''{0}'' not available. Please install it.",})
    protected void checkValidity() {
-      category.setValid(false);
-      if (StringUtils.isBlank(nameTextField.getText())) {
-         category.setErrorMessage(Bundle.MSG_RequiredValue(nameLabel.getText()));
-      } else if (StringUtils.isBlank(urlTextField.getText())) {
-         category.setErrorMessage(Bundle.MSG_RequiredValue(urlLabel.getText()));
-      } else if (!(repoComboBox.getSelectedItem() instanceof Repository)) {
-         category.setErrorMessage(Bundle.MSG_ConnectorUnknown(((Repository)repoComboBox.getSelectedItem()).getDisplayName()));
+      category.setErrorMessage(null);
+
+      if (data.isEnabled()) {
+         category.setValid(false);
+         if (connectorComboBox.getSelectedIndex() < 0 && data.getConnectorId() != null) {
+            category.setErrorMessage(Bundle.MSG_ConnectorUnknown(data.getConnectorId()));
+         } else if (!(repoComboBox.getSelectedItem() instanceof Repository)
+                 && StringUtils.isNotEmpty(getRepoName())) {
+            //category.setErrorMessage(Bundle.MSG_ConnectorUnknown(((Repository)repoComboBox.getSelectedItem()).getDisplayName()));
+            category.setErrorMessage(Bundle.MSG_RepositoryUnknown(data.getName()));
+         } else if (StringUtils.isEmpty(getRepoName())) {
+            category.setErrorMessage(Bundle.MSG_RequiredValue(nameLabel.getText()));
+         } else if (StringUtils.isEmpty(getRepoUrl())) {
+            category.setErrorMessage(Bundle.MSG_RequiredValue(urlLabel.getText()));
+         } else {
+            category.setValid(true);
+         }
       } else {
-         category.setErrorMessage(null);
          category.setValid(true);
       }
-
    }
 
    @Override

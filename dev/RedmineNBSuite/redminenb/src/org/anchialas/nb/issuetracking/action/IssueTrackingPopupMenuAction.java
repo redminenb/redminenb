@@ -30,8 +30,10 @@ import javax.swing.SwingUtilities;
 import org.anchialas.nb.issuetracking.IssueTrackerData;
 import org.anchialas.nb.issuetracking.IssueTrackingManager;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.bugtracking.IssueImpl;
 import org.netbeans.modules.bugtracking.RepositoryImpl;
 import org.netbeans.modules.bugtracking.ui.nodes.RepositoryNode;
+import org.netbeans.modules.bugtracking.util.BugtrackingUtil;
 import org.netbeans.spi.project.support.ant.AntProjectEvent;
 import org.netbeans.spi.project.support.ant.AntProjectListener;
 import org.openide.awt.ActionID;
@@ -56,7 +58,8 @@ import org.openide.util.actions.Presenter;
    "LBL_ISSUE_TRACKING=Issue Tracking",
    "# {0} - connector name",
    "# {1} - issue tracker name",
-   "LBL_CONNECTOR_ISSUE_TRACKER={0}: {1}"
+   "LBL_CONNECTOR_ISSUE_TRACKER={0}: {1}",
+   "LBL_RECENT_ISSUES=Recent Issues"
 })
 public class IssueTrackingPopupMenuAction extends AbstractAction implements ContextAwareAction, AntProjectListener {
 
@@ -156,8 +159,6 @@ public class IssueTrackingPopupMenuAction extends AbstractAction implements Cont
                         if (repo != null) {
                            popupProvider = new RepositoryPopupMenuProvider(repo);
                         }
-                        //repo.getProvider().
-                        //Collection<IssueImpl> recentIssues = BugtrackingUtil.getRecentIssues(repo);
 
                         if (popupProvider != null) {
                            issueTrackerData.getHelper().addAntProjectListener(
@@ -222,6 +223,13 @@ public class IssueTrackingPopupMenuAction extends AbstractAction implements Cont
                      teamPopup.add(createmenuItem(a));
                   }
                }
+            }
+            if (actions.length > 0) {
+               teamPopup.addSeparator();
+            }  
+            JMenuItem recentIssuesMenu = teamPopup.add(new JMenu(Bundle.LBL_RECENT_ISSUES()));
+            for (IssueImpl issue : BugtrackingUtil.getRecentIssues(repo)) {
+               recentIssuesMenu.add(createmenuItem(new IssueOpenAction(issue)));
             }
          }
          return teamPopup;

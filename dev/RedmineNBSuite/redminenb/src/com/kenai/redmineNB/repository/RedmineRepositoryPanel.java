@@ -86,8 +86,6 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
 
       nameTextField.setText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.nameTextField.text")); // NOI18N
 
-      urlTextField.setText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.urlTextField.text")); // NOI18N
-
       accessKeyTextField.setText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.accessKeyTextField.text")); // NOI18N
       accessKeyTextField.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.accessKeyTextField.toolTipText")); // NOI18N
 

@@ -16,12 +16,14 @@
 package com.kenai.redmineNB.repository;
 
 import com.kenai.redmineNB.Redmine;
-import com.kenai.redminenb.api.AuthMode;
 import com.kenai.redmineNB.project.RedmineProjectPanel;
 import com.kenai.redmineNB.ui.Defaults;
 import com.kenai.redmineNB.util.ListComboBoxModel;
 import com.kenai.redmineNB.util.RedmineUtil;
 
+import com.kenai.redminenb.api.AuthMode;
+import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.bean.Project;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,9 +48,6 @@ import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.openide.util.*;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor.Task;
-import com.taskadapter.redmineapi.RedmineException;
-import com.taskadapter.redmineapi.bean.Project;
-import com.taskadapter.redmineapi.bean.User;
 
 /**
  * Redmine repository parameter controller.
@@ -153,23 +152,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
       panel.connectButton.setEnabled(false);
       panel.createNewProjectButton.setEnabled(false);
 
-      // check name
-      String name = panel.nameTextField.getText().trim();
-
-      if (name.equals("")) { // NOI18N
-         errorMessage = Bundle.MSG_MissingName();
-         return false;
-      }
-
-      // is name unique?
-//      if ((repository.isFresh() && Redmine.getInstance().isRepositoryNameExists(name))
-//               || (!repository.isFresh() && !name.equals(repository.getName())
-//               && Redmine.getInstance().isRepositoryNameExists(name))) {
-//      if (Redmine.getInstance().isRepositoryNameExists(name)) {
-//         errorMessage = Bundle.MSG_TrackerAlreadyExists();
-//         return false;
-//      }
-
       // check url
       String url = getUrl();
       if (url.equals("")) { // NOI18N
@@ -205,6 +187,24 @@ public class RedmineRepositoryController implements RepositoryController, Docume
       panel.connectButton.setEnabled(true);
       panel.createNewProjectButton.setEnabled(connected);
 
+
+      // check name
+      String name = panel.nameTextField.getText().trim();
+
+      if (name.equals("")) { // NOI18N
+         errorMessage = Bundle.MSG_MissingName();
+         return false;
+      }
+
+      // is name unique?
+//      if ((repository.isFresh() && Redmine.getInstance().isRepositoryNameExists(name))
+//               || (!repository.isFresh() && !name.equals(repository.getName())
+//               && Redmine.getInstance().isRepositoryNameExists(name))) {
+//      if (Redmine.getInstance().isRepositoryNameExists(name)) {
+//         errorMessage = Bundle.MSG_TrackerAlreadyExists();
+//         return false;
+//      }
+
       // is repository unique?
 //      RedmineRepository confRepository = Redmine.getInstance().repositoryExists(repository);
 //
@@ -235,29 +235,25 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
    @Override
    public void applyChanges() throws IOException {
-      repository.setInfoValues(
-              getName(),
-              getUrl(),
-              getUser(),
-              getPassword(),
-              getAccessKey(),
-              getAuthMode(),
-              getProject());
+      repository.setInfoValues(getName(),
+                               getUrl(),
+                               getUser(),
+                               getPassword(),
+                               getAccessKey(),
+                               getAuthMode(),
+                               getProject());
    }
 
    @Override
    public final void populate() {
       taskRunner = new TaskRunner(NbBundle.getMessage(RedmineRepositoryPanel.class, "LBL_ReadingRepoData")) {  // NOI18N
-         @Override
-         protected void preRun() {
-            //panel.validateButton.setVisible(false);
-            super.preRun();
-         }
 
          @Override
-         protected void postRun() {
-            //panel.validateButton.setVisible(true);
-            super.postRun();
+         protected void postRunSwing() {
+            super.postRunSwing();
+            if (populated) {
+               panel.progressPanel.setVisible(false);
+            }
          }
 
          @Override
@@ -358,7 +354,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                panel.progressPanel.removeAll();
                panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(repository.getCurrentUser().getFullName()),
                                                   Defaults.getIcon("info.png"),
-                                                  SwingUtilities.LEADING));
+                                                  SwingUtilities.LEADING), BorderLayout.NORTH);
                panel.progressPanel.setVisible(true);
 
                connectError = false;
@@ -394,20 +390,25 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    }
 
    private void onProjectSelected() {
-      repository.setProject(getProject());
+      Project project = getProject();
+      //repository.setProject(project);
+      // auto-set name
+      if (project != null && StringUtils.isEmpty(getName())) {
+         panel.nameTextField.setText(project.getName());
+      }
       fireChange();
    }
 
    private void onCreateNewProject() {
       Object selectedProject = panel.projectComboBox.getSelectedItem();
-      
+
       RedmineProjectPanel projectPanel = new RedmineProjectPanel(repository);
 
       if (RedmineUtil.show(projectPanel, "New Redmine project", "OK")) {
          try {
             List<Project> projects = repository.getManager().getProjects();
             Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
-            
+
             panel.projectComboBox.setModel(new ListComboBoxModel<Project>(projects));
             for (Project p : projects) {
                if (p.getIdentifier().equals(projectPanel.getIdentifier())) {
@@ -508,14 +509,21 @@ public class RedmineRepositoryController implements RepositoryController, Docume
          SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-               panel.progressPanel.setVisible(true);
-               panel.cancelButton.setVisible(true);
-               panel.connectButton.setEnabled(false);
-               panel.createNewProjectButton.setEnabled(false);
-               panel.enableFields(false);
-               panel.projectComboBox.setEnabled(false);
+               preRunSwing();
             }
          });
+      }
+
+      /**
+       * Pre-run stuff invoked on AWT Event Dispatching Thread.
+       */
+      protected void preRunSwing() {
+         panel.progressPanel.setVisible(true);
+         panel.cancelButton.setVisible(true);
+         panel.connectButton.setEnabled(false);
+         panel.createNewProjectButton.setEnabled(false);
+         panel.enableFields(false);
+         panel.projectComboBox.setEnabled(false);
       }
 
       protected void postRun() {
@@ -527,22 +535,30 @@ public class RedmineRepositoryController implements RepositoryController, Docume
          SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-               if (errorMessage != null) {
-                  panel.progressPanel.setVisible(false);
-               }
-               panel.connectButton.setEnabled(true);
-               panel.cancelButton.setVisible(false);
-               panel.enableFields(true);
-
-               if (panel.projectComboBox.getItemCount() > 0) {
-                  panel.projectComboBox.setEnabled(true);
-               }
-               if (connected) {
-                  panel.createNewProjectButton.setEnabled(true);
-               }
-               validate();
+               postRunSwing();
             }
          });
+      }
+
+      /**
+       * Post-run stuff invoked on AWT Event Dispatching Thread.
+       */
+      protected void postRunSwing() {
+         if (errorMessage != null
+                 && !connected) {
+            panel.progressPanel.setVisible(false);
+         }
+         panel.connectButton.setEnabled(true);
+         panel.cancelButton.setVisible(false);
+         panel.enableFields(true);
+
+         if (panel.projectComboBox.getItemCount() > 0) {
+            panel.projectComboBox.setEnabled(true);
+         }
+         if (connected) {
+            panel.createNewProjectButton.setEnabled(true);
+         }
+         validate();
       }
 
       @Override

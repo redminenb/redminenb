@@ -148,11 +148,6 @@
       </AuxValues>
     </Component>
     <Component class="javax.swing.JTextField" name="urlTextField">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="com/kenai/redmineNB/repository/Bundle.properties" key="RedmineRepositoryPanel.urlTextField.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
       </AuxValues>

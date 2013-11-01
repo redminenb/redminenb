@@ -82,20 +82,27 @@ import org.openide.util.RequestProcessor;
 @NbBundle.Messages({
    "MSG_SameName=Query with the same name already exists.",
    "MSG_NoResults=No Issues found",
+   "# {0} - the issue number",
    "MSG_NotFound=Issue #{0} not found",
+   "# {0} - the issue number",
+   "MSG_Opening=Opening Issue #{0}...",
    "MSG_Searching=Searching...",
+   "# {0} - the query name",
    "MSG_SearchingQuery=Searching {0}...",
-   "MSG_Opening=Opening Issue {0}...",
-   "MSG_Populating=Reading server data from Issue Tracker ''{0}''...",
+   "# {0} - the query name",
    "MSG_RemoveQuery=Do you want to remove the query ''{0}''?",
+   "# {0} - the display name of the repository",
+   "MSG_Populating=Reading server data from Issue Tracker ''{0}''...",
    "CTL_RemoveQuery=Remove",
-   "LBL_RetrievingIssue=Retrieved issue {0}",
+   "# {0} - the issue number",
+   "LBL_RetrievingIssue=Retrieved issue #{0}",
    "LBL_Never=Never",
+   "# {0} - the search hits count",
    "LBL_MatchingIssues=There {0,choice,0#are no issues|1#is one issue|1<are {0,number,integer} issues} matching this query.",
    "LBL_SelectKeywords=Select or deselect keywords."
 })
 public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi.QueryController
-        implements ItemListener, ListSelectionListener, ActionListener, FocusListener, KeyListener, IssueTable.IssueTableProvider {
+                                    implements ItemListener, ListSelectionListener, ActionListener, FocusListener, KeyListener {
 
    final RedmineQueryPanel queryPanel;
    private final IssueTable<RedmineQuery> issueTable;
@@ -655,7 +662,7 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       pvList = new ArrayList<ParameterValue>();
       for (IssuePriority ip : repository.getIssuePriorities()) {
          pvList.add(new ParameterValue(ip.getName(), ip.getId()));
-      };
+      }
       priorityParameter.setParameterValues(pvList);
 
       // Assignee (assigned to)
@@ -753,10 +760,6 @@ public class RedmineQueryController extends org.netbeans.modules.bugtracking.spi
       selectFilter(filter);
    }
 
-   @Override
-   public IssueTable<RedmineQuery> getIssueTable() {
-      return issueTable;
-   }
 
    private class QueryTask implements Runnable, Cancellable, QueryNotifyListener {
 

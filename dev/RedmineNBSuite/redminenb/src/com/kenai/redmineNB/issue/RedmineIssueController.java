@@ -5,14 +5,20 @@ import com.kenai.redmineNB.ui.Defaults;
 import com.kenai.redmineNB.util.RedmineUtil;
 
 import com.taskadapter.redmineapi.bean.Issue;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.modules.bugtracking.spi.BugtrackingController;
@@ -198,6 +204,7 @@ public class RedmineIssueController extends BugtrackingController {
       @Override
       public void actionPerformed(ActionEvent e) {
          setEnabled(false);
+         TaskListProvider
          RedmineTaskListProvider provider = RedmineTaskListProvider.getInstance();
          if (provider.isAdded(redmineIssue)) {
             provider.remove(redmineIssue);

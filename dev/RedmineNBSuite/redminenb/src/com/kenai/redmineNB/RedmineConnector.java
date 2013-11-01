@@ -15,15 +15,14 @@
  */
 package com.kenai.redmineNB;
 
-import com.kenai.redmineNB.issue.RedmineTaskListProvider;
 import com.kenai.redmineNB.repository.RedmineRepository;
 
 import org.netbeans.modules.bugtracking.api.Repository;
 import org.netbeans.modules.bugtracking.spi.BugtrackingConnector;
+import org.netbeans.modules.bugtracking.spi.IssueFinder;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
-import org.netbeans.modules.bugtracking.spi.TaskListIssueProvider;
+import org.netbeans.modules.bugtracking.util.SimpleIssueFinder;
 import org.openide.util.NbBundle;
-
 
 /**
  * RedmineNB {@link BugtrackingConnector connector to NetBeans Bugtracking SPI}.
@@ -45,7 +44,7 @@ public class RedmineConnector extends BugtrackingConnector {
    public static String getConnectorName() {
       return Bundle.LBL_ConnectorName();
    }
- 
+
    @Override
    public Repository createRepository(RepositoryInfo info) {
       return Redmine.getInstance().getBugtrackingFactory().createRepository(
@@ -60,14 +59,9 @@ public class RedmineConnector extends BugtrackingConnector {
       return createRepository(null);
    }
 
-//   @Override
-//   public IssueFinder getIssueFinder() {
-//      return BugzillaIssueFinder.getInstance();
-//   }
-
    @Override
-   public TaskListIssueProvider getTasklistProvider() {
-      return RedmineTaskListProvider.getInstance();
+   public IssueFinder getIssueFinder() {
+      return SimpleIssueFinder.getInstance();
    }
 
 }

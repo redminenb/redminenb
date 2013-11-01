@@ -34,7 +34,7 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JSeparator;
-import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
+import org.netbeans.modules.bugtracking.team.spi.RepositoryUser;
 import org.openide.util.ImageUtilities;
 
 /**

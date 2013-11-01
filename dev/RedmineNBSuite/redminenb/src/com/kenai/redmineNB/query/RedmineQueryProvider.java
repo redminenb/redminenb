@@ -16,6 +16,7 @@
 package com.kenai.redmineNB.query;
 
 import com.kenai.redmineNB.issue.RedmineIssue;
+
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import org.netbeans.modules.bugtracking.spi.QueryController;
@@ -57,10 +58,6 @@ public class RedmineQueryProvider extends QueryProvider<RedmineQuery, RedmineIss
    @Override
    public Collection<RedmineIssue> getIssues(RedmineQuery query) {
       return query.getIssues();
-   }
-
-   public Collection<RedmineIssue> getIssues(RedmineQuery query, int includeStatus) {
-      return query.getIssues(includeStatus);
    }
 
    @Override

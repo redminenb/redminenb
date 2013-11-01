@@ -43,7 +43,7 @@ import javax.swing.LayoutStyle;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
 import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
-import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
+import org.netbeans.modules.bugtracking.team.spi.RepositoryUser;
 import org.netbeans.modules.bugtracking.util.LinkButton;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;

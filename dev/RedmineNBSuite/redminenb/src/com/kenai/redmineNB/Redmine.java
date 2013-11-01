@@ -5,19 +5,11 @@ import com.kenai.redmineNB.issue.RedmineIssueProvider;
 import com.kenai.redmineNB.query.RedmineQuery;
 import com.kenai.redmineNB.query.RedmineQueryProvider;
 import com.kenai.redmineNB.repository.RedmineRepository;
-import com.kenai.redmineNB.repository.RedmineRepositoryController;
 import com.kenai.redmineNB.repository.RedmineRepositoryProvider;
 
 import java.awt.Image;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
-import org.netbeans.modules.bugtracking.api.Repository;
+import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 import org.netbeans.modules.bugtracking.spi.BugtrackingFactory;
 import org.openide.util.*;
 
@@ -37,10 +29,11 @@ public final class Redmine {
    private RedmineConnector connector;
    private RequestProcessor rp;
    //
+   private BugtrackingFactory<RedmineRepository, RedmineQuery, RedmineIssue> bf;
    private RedmineIssueProvider rip;
    private RedmineQueryProvider rqp;
    private RedmineRepositoryProvider rrp;
-   private BugtrackingFactory<RedmineRepository, RedmineQuery, RedmineIssue> bf;
+   private IssueNode.ChangesProvider<RedmineIssue> rcp;
 
    @SuppressWarnings("unchecked")
    private Redmine() {
@@ -109,6 +102,18 @@ public final class Redmine {
       return rrp;
    }
 
+   public IssueNode.ChangesProvider<RedmineIssue> getChangesProvider() {
+        if (rcp == null) {
+            rcp = new IssueNode.ChangesProvider<RedmineIssue>() {
+                @Override
+                public String getRecentChanges(RedmineIssue i) {
+                    return i.getRecentChanges();
+                }
+            };
+        }
+        return rcp;
+    }
+   
    public BugtrackingFactory<RedmineRepository, RedmineQuery, RedmineIssue> getBugtrackingFactory() {
       if (bf == null) {
          bf = new BugtrackingFactory<RedmineRepository, RedmineQuery, RedmineIssue>();

@@ -1,11 +1,12 @@
 package com.kenai.redmineNB.user;
 
 import com.kenai.redmineNB.util.Is;
+
+import com.taskadapter.redmineapi.bean.User;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.netbeans.modules.bugtracking.kenai.spi.RepositoryUser;
-import com.taskadapter.redmineapi.bean.User;
+import org.netbeans.modules.bugtracking.team.spi.RepositoryUser;
 
 /**
  * A Redmine {@link RepositoryUser repository user}.

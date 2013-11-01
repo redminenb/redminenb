@@ -36,7 +36,7 @@ import org.openide.util.NbBundle;
 public class RedmineIssueNode extends IssueNode<RedmineIssue> {
    
    public RedmineIssueNode(RedmineIssue issue) {
-      super(RedmineUtil.getRepository(issue.getRepository()), issue);
+      super(RedmineUtil.getRepository(issue.getRepository()), issue, Redmine.getInstance().getChangesProvider());
    }
 
    @Override

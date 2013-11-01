@@ -24,7 +24,6 @@ import java.util.Collection;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.spi.RepositoryProvider;
-import org.openide.util.Lookup;
 
 
 /**
@@ -78,11 +77,6 @@ public class RedmineRepositoryProvider extends RepositoryProvider<RedmineReposit
    public RedmineIssue[] getIssues(RedmineRepository r, String... id) {
       Collection<RedmineIssue> c = r.getIssues(id);
       return c.toArray(new RedmineIssue[c.size()]);
-   }
-
-   @Override
-   public Lookup getLookup(RedmineRepository r) {
-      return r.getLookup();
    }
 
    /**

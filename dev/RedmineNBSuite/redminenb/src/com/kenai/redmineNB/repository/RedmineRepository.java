@@ -31,19 +31,32 @@ import com.kenai.redminenb.api.Helper;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
-import com.taskadapter.redmineapi.bean.*;
+import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.IssuePriority;
+import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.Membership;
+import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.Tracker;
+import com.taskadapter.redmineapi.bean.Version;
 import java.awt.EventQueue;
 import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
+import org.netbeans.modules.bugtracking.cache.IssueCache;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.spi.RepositoryProvider;
-import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -90,6 +103,7 @@ public class RedmineRepository {
    private RequestProcessor refreshProcessor;
    //
    private final Object QUERIES_LOCK = new Object();
+   private final Object CACHE_LOCK = new Object();
 
    /**
     * Default constructor required for deserializing.
@@ -216,18 +230,25 @@ public class RedmineRepository {
    }
 
    public RedmineIssue getIssue(String issueId) {
-      try {
-         com.taskadapter.redmineapi.bean.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
-         RedmineIssue redmineIssue = getIssueCache().setIssueData(issueId, issue);
-         //ensureConfigurationUptodate(issue);
-         return redmineIssue;
+      RedmineIssue redmineIssue = null;
+      if (issueId != null) {
+         synchronized (CACHE_LOCK) {
 
-      } catch (NotFoundException ex) {
-         return null;
-      } catch (Exception ex) {
-         Redmine.LOG.log(Level.SEVERE, null, ex);
-         return null;
+            IssueCache<RedmineIssue> issueCache = getIssueCache();
+            redmineIssue = issueCache.getIssue(issueId);
+            if (redmineIssue == null) {
+               try {
+                  com.taskadapter.redmineapi.bean.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
+                  redmineIssue = issueCache.setIssueData(issueId, new RedmineIssue(this, issue));
+               } catch (NotFoundException ex) {
+                  // do nothing
+               } catch (Exception ex) {
+                  Redmine.LOG.log(Level.SEVERE, null, ex);
+               }
+            }
+         }
       }
+      return redmineIssue;
    }
 
    public Collection<RedmineIssue> getIssues(final String... ids) {
@@ -449,17 +470,19 @@ public class RedmineRepository {
       return Helper.storeIssuePriorities(Helper.getDefaultIssuePriorities());
    }
 
-   public IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> getIssueCache() {
-      if (cache == null) {
-         cache = new RedmineIssueCache();
+   public IssueCache<RedmineIssue> getIssueCache() {
+      synchronized (CACHE_LOCK) {
+         if (cache == null) {
+            cache = new RedmineIssueCache();
+         }
+         return cache;
       }
-      return cache;
    }
 
    public Collection<RedmineIssue> simpleSearch(String string) {
       try {
-         List<com.taskadapter.redmineapi.bean.Issue> issuesByID =
-                 new LinkedList<com.taskadapter.redmineapi.bean.Issue>();
+         List<com.taskadapter.redmineapi.bean.Issue> issuesByID
+                 = new LinkedList<com.taskadapter.redmineapi.bean.Issue>();
 
          try {
             issuesByID.add(getManager().getIssueById(Integer.parseInt(string)));
@@ -709,36 +732,15 @@ public class RedmineRepository {
    //
    // Inner classes
    // 
-   private class RedmineIssueCache extends IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> {
+   private class RedmineIssueCache extends IssueCache<RedmineIssue> {
 
       RedmineIssueCache() {
-         super(RedmineRepository.this.getUrl() + RedmineRepository.this.getProject().getIdentifier(),
-               new RedmineIssueAccessor(),
-               Redmine.getInstance().getIssueProvider(),
-               RedmineUtil.getRepository(RedmineRepository.this));
+         super(RedmineRepository.this.getUrl(), new RedmineIssueAccessor());
       }
+
    }
 
-   private class RedmineIssueAccessor implements IssueCache.IssueAccessor<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> {
-
-      @Override
-      public RedmineIssue createIssue(Issue issueData) {
-         RedmineIssue redmineIssue = new RedmineIssue(RedmineRepository.this, issueData);
-         RedmineTaskListProvider.getInstance().notifyIssueCreated(redmineIssue);
-         return redmineIssue;
-      }
-
-      @Override
-      public void setIssueData(RedmineIssue redmineIssue, com.taskadapter.redmineapi.bean.Issue issue) {
-         assert redmineIssue != null && issue != null;
-         redmineIssue.setIssue(issue);
-      }
-
-      @Override
-      public String getRecentChanges(RedmineIssue redmineIssue) {
-         assert redmineIssue != null;
-         return redmineIssue.getRecentChanges();
-      }
+   private class RedmineIssueAccessor implements IssueCache.IssueAccessor<RedmineIssue> {
 
       @Override
       public long getLastModified(RedmineIssue redmineIssue) {
@@ -758,10 +760,5 @@ public class RedmineRepository {
          return redmineIssue.getAttributes();
       }
 
-      @Override
-      public String getID(com.taskadapter.redmineapi.bean.Issue issue) {
-         assert issue != null;
-         return String.valueOf(issue.getId());
-      }
    }
 }

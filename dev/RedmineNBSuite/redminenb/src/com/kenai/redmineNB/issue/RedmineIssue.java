@@ -131,14 +131,6 @@ public final class RedmineIssue {
    public RedmineIssue(RedmineRepository repository, com.taskadapter.redmineapi.bean.Issue issue) {
       this(repository);
       setIssue(issue);
-
-      if (issue != null) {
-         try {
-            repository.getIssueCache().setIssueData(this, issue);
-         } catch (IOException ex) {
-            Redmine.LOG.log(Level.SEVERE, "Can not cache the Redmine issue", ex);
-         }
-      }
    }
 
    public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -187,9 +179,9 @@ public final class RedmineIssue {
    public boolean isNew() {
       return issue == null || issue.getId() == null || issue.getId() == 0;
    }
-   
+
    public boolean hasParent() {
-      return  issue.getParentId() != null;
+      return issue.getParentId() != null;
    }
 
    public boolean isFinished() {
@@ -229,13 +221,12 @@ public final class RedmineIssue {
    }
 
    public boolean refresh() {
+      assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
+
       try {
          if (issue.getId() != null) {
             setIssue(getRepository().getManager().getIssueById(issue.getId()));
-
-            if (!SwingUtilities.isEventDispatchThread()) {
-               getRepository().getIssueCache().setIssueData(this, issue);
-            }
+            getRepository().getIssueCache().setIssueData(getID(), this);
          }
          return true;
       } catch (IOException ex) {
@@ -421,7 +412,7 @@ public final class RedmineIssue {
          Map<String, Integer> widths = new HashMap<String, Integer>();
          widths.put("issue." + FIELD_ID, UIUtils.getColumnWidthInPixels(4, t));
          widths.put("issue." + FIELD_SUBJECT, -1);
-         
+
          Node.Property<?>[] props = new RedmineIssueNode(new RedmineIssue(repo)).getProperties();
          columnDescriptors = new ColumnDescriptor<?>[props.length];
          for (int i = 0; i < props.length; i++) {

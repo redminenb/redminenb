@@ -18,9 +18,7 @@ package com.kenai.redmineNB.query;
 import com.kenai.redmineNB.Redmine;
 import com.kenai.redmineNB.RedmineConnector;
 import com.kenai.redmineNB.issue.RedmineIssue;
-import com.kenai.redmineNB.issue.RedmineIssueNode;
 import com.kenai.redmineNB.repository.RedmineRepository;
-import com.kenai.redmineNB.util.RedmineUtil;
 
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
@@ -37,13 +35,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.modules.bugtracking.api.Issue;
-import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
+import org.netbeans.modules.bugtracking.cache.IssueCache;
 import org.netbeans.modules.bugtracking.spi.QueryProvider;
-import org.netbeans.modules.bugtracking.ui.issue.cache.IssueCache;
 import org.netbeans.modules.bugtracking.util.LogUtils;
-import org.openide.nodes.Node.Property;
 import org.openide.util.Exceptions;
 
 /**
@@ -121,8 +118,6 @@ public final class RedmineQuery {
       return repository;
    }
 
- 
-
    void refresh(boolean autoReresh) {
       doRefresh(autoReresh);
    }
@@ -133,7 +128,7 @@ public final class RedmineQuery {
 
    private boolean doRefresh(final boolean autoRefresh) {
       // XXX what if already running! - cancel task
-      //assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
+      assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
 
       final boolean ret[] = new boolean[1];
       executeQuery(new Runnable() {
@@ -147,7 +142,6 @@ public final class RedmineQuery {
                // - and the obsolete ones
                Set<String> queryIssues = new HashSet<String>();
 
-               queryController.getIssueTable().started();
                issues.clear();
 //                    archivedIssues.clear();
                if (isSaved()) {
@@ -162,16 +156,10 @@ public final class RedmineQuery {
                   List<com.taskadapter.redmineapi.bean.Issue> issueArr = doSearch(queryController.getSearchParameters());
                   for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
                      getController().addProgressUnit(RedmineIssue.getDisplayName(issue));
-                     try {
-                        RedmineIssue redmineIssue = repository.getIssueCache().setIssueData(String.valueOf(issue.getId()), issue);
-                        issues.add(redmineIssue.getID());
+                     RedmineIssue redmineIssue = new RedmineIssue(repository, issue);
+                     issues.add(redmineIssue.getID());
 
-                        fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
-
-                     } catch (IOException ex) {
-                        Redmine.LOG.log(Level.SEVERE, null, ex);
-                        return;
-                     }
+                     fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
                   }
 
                } catch (Exception e) {
@@ -377,10 +365,6 @@ public final class RedmineQuery {
    }
 
    public Collection<RedmineIssue> getIssues() {
-      return getIssues(~0);
-   }
-
-   public Collection<RedmineIssue> getIssues(int includeStatus) {
       if (issues == null) {
          return Collections.<RedmineIssue>emptyList();
       }
@@ -388,13 +372,10 @@ public final class RedmineQuery {
       synchronized (issues) {
          ids.addAll(issues);
       }
-      IssueCache<RedmineIssue, com.taskadapter.redmineapi.bean.Issue> cache = repository.getIssueCache();
+      IssueCache<RedmineIssue> cache = repository.getIssueCache();
       List<RedmineIssue> ret = new ArrayList<RedmineIssue>();
       for (String id : ids) {
-         int status = getIssueStatus(id);
-         if ((status & includeStatus) != 0) {
-            ret.add(cache.getIssue(id));
-         }
+         ret.add(cache.getIssue(id));
       }
       return ret;
    }
@@ -403,11 +384,11 @@ public final class RedmineQuery {
       return issues.contains(issue.getID());
    }
 
-   public int getIssueStatus(Issue issue) {
+   public IssueCache.Status getIssueStatus(Issue issue) {
       return getIssueStatus(issue.getID());
    }
 
-   public int getIssueStatus(String id) {
+   public IssueCache.Status getIssueStatus(String id) {
       return repository.getIssueCache().getStatus(id);
    }
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nbm>
+	<dependencies>
+		<dependency>
+			<id>org.netbeans.modules:org-netbeans-modules-bugtracking</id>
+			<type>impl</type>
+		</dependency>
+		<dependency>
+			<id>org.netbeans.modules:org-netbeans-modules-team-commons</id>
+			<type>impl</type>
+		</dependency>
+	</dependencies>
+</nbm>

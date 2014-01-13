@@ -1,2 +1,0 @@
-# update issue #1 (add a note)
-curl -v -H "Content-Type:application/json" -X PUT --data "@addNote.json" -u name:pwd http://192.168.1.5/redmine/issues/1.json

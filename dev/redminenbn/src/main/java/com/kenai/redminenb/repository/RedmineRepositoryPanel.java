@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -16,6 +15,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
+import org.netbeans.modules.bugtracking.commons.LinkButton;
 import org.openide.util.NbBundle;
 
 /**
@@ -90,7 +90,6 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         authLabel = new JLabel();
         rbCredentials = new JRadioButton();
         projectComboBox = new JComboBox();
-        createNewProjectButton = new JButton();
 
         setNextFocusableComponent(nameTextField);
 
@@ -136,8 +135,9 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
             }
         });
 
-        createNewProjectButton.setIcon(new ImageIcon("F:\\hudson\\hudson-slave\\workspace\\ee\\redminenb\\dev\\redminenbn\\src\\main\\resources\\com\\kenai\\redminenb\\resources\\add.png")); // NOI18N
-        createNewProjectButton.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.createNewProjectButton.text")); // NOI18N
+        createNewProjectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
+        createNewProjectButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.createNewProjectButton.toolTipText")); // NOI18N
+
 
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
@@ -224,7 +224,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
     private ButtonGroup buttonGroup1;
     JButton cancelButton;
     JButton connectButton;
-    protected JButton createNewProjectButton;
+    final LinkButton createNewProjectButton = new LinkButton();
     private JLabel hostLabel;
     private JLabel nameLabel;
     JTextField nameTextField;

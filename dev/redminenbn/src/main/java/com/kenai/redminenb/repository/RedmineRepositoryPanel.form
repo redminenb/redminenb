@@ -259,10 +259,10 @@
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
       </AuxValues>
     </Component>
-    <Component class="javax.swing.JButton" name="createNewProjectButton">
+    <Component class="org.netbeans.modules.bugtracking.commons.LinkButton" name="createNewProjectButton">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="2" name="F:\hudson\hudson-slave\workspace\ee\redminenb\dev\redminenbn\src\main\resources\com\kenai\redminenb\resources\add.png"/>
+          <Image iconType="3" name="/com/kenai/redminenb/resources/add.png"/>
         </Property>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="com/kenai/redminenb/repository/Bundle.properties" key="RedmineRepositoryPanel.createNewProjectButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>

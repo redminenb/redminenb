@@ -598,7 +598,7 @@
             </Component>
           </SubComponents>
         </Container>
-        <Component class="org.netbeans.modules.bugtracking.util.LinkButton" name="seenButton">
+        <Component class="org.netbeans.modules.bugtracking.commons.LinkButton" name="seenButton">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/com/kenai/redminenb/resources/help.png"/>
@@ -636,7 +636,7 @@
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JFormattedTextField(NumberFormat.getIntegerInstance());"/>
           </AuxValues>
         </Component>
-        <Component class="org.netbeans.modules.bugtracking.util.LinkButton" name="categoryAddButton">
+        <Component class="org.netbeans.modules.bugtracking.commons.LinkButton" name="categoryAddButton">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/com/kenai/redminenb/resources/add.png"/>
@@ -666,7 +666,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.netbeans.modules.bugtracking.util.LinkButton" name="versionAddButton">
+        <Component class="org.netbeans.modules.bugtracking.commons.LinkButton" name="versionAddButton">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/com/kenai/redminenb/resources/add.png"/>
@@ -701,7 +701,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.netbeans.modules.bugtracking.util.LinkButton" name="projectNameButton">
+        <Component class="org.netbeans.modules.bugtracking.commons.LinkButton" name="projectNameButton">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.projectNameButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -717,7 +717,7 @@
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
         </Component>
-        <Component class="org.netbeans.modules.bugtracking.util.LinkButton" name="assignToMeButton">
+        <Component class="org.netbeans.modules.bugtracking.commons.LinkButton" name="assignToMeButton">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.assignToMeButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>

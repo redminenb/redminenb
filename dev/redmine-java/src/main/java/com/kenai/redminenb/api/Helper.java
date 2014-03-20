@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * redmine-java-api helper class.
  *
@@ -33,71 +32,71 @@ import java.util.Map;
  */
 public final class Helper {
 
-   private Helper() {
-      // omitted  
-   }
+    private Helper() {
+        // omitted  
+    }
 
-   private static Map<Integer, IssuePriority> issuePrioMap;
+    private static Map<Integer, IssuePriority> issuePrioMap;
 
-   public static Collection<IssuePriority> getIssuePriorities(RedmineManager mgr) throws RedmineException {
-      Collection<IssuePriority> data;
-      if (issuePrioMap == null) {
-         data = storeIssuePriorities(mgr.getIssuePriorities());
-      } else {
-         data = issuePrioMap.values();
-      }
-      return data;
-   }
+    public static Collection<IssuePriority> getIssuePriorities(RedmineManager mgr) throws RedmineException {
+        Collection<IssuePriority> data;
+        if (issuePrioMap == null) {
+            data = storeIssuePriorities(mgr.getIssuePriorities());
+        } else {
+            data = issuePrioMap.values();
+        }
+        return data;
+    }
 
-   public static IssuePriority getIssuePriority(Integer id) {
-      return issuePrioMap != null ? issuePrioMap.get(id) : null;
-   }
-   
-   public static IssuePriority getIssuePriority(Issue issue) {
-      IssuePriority ip = getIssuePriority(issue.getPriorityId());
-      if (ip == null) {
-         ip = createIssuePriority(issue.getPriorityId(), issue.getPriorityText(), false);
-         if (issuePrioMap != null) {
-            issuePrioMap.put(ip.getId(), ip);
-         }
-      }
-      return ip;
-   }
+    public static IssuePriority getIssuePriority(Integer id) {
+        return issuePrioMap != null ? issuePrioMap.get(id) : null;
+    }
 
-   public static Collection<IssuePriority> storeIssuePriorities(Collection<IssuePriority> data) {
-      issuePrioMap = new HashMap<Integer, IssuePriority>(data.size());
-      for (IssuePriority issuePriority : data) {
-         issuePrioMap.put(issuePriority.getId(), issuePriority);
-      }
-      return data;
-   }
-
-   public static IssuePriority getDefaultIssuePriority() {
-      if (issuePrioMap != null) {
-         for (IssuePriority issuePriority : issuePrioMap.values()) {
-            if (issuePriority.isDefault()) {
-               return issuePriority;
+    public static IssuePriority getIssuePriority(Issue issue) {
+        IssuePriority ip = getIssuePriority(issue.getPriorityId());
+        if (ip == null) {
+            ip = createIssuePriority(issue.getPriorityId(), issue.getPriorityText(), false);
+            if (issuePrioMap != null) {
+                issuePrioMap.put(ip.getId(), ip);
             }
-         }
-      }
-      return null;
-   }
+        }
+        return ip;
+    }
 
-   public static List<IssuePriority> getDefaultIssuePriorities() {
-      return Arrays.asList(
-              createIssuePriority(7, "Immediate", false),
-              createIssuePriority(6, "Urgent", false),
-              createIssuePriority(5, "High", false),
-              createIssuePriority(4, "Normal", true),
-              createIssuePriority(3, "Low", false));
-   }
+    public static Collection<IssuePriority> storeIssuePriorities(Collection<IssuePriority> data) {
+        issuePrioMap = new HashMap<Integer, IssuePriority>(data.size());
+        for (IssuePriority issuePriority : data) {
+            issuePrioMap.put(issuePriority.getId(), issuePriority);
+        }
+        return data;
+    }
 
-   public static IssuePriority createIssuePriority(Integer id, String name, boolean isDefault) {
-      IssuePriority ip = new IssuePriority();
-      ip.setId(id);
-      ip.setName(name);
-      ip.setDefault(isDefault);
-      return ip;
-   }
+    public static IssuePriority getDefaultIssuePriority() {
+        if (issuePrioMap != null) {
+            for (IssuePriority issuePriority : issuePrioMap.values()) {
+                if (issuePriority.isDefault()) {
+                    return issuePriority;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static List<IssuePriority> getDefaultIssuePriorities() {
+        return Arrays.asList(
+                createIssuePriority(7, "Immediate", false),
+                createIssuePriority(6, "Urgent", false),
+                createIssuePriority(5, "High", false),
+                createIssuePriority(4, "Normal", true),
+                createIssuePriority(3, "Low", false));
+    }
+
+    public static IssuePriority createIssuePriority(Integer id, String name, boolean isDefault) {
+        IssuePriority ip = new IssuePriority();
+        ip.setId(id);
+        ip.setName(name);
+        ip.setDefault(isDefault);
+        return ip;
+    }
 
 }

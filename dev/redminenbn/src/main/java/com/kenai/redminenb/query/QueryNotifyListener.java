@@ -13,24 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kenai.redminenb.api;
+package com.kenai.redminenb.query;
+
+import com.kenai.redminenb.issue.RedmineIssue;
 
 /**
- * Authentication modes against the Redmine REST interface.
+ * Notifies changes on a query.
  *
  * @author Anchialas <anchialas@gmail.com>
  */
-public enum AuthMode {
+public interface QueryNotifyListener {
 
-    AccessKey,
-    Credentials;
+    /**
+     * Query execution was started
+     */
+    public void started();
 
-    public static AuthMode get(String name) {
-        try {
-            return valueOf(name);
-        } catch (Exception ex) {
-            return null;
-        }
-    }
+    /**
+     *
+     * @param issue
+     */
+    public void notifyData(RedmineIssue issue);
+
+    /**
+     * Query execution was finished
+     */
+    public void finished();
 
 }

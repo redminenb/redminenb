@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module: com.kenai.redminenb
+OpenIDE-Module-Layer: com/kenai/redminenb/layer.xml
+OpenIDE-Module-Localizing-Bundle: com/kenai/redminenb/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.2.1
+
+Name: com/kenai/redminenb/project/ProjectComboBox.class
+Java-Bean: True

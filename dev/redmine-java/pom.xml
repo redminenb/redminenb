@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 	
-	<parent>
-		<groupId>com.kenai.redminenb</groupId>
-		<artifactId>redminenb-suite</artifactId>
-		<version>1.3-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+    <parent>
+        <groupId>com.kenai.redminenb</groupId>
+        <artifactId>redminenb-suite</artifactId>
+        <version>1.3-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<groupId>com.kenai.redminenb.external</groupId>
-	<artifactId>redmine-java-api</artifactId>
-	<packaging>nbm</packaging>
+    <groupId>com.kenai.redminenb.external</groupId>
+    <artifactId>redmine-java-api</artifactId>
+    <packaging>nbm</packaging>
 
-	<name>Redmine Java API</name>
+    <name>Redmine Java API</name>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.taskadapter</groupId>
-			<artifactId>redmine-java-api</artifactId>
-			<version>1.18</version>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.taskadapter</groupId>
+            <artifactId>redmine-java-api</artifactId>
+            <version>1.23</version>
+        </dependency>
+    </dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>nbm-maven-plugin</artifactId>
-				<configuration>
-					<licenseName>Apache License 2.0</licenseName>
-					<licenseFile>apache-license20.txt</licenseFile>
-					<publicPackages>
-						<publicPackage>com.*</publicPackage>
-					</publicPackages>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>nbm-maven-plugin</artifactId>
+                <configuration>
+                    <licenseName>Apache License 2.0</licenseName>
+                    <licenseFile>apache-license20.txt</licenseFile>
+                    <publicPackages>
+                        <publicPackage>com.*</publicPackage>
+                    </publicPackages>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 	
 </project>

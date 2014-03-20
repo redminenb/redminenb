@@ -133,7 +133,7 @@ public abstract class RedmineQueryParameter {
             list.setModel(new DefaultListModel());
             list.setPrototypeCellValue("    ");
          } else {
-            list.setModel(new ListListModel<ParameterValue>(values));
+            list.setModel(new ListListModel<>(values));
             list.setPrototypeCellValue(null);
          }
       }

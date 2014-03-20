@@ -24,11 +24,10 @@ import org.openide.util.NbBundle;
  */
 public class RedmineRepositoryPanel extends javax.swing.JPanel {
 
-    private RedmineRepositoryController controller;
+    private final RedmineRepositoryController controller;
 
     public RedmineRepositoryPanel(RedmineRepositoryController controller) {
         this.controller = controller;
-
         initComponents();
     }
 

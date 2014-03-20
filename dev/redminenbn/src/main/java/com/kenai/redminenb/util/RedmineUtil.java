@@ -118,18 +118,18 @@ public final class RedmineUtil {
         }
     }
 
-    public static Repository getRepository(RedmineRepository redmineRepository) {
-        Repository repository = null;//Redmine.getInstance().getBugtrackingFactory().getRepository(
-        //     RedmineConnector.ID, redmineRepository.getID());
-   /*   if (repository == null) {
-         repository = Redmine.getInstance().getBugtrackingFactory().createRepository(
-         redmineRepository,
-         Redmine.getInstance().getRepositoryProvider(),
-         Redmine.getInstance().getQueryProvider(),
-         Redmine.getInstance().getIssueProvider());
-         }*/
-        return repository;
-    }
+//    public static Repository getRepository(RedmineRepository redmineRepository) {
+//        Repository repository = null;//Redmine.getInstance().getBugtrackingFactory().getRepository(
+//        //     RedmineConnector.ID, redmineRepository.getID());
+//   /*   if (repository == null) {
+//         repository = Redmine.getInstance().getBugtrackingFactory().createRepository(
+//         redmineRepository,
+//         Redmine.getInstance().getRepositoryProvider(),
+//         Redmine.getInstance().getQueryProvider(),
+//         Redmine.getInstance().getIssueProvider());
+//         }*/
+//        return repository;
+//    }
 
     /**
      * Get the RedmineIssue from the cache or from the Redmine application.

@@ -30,7 +30,7 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
 
    private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-z0-9_]{1,100}");
    //
-   private RedmineRepository repository;
+   private final RedmineRepository repository;
    private String projectName;
    private String description;
    private String identifier;

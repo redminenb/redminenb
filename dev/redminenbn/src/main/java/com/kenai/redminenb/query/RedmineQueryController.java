@@ -106,24 +106,24 @@ import org.openide.util.RequestProcessor;
 public class RedmineQueryController
         implements QueryController, ItemListener, ListSelectionListener, ActionListener, FocusListener, KeyListener {
 
-    final RedmineQueryPanel queryPanel;
-    private final IssueTable issueTable;
+    private RedmineQueryPanel queryPanel;
+    private IssueTable issueTable;
     //
     private final RequestProcessor rp = new RequestProcessor("Redmine query", 1, true);  // NOI18N
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
     private final RedmineRepository repository;
     //
-    private RedmineQuery query;
+    private final RedmineQuery query;
     //
-    private final ListParameter versionParameter;
-    private final ListParameter trackerParameter;
-    private final ListParameter statusParameter;
-    private final ListParameter categoryParameter;
-    private final ListParameter priorityParameter;
+    private ListParameter versionParameter;
+    private ListParameter trackerParameter;
+    private ListParameter statusParameter;
+    private ListParameter categoryParameter;
+    private ListParameter priorityParameter;
     //private final ListParameter resolutionParameter;
     //private final ListParameter severityParameter;
-    private final ListParameter assigneeParameter;
-    private final Map<String, RedmineQueryParameter> parameters;
+    private ListParameter assigneeParameter;
+    private Map<String, RedmineQueryParameter> parameters;
     //
     private final Object REFRESH_LOCK = new Object();
     private QueryTask refreshTask;
@@ -132,31 +132,6 @@ public class RedmineQueryController
         this.repository = repository;
         this.query = query;
 
-        issueTable = new IssueTable(PROP_CHANGED, PROP_CHANGED, this, null, true/*RedmineUtil.getRepository(repository),
-         query, RedmineIssue.getColumnDescriptors(repository)*/);
-        issueTable.setRenderer(new RedmineQueryCellRenderer(issueTable.getRenderer()));
-
-        queryPanel = new RedmineQueryPanel(issueTable.getComponent(), this);
-
-        // set parameters
-        parameters = new LinkedHashMap<String, RedmineQueryParameter>();
-
-        trackerParameter = registerQueryParameter(ListParameter.class, queryPanel.trackerList, "tracker_id");
-        categoryParameter = registerQueryParameter(ListParameter.class, queryPanel.categoryList, "category_id");
-        versionParameter = registerQueryParameter(ListParameter.class, queryPanel.versionList, "fixed_version_id");
-        statusParameter = registerQueryParameter(ListParameter.class, queryPanel.statusList, "status_id");
-        priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
-        //resolutionParameter = 
-        //severityParameter = ...
-        assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
-
-        registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
-        registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");
-        registerQueryParameter(CheckBoxParameter.class, queryPanel.qDescriptionCheckBox, "is_description");
-        registerQueryParameter(CheckBoxParameter.class, queryPanel.qCommentsCheckBox, "is_comments");
-
-        setListeners();
-        postPopulate();
     }
 
     private void setListeners() {
@@ -549,7 +524,8 @@ public class RedmineQueryController
     }
 
     private void onFindIssues() {
-        Util.createNewQuery(RedmineUtil.getRepository(repository));
+        throw new RuntimeException("Not supported");
+        //Util.createNewQuery(repository.getController().RedmineUtil.getRepository(repository));
     }
 
     protected void scheduleForRefresh() {
@@ -559,7 +535,7 @@ public class RedmineQueryController
     }
 
     protected void logAutoRefreshEvent(boolean autoRefresh) {
-        LogUtils.logAutoRefreshEvent(RedmineConnector.getConnectorName(),
+        LogUtils.logAutoRefreshEvent(RedmineConnector.NAME,
                 query.getDisplayName(),
                 false,
                 autoRefresh);
@@ -642,14 +618,14 @@ public class RedmineQueryController
         List<ParameterValue> pvList;
 
         // Tracker
-        pvList = new ArrayList<ParameterValue>();
+        pvList = new ArrayList<>();
         for (Tracker t : repository.getTrackers()) {
             pvList.add(new ParameterValue(t.getName(), t.getId()));
         }
         trackerParameter.setParameterValues(pvList);
 
         // Status
-        pvList = new ArrayList<ParameterValue>();
+        pvList = new ArrayList<>();
 //      pvList.add(new ParameterValue("open"));
 //      pvList.add(new ParameterValue("closed"));
 //      pvList.add(null);
@@ -659,14 +635,14 @@ public class RedmineQueryController
         statusParameter.setParameterValues(pvList);
 
         // Issue Priority
-        pvList = new ArrayList<ParameterValue>();
+        pvList = new ArrayList<>();
         for (IssuePriority ip : repository.getIssuePriorities()) {
             pvList.add(new ParameterValue(ip.getName(), ip.getId()));
         }
         priorityParameter.setParameterValues(pvList);
 
         // Assignee (assigned to)
-        pvList = new ArrayList<ParameterValue>();
+        pvList = new ArrayList<>();
         pvList.add(ParameterValue.NONE_PARAMETERVALUE);
         for (RedmineUser redmineUser : repository.getUsers()) {
             pvList.add(new ParameterValue(redmineUser.getFullName(), redmineUser.getId(), redmineUser));
@@ -674,7 +650,7 @@ public class RedmineQueryController
         assigneeParameter.setParameterValues(pvList);
 
         // Category
-        pvList = new ArrayList<ParameterValue>();
+        pvList = new ArrayList<>();
         pvList.add(ParameterValue.NONE_PARAMETERVALUE);
         for (IssueCategory c : repository.getIssueCategories()) {
             pvList.add(new ParameterValue(c.getName(), c.getId()));
@@ -682,7 +658,7 @@ public class RedmineQueryController
         categoryParameter.setParameterValues(pvList);
 
         // Target Version
-        pvList = new ArrayList<ParameterValue>();
+        pvList = new ArrayList<>();
         pvList.add(ParameterValue.NONE_PARAMETERVALUE);
         for (Version v : repository.getVersions()) {
             pvList.add(new ParameterValue(v.getName(), v.getId()));
@@ -703,7 +679,7 @@ public class RedmineQueryController
     }
 
     public Map<String, RedmineQueryParameter> getSearchParameters() {
-        return new HashMap<String, RedmineQueryParameter>(parameters);
+        return new HashMap<>(parameters);
     }
 
     protected void enableFields(boolean bl) {
@@ -761,22 +737,48 @@ public class RedmineQueryController
      }*/
     @Override
     public boolean providesMode(QueryMode qm) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return qm == QueryMode.EDIT;
     }
 
     @Override
     public JComponent getComponent(QueryMode qm) {
+        if (queryPanel == null) {
+            issueTable = new IssueTable(
+                    repository.getID(), query.getDisplayName(), this, RedmineIssue.getColumnDescriptors(repository), true/*RedmineUtil.getRepository(repository),
+             query, RedmineIssue.getColumnDescriptors(repository)*/);
+            issueTable.setRenderer(new RedmineQueryCellRenderer(issueTable.getRenderer()));
+
+            queryPanel = new RedmineQueryPanel(issueTable.getComponent(), this);
+
+            // set parameters
+            parameters = new LinkedHashMap<>();
+
+            trackerParameter = registerQueryParameter(ListParameter.class, queryPanel.trackerList, "tracker_id");
+            categoryParameter = registerQueryParameter(ListParameter.class, queryPanel.categoryList, "category_id");
+            versionParameter = registerQueryParameter(ListParameter.class, queryPanel.versionList, "fixed_version_id");
+            statusParameter = registerQueryParameter(ListParameter.class, queryPanel.statusList, "status_id");
+            priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
+            //resolutionParameter = 
+            //severityParameter = ...
+            assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
+
+            registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
+            registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");
+            registerQueryParameter(CheckBoxParameter.class, queryPanel.qDescriptionCheckBox, "is_description");
+            registerQueryParameter(CheckBoxParameter.class, queryPanel.qCommentsCheckBox, "is_comments");
+
+            setListeners();
+            postPopulate();
+        }
         return queryPanel;
     }
 
     @Override
     public void opened() {
-        // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void closed() {
-        // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override

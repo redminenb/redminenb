@@ -282,7 +282,7 @@ public final class RedmineIssue {
 
     public void attachPatch(File file, String string) {
         // TODO Implement file addition as soon as the function is supported by Redmine API
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("REDMINE API: Not supported yet.");
     }
 
     public IssueController getController() {
@@ -302,7 +302,7 @@ public final class RedmineIssue {
 
     public static Collection<RedmineIssue> getIssues(RedmineRepository repository,
             List<com.taskadapter.redmineapi.bean.Issue>... issueList) {
-        List<RedmineIssue> convertedIssues = new LinkedList<RedmineIssue>();
+        List<RedmineIssue> convertedIssues = new LinkedList<>();
 
         for (List<com.taskadapter.redmineapi.bean.Issue> issues : issueList) {
             if (issues != null) {
@@ -429,7 +429,7 @@ public final class RedmineIssue {
         if (columnDescriptors == null) {
             // setup column widths
             JTable t = new JTable();
-            Map<String, Integer> widths = new HashMap<String, Integer>();
+            Map<String, Integer> widths = new HashMap<>();
             widths.put("issue." + FIELD_ID, UIUtils.getColumnWidthInPixels(4, t));
             widths.put("issue." + FIELD_SUBJECT, -1);
 
@@ -455,5 +455,13 @@ public final class RedmineIssue {
 
     void setSchedule(IssueScheduleInfo scheduleInfo) {
         this.scheduleInfo = scheduleInfo;
+    }
+
+    void discardOutgoing() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    boolean submit() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

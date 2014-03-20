@@ -59,7 +59,7 @@ public class ParameterValue {
    }
 
    static List<ParameterValue> convert(List<String> values) {
-      List<ParameterValue> ret = new ArrayList<ParameterValue>(values.size());
+      List<ParameterValue> ret = new ArrayList<>(values.size());
       for (String v : values) {
          ret.add(new ParameterValue(v, v));
       }

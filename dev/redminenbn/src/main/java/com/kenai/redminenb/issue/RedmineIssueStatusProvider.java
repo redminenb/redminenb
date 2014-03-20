@@ -18,12 +18,12 @@ public class RedmineIssueStatusProvider implements IssueStatusProvider<RedmineRe
 
     @Override
     public Status getStatus(RedmineIssue i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return i.getStatus();
     }
 
     @Override
     public void setSeenIncoming(RedmineIssue i, boolean seen) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -33,22 +33,23 @@ public class RedmineIssueStatusProvider implements IssueStatusProvider<RedmineRe
 
     @Override
     public void discardOutgoing(RedmineIssue i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        i.discardOutgoing();
     }
 
     @Override
     public boolean submit(RedmineIssue i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        i.getController().saveChanges();
+        return i.submit();
     }
 
     @Override
     public void removePropertyChangeListener(RedmineIssue i, PropertyChangeListener listener) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        i.removePropertyChangeListener(listener);
     }
 
     @Override
     public void addPropertyChangeListener(RedmineIssue i, PropertyChangeListener listener) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        i.addPropertyChangeListener(listener);
     }
 
 }

@@ -466,7 +466,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
     @Override
     public void cancelChanges() {
-       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
    //

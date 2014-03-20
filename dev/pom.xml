@@ -62,6 +62,7 @@
                 <netbeans.version>RELEASE80</netbeans.version>
             </properties>
             <modules>
+                <module>redmine-java</module>
                 <module>redminenbn</module>
             </modules>
         </profile>
@@ -72,13 +73,11 @@
             </activation>
             <modules>
                 <module>redminenb</module>
+                <module>redmine-java</module>
+                <module>mylin.wikitext</module>
             </modules>
         </profile>
     </profiles>
-    <modules>		
-        <module>redmine-java</module>
-        <module>mylin.wikitext</module>
-    </modules>
 
     <properties>
         <netbeans.version>RELEASE74</netbeans.version>

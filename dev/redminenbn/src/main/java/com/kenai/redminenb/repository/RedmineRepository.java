@@ -96,8 +96,8 @@ public class RedmineRepository {
     private final transient InstanceContent ic;
 //   private transient RedmineIssueCache cache;
     //
-    private final Set<String> issuesToRefresh = new HashSet<String>(5);
-    private final Set<RedmineQuery> queriesToRefresh = new HashSet<RedmineQuery>(3);
+    private final Set<String> issuesToRefresh = new HashSet<>(5);
+    private final Set<RedmineQuery> queriesToRefresh = new HashSet<>(3);
     private RequestProcessor.Task refreshIssuesTask;
     private RequestProcessor.Task refreshQueryTask;
     private RequestProcessor refreshProcessor;
@@ -353,7 +353,7 @@ public class RedmineRepository {
 
     private Collection<RedmineQuery> doGetQueries() {
         if (queries == null) {
-            queries = new HashSet<RedmineQuery>(10);
+            queries = new HashSet<>(10);
             String[] qs = RedmineConfig.getInstance().getQueries(getID());
             for (String queryName : qs) {
                 RedmineQuery q = RedmineConfig.getInstance().getQuery(this, queryName);
@@ -377,7 +377,7 @@ public class RedmineRepository {
      * @return
      */
     public Collection<RedmineUser> getUsers() {
-        List<RedmineUser> users = new ArrayList<RedmineUser>();
+        List<RedmineUser> users = new ArrayList<>();
         try {
             users.add(currentUser);
             for (Membership m : getManager().getMemberships(project)) {

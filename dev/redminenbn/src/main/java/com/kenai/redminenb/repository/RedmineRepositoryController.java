@@ -363,7 +363,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                   @Override
                   public void run() {
                      Object item = panel.projectComboBox.getSelectedItem();
-                     panel.projectComboBox.setModel(new ListComboBoxModel<Project>(projects));
+                     panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
                      panel.projectComboBox.setSelectedItem(item);
                      panel.projectComboBox.setEnabled(true);
                      onProjectSelected();
@@ -408,7 +408,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
             List<Project> projects = repository.getManager().getProjects();
             Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
 
-            panel.projectComboBox.setModel(new ListComboBoxModel<Project>(projects));
+            panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
             for (Project p : projects) {
                if (p.getIdentifier().equals(projectPanel.getIdentifier())) {
                   selectedProject = p;

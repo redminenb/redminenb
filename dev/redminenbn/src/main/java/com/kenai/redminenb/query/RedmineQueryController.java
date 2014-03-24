@@ -61,12 +61,10 @@ import javax.swing.event.ListSelectionListener;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
-import org.netbeans.modules.bugtracking.api.Util;
 import org.netbeans.modules.bugtracking.commons.SaveQueryPanel;
 import org.netbeans.modules.bugtracking.issuetable.Filter;
 import org.netbeans.modules.bugtracking.issuetable.IssueTable;
 import org.netbeans.modules.bugtracking.spi.QueryController;
-import org.netbeans.modules.bugtracking.spi.QueryProvider;
 import org.netbeans.modules.team.commons.LogUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -749,10 +747,8 @@ public class RedmineQueryController
             issueTable.setRenderer(new RedmineQueryCellRenderer(issueTable.getRenderer()));
 
             queryPanel = new RedmineQueryPanel(issueTable.getComponent(), this);
-
-            // set parameters
             parameters = new LinkedHashMap<>();
-
+            // set parameters
             trackerParameter = registerQueryParameter(ListParameter.class, queryPanel.trackerList, "tracker_id");
             categoryParameter = registerQueryParameter(ListParameter.class, queryPanel.categoryList, "category_id");
             versionParameter = registerQueryParameter(ListParameter.class, queryPanel.versionList, "fixed_version_id");
@@ -805,11 +801,6 @@ public class RedmineQueryController
     @Override
     public void removePropertyChangeListener(PropertyChangeListener pl) {
         support.removePropertyChangeListener(pl);
-    }
-    private QueryProvider.IssueContainer<RedmineIssue> delegateContainer;
-
-    void setIssueContainer(QueryProvider.IssueContainer<RedmineIssue> ic) {
-        delegateContainer = ic;
     }
 
     private class QueryTask implements Runnable, Cancellable, QueryNotifyListener {
@@ -924,7 +915,7 @@ public class RedmineQueryController
         @Override
         public void notifyData(RedmineIssue issue) {
             issueTable.addNode(issue.getNode());
-            if (!query.contains(issue.getID())) {
+            if (!query.contains(issue)) {
                 // XXX this is quite ugly - the query notifies an archoived issue
                 // but it doesn't "contain" it!
                 return;

@@ -19,7 +19,6 @@ import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.repository.RedmineRepository;
-
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
@@ -38,6 +37,7 @@ import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.modules.bugtracking.api.Issue;
+import org.netbeans.modules.bugtracking.spi.QueryProvider;
 import org.netbeans.modules.team.commons.LogUtils;
 import org.openide.util.Exceptions;
 
@@ -50,10 +50,10 @@ public final class RedmineQuery {
 
     private String name;
     private final RedmineRepository repository;
-    private final Set<String> issues;
+    private final Set<RedmineIssue> issues;
     //
-    //private String urlParameters;
-    private boolean initialUrlDef;
+    private String urlParameters;
+    //   private boolean initialUrlDef;
     private boolean firstRun = true;
     private boolean saved;
     protected long lastRefresh;
@@ -70,11 +70,23 @@ public final class RedmineQuery {
         this.name = name;
         this.repository = repository;
         this.saved = saved;
-        //this.urlParameters = urlParameters;
-        this.initialUrlDef = urlDef;
+        this.urlParameters = urlParameters;
+//        this.initialUrlDef = urlDef;
 //      this.lastRefresh = repository.getIssueCache().getQueryTimestamp(getStoredQueryName());
         this.issues = new HashSet<>();
         this.support = new PropertyChangeSupport(this);
+        /*
+         Map<String, RedmineQueryParameter> m = queryController.getSearchParameters();
+         StringBuilder sb = new StringBuilder();
+
+         for (Map.Entry<String, RedmineQueryParameter> e : m.entrySet()) {
+         sb.append(e.getKey());
+         sb.append("=");
+         sb.append(e.getValue().toString());
+         sb.append(";;");
+         }
+         return sb.toString();
+         */
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -95,6 +107,11 @@ public final class RedmineQuery {
 
     private void fireQueryIssuesChanged() {
         //    support.firePropertyChange(QueryProvider.EVENT_QUERY_ISSUES_CHANGED, null, null);
+    }
+    private QueryProvider.IssueContainer<RedmineIssue> delegateContainer;
+
+    void setIssueContainer(QueryProvider.IssueContainer<RedmineIssue> ic) {
+        delegateContainer = ic;
     }
 
     public String getDisplayName() {
@@ -120,7 +137,8 @@ public final class RedmineQuery {
         doRefresh(autoReresh);
     }
 
-    public void refresh() { // XXX what if already running! - cancel task
+    public void refresh() {
+// XXX what if already running! - cancel task
         doRefresh(false);
     }
 
@@ -134,11 +152,13 @@ public final class RedmineQuery {
             public void run() {
                 Redmine.LOG.log(Level.FINE, "refresh start - {0}", name); // NOI18N
                 try {
-
+                    if (delegateContainer != null) {
+                        delegateContainer.refreshingStarted();
+                    }
                     // keeps all issues we will retrieve from the server
                     // - those matching the query criteria
                     // - and the obsolete ones
-                    Set<String> queryIssues = new HashSet<String>();
+                    Set<RedmineIssue> queryIssues = new HashSet<>();
 
                     issues.clear();
 //                    archivedIssues.clear();
@@ -155,8 +175,10 @@ public final class RedmineQuery {
                         for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
                             getController().addProgressUnit(RedmineIssue.getDisplayName(issue));
                             RedmineIssue redmineIssue = new RedmineIssue(repository, issue);
-                            issues.add(redmineIssue.getID());
-
+                            issues.add(redmineIssue);
+                            if (delegateContainer != null) {
+                                delegateContainer.add(redmineIssue);
+                            }
                             fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
                         }
 
@@ -176,7 +198,9 @@ public final class RedmineQuery {
                     // - all issue returned by the query
                     // - and issues which were returned by some previous run and are archived now
                     queryIssues.addAll(issues);
-
+                    if (delegateContainer != null) {
+                        delegateContainer.refreshingFinished();
+                    }
                     getController().switchToDeterminateProgress(queryIssues.size());
 
                 } finally {
@@ -187,10 +211,6 @@ public final class RedmineQuery {
         });
 
         return ret[0];
-    }
-
-    public final String getStoredQueryName() {
-        return getDisplayName();
     }
 
     protected void logQueryEvent(int count, boolean autoRefresh) {
@@ -251,7 +271,7 @@ public final class RedmineQuery {
                 && (searchSubject || searchDescription || searchComments)) {
             String queryStr = queryStringParameter.getValueString();
 
-            List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>(issueArr.size());
+            List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<>(issueArr.size());
             for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
                 if ((searchSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
                         || (searchDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /*
@@ -265,7 +285,7 @@ public final class RedmineQuery {
 
         // Post filtering: Multi-value parameters
         if (!multiValueParameters.isEmpty()) {
-            List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>(issueArr.size());
+            List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<>(issueArr.size());
             for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
                 for (RedmineQueryParameter p : multiValueParameters) {
                     // RedmineIssue.getFieldValue(RedmineIssue.FIELD_xxx)
@@ -367,7 +387,7 @@ public final class RedmineQuery {
         if (issues == null) {
             return Collections.<RedmineIssue>emptyList();
         }
-        List<String> ids = new ArrayList<>();
+        List<RedmineIssue> ids = new ArrayList<>();
         synchronized (issues) {
             ids.addAll(issues);
         }
@@ -379,8 +399,8 @@ public final class RedmineQuery {
         return ret;
     }
 
-    public boolean contains(Issue issue) {
-        return issues.contains(issue.getID());
+    public boolean contains(RedmineIssue issue) {
+        return issues.contains(issue);
     }
 
     /*public IssueCache.Status getIssueStatus(Issue issue) {
@@ -454,8 +474,21 @@ public final class RedmineQuery {
         return notifyListeners;
     }
 
+    public String getStringParameters() {
+        return urlParameters;
+    }
+
     public String getUrlParameters() {
-        throw new UnsupportedOperationException("Not yet implemented");
+        Map<String, RedmineQueryParameter> m = queryController.getSearchParameters();
+        StringBuilder sb = new StringBuilder();
+
+        for (Map.Entry<String, RedmineQueryParameter> e : m.entrySet()) {
+            sb.append(e.getKey());
+            sb.append("=");
+            sb.append(e.getValue().toString());
+            sb.append(";;");
+        }
+        return sb.toString();
     }
 
     void rename(String newName) {
@@ -463,10 +496,11 @@ public final class RedmineQuery {
     }
 
     boolean canRename() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return false;
     }
 
     boolean canRemove() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
+
 }

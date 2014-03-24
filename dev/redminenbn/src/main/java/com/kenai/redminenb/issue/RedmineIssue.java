@@ -18,7 +18,6 @@ package com.kenai.redminenb.issue;
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.RedmineUtil;
-
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
@@ -39,23 +38,26 @@ import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import org.netbeans.modules.bugtracking.commons.TextUtils;
+import org.netbeans.modules.bugtracking.commons.UIUtils;
 import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
 import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 import org.netbeans.modules.bugtracking.spi.IssueController;
-import org.netbeans.modules.bugtracking.commons.TextUtils;
-import org.netbeans.modules.bugtracking.commons.UIUtils;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
-import org.openide.util.NbBundle;
+import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
-@NbBundle.Messages({
+@Messages({
+    "# {0} - Tracker Name",
+    "# {1} - Issue ID",
+    "# {2} - Issue subject",
     "CTL_Issue={0} #{1}: {2}",
     "CTL_NewIssue=New Issue",
     //

@@ -84,13 +84,14 @@
             <groupId>com.kenai.redminenb.external</groupId>
             <artifactId>redmine-java-api</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <!--<dependency>	
-            <groupId>com.kenai.redminenb.external</groupId>
-            <artifactId>mylyn-wikitext</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        --><dependency>
+        <dependency>
             <groupId>com.toedter</groupId>
             <artifactId>jcalendar</artifactId>
             <version>1.4</version>
@@ -119,7 +120,6 @@
             <groupId>org.netbeans.external</groupId>
             <artifactId>org-eclipse-mylyn-wikitext-textile-core</artifactId>
             <version>${netbeans.version}</version>
-            <type>jar</type>
         </dependency>
     </dependencies>
 

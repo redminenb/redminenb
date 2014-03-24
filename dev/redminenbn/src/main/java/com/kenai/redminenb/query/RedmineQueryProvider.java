@@ -92,7 +92,7 @@ public class RedmineQueryProvider implements QueryProvider<RedmineQuery, Redmine
 
     @Override
     public void setIssueContainer(RedmineQuery q, IssueContainer<RedmineIssue> ic) {
-        q.getController().setIssueContainer(ic);
+        q.setIssueContainer(ic);
     }
 
 }

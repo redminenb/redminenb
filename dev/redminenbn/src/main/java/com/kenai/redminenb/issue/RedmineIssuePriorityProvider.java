@@ -5,6 +5,10 @@
  */
 package com.kenai.redminenb.issue;
 
+import com.kenai.redminenb.api.Helper;
+import com.taskadapter.redmineapi.bean.IssuePriority;
+import java.util.ArrayList;
+import java.util.List;
 import org.netbeans.modules.bugtracking.spi.IssuePriorityInfo;
 import org.netbeans.modules.bugtracking.spi.IssuePriorityProvider;
 
@@ -16,12 +20,22 @@ public class RedmineIssuePriorityProvider implements IssuePriorityProvider<Redmi
 
     @Override
     public String getPriorityID(RedmineIssue i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return Helper.getIssuePriority(i.getIssue()).getId().toString();
     }
 
     @Override
+    @SuppressWarnings("empty-statement")
     public IssuePriorityInfo[] getPriorityInfos() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // need per manager list
+        List<IssuePriority> li = Helper.getDefaultIssuePriorities();
+        List<IssuePriorityInfo> lipi = new ArrayList<>();
+        for (IssuePriority ip : li) {
+            IssuePriorityInfo ipi = new IssuePriorityInfo(ip.getId().toString(), ip.getName());
+            lipi.add(ipi);
+        }
+        return lipi.toArray(
+                new IssuePriorityInfo[lipi.size()]);
+
     }
 
 }

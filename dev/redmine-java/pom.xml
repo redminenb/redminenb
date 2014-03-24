@@ -24,6 +24,17 @@
             <groupId>com.taskadapter</groupId>
             <artifactId>redmine-java-api</artifactId>
             <version>1.23</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.external</groupId>
+            <artifactId>commons-logging-1.1.1</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
     </dependencies>
 

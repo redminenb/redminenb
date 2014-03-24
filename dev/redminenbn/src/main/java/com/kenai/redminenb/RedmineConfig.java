@@ -92,7 +92,7 @@ public class RedmineConfig {
 
     public void putQuery(RedmineRepository repository, RedmineQuery query) {
         getPreferences().put(getQueryKey(repository.getID(), query.getDisplayName()),
-                query.getUrlParameters());
+                "---" + query.getUrlParameters());
     }
 
     public void removeQuery(RedmineRepository repository, RedmineQuery query) {

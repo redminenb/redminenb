@@ -87,7 +87,7 @@ public class RedmineRepository {
     // 
     private RepositoryInfo info;
     private transient RepositoryController controller;
-    private Collection<RedmineQuery> queries;
+    private Map<String, RedmineQuery> queries = Collections.synchronizedMap(new HashMap<String, RedmineQuery>());
     // TODO Create manager wrapping class to handle Redmine related errors
     private transient RedmineManager manager;
     private transient RedmineUser currentUser;
@@ -154,7 +154,7 @@ public class RedmineRepository {
 
     public boolean isReachable() throws IOException {
         URL url = new URL(getUrl());
-      //URLConnection conn = url.openConnection();
+        //URLConnection conn = url.openConnection();
         //return InetAddress.getByName(url.getHost()).isReachable(1000);
         // TODO InetAddress#isReachable does not work with some systems
         return true;
@@ -287,12 +287,12 @@ public class RedmineRepository {
 //      } catch (com.kenai.redminenb.RedmineException ex) {
 //         JOptionPane.showMessageDialog(null, ex.getLocalizedMessage());
 //      }
-        synchronized (QUERIES_LOCK) {
-            for (RedmineQuery rq : doGetQueries()) {
-                removeQuery(rq);
-            }
-        }
-        resetRepository(true);
+        /*synchronized (QUERIES_LOCK) {
+         for (RedmineQuery rq : doGetQueries()) {
+         removeQuery(rq);
+         }
+         }
+         resetRepository(true);*/
         /*
          RedmineTaskListProvider.getInstance().notifyRepositoryRemoved(this);
          */
@@ -334,15 +334,19 @@ public class RedmineRepository {
     public void removeQuery(RedmineQuery query) {
         RedmineConfig.getInstance().removeQuery(this, query);
 //      getIssueCache().removeQuery(query.getStoredQueryName());
-        doGetQueries().remove(query);
-        stopRefreshing(query);
+        //doGetQueries().remove(query);
+        //stopRefreshing(query)
+
+        queries.remove(query.getDisplayName());
         fireQueryListChanged();
+
     }
 
     public void saveQuery(RedmineQuery query) {
         assert info != null;
         RedmineConfig.getInstance().putQuery(this, query);
-        doGetQueries().add(query);
+        //doGetQueries().add(query);
+        queries.put(query.getDisplayName(), query);
         fireQueryListChanged();
     }
 
@@ -351,24 +355,24 @@ public class RedmineRepository {
         propertyChangeSupport.firePropertyChange(RepositoryProvider.EVENT_QUERY_LIST_CHANGED, null, null);
     }
 
-    private Collection<RedmineQuery> doGetQueries() {
-        if (queries == null) {
-            queries = new HashSet<>(10);
-            String[] qs = RedmineConfig.getInstance().getQueries(getID());
-            for (String queryName : qs) {
-                RedmineQuery q = RedmineConfig.getInstance().getQuery(this, queryName);
-                if (q != null) {
-                    queries.add(q);
-                } else {
-                    Redmine.LOG.log(Level.WARNING, "Couldn''t find query with stored name {0}", queryName); // NOI18N
-                }
+    private void doGetQueries() {
+        //if (queries == null) {
+        queries.clear();// = new HashSet<>(10);
+        String[] qs = RedmineConfig.getInstance().getQueries(getID());
+        for (String queryName : qs) {
+            RedmineQuery q = RedmineConfig.getInstance().getQuery(this, queryName);
+            if (q != null) {
+                queries.put(queryName, q);
+            } else {
+                Redmine.LOG.log(Level.WARNING, "Couldn''t find query with stored name {0}", queryName); // NOI18N
             }
         }
-        return queries;
+        // }
     }
 
     public Collection<RedmineQuery> getQueries() {
-        return doGetQueries();
+        doGetQueries();
+        return queries.values();
     }
 
     /**
@@ -749,7 +753,7 @@ public class RedmineRepository {
         hash = 97 * hash + (this.project != null ? this.project.hashCode() : 0);
         return hash;
     }
-   // 
+    // 
     // Change Support
     //
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
@@ -762,7 +766,7 @@ public class RedmineRepository {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
 
-   //
+    //
     // Inner classes
     // 
 /*   private class RedmineIssueCache extends IssueCache<RedmineIssue> {

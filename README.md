@@ -7,7 +7,7 @@ This repository is derived from the [RedmineNB Kenai project](https://kenai.com/
 
 To compile the modules from the command line one requires an installation of Git, JDK 7, and Maven 3.  The respository can be cloned and the nbms compiled with the following commands: 
 ```
-git clone git@github.com:tkunicki/redminenb.git
+git clone git@github.com:redminenb/redminenb.git
 cd redminenb/dev
 mvn install
 ```

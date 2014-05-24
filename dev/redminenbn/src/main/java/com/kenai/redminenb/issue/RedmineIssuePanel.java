@@ -53,8 +53,7 @@ import javax.swing.SwingConstants;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
 import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
-import org.netbeans.modules.team.spi.RepositoryUser;
-import org.netbeans.modules.bugtracking.commons.LinkButton;
+import com.kenai.redminenb.util.LinkButton;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.DropDownButtonFactory;
@@ -405,7 +404,7 @@ public class RedmineIssuePanel extends JPanel {
       priorityComboBox.setModel(new DefaultComboBoxModel(redmineIssue.getRepository().getIssuePriorities().toArray()));
 
       assigneeComboBox.setRenderer(new Defaults.RepositoryUserLCR());
-      ListComboBoxModel<RepositoryUser> model = new ListComboBoxModel<RepositoryUser>();
+      ListComboBoxModel<RedmineUser> model = new ListComboBoxModel<RedmineUser>();
       model.add(null);
       model.addAll(redmineIssue.getRepository().getUsers());
       assigneeComboBox.setModel(model);

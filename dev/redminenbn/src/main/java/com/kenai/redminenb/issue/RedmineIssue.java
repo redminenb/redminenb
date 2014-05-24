@@ -31,17 +31,12 @@ import java.text.DateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import org.netbeans.modules.bugtracking.commons.TextUtils;
-import org.netbeans.modules.bugtracking.commons.UIUtils;
-import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
-import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
@@ -114,17 +109,11 @@ public final class RedmineIssue {
     //
     static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance(); //  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
     private static final int SHORTENED_SUMMARY_LENGTH = 22;
-    //
-    /**
-     * Defines columns for a view table.
-     */
-    public static ColumnDescriptor<?>[] columnDescriptors;
-    //
+
     private com.taskadapter.redmineapi.bean.Issue issue;
     private RedmineRepository repository;
     private RedmineIssueController controller;
-    private IssueNode<RedmineIssue> node;
-    //
+
     private final PropertyChangeSupport support;
     //
     private String remoteSummary;
@@ -168,16 +157,6 @@ public final class RedmineIssue {
         return issue.getId() == null
                 ? issue.getSubject()
                 : Bundle.CTL_Issue(issue.getTracker().getName(), issue.getId(), issue.getSubject());
-    }
-
-    public String getShortenedDisplayName() {
-        if (isNew()) {
-            return getDisplayName();
-        }
-        String shortSummary = TextUtils.shortenText(getSummary(),
-                2, //try at least 2 words
-                SHORTENED_SUMMARY_LENGTH);
-        return Bundle.CTL_Issue(issue.getTracker().getName(), getID(), shortSummary);
     }
 
     public String getTooltip() {
@@ -342,17 +321,6 @@ public final class RedmineIssue {
         return getTooltip();
     }
 
-    public IssueNode<RedmineIssue> getNode() {
-        if (node == null) {
-            node = createNode();
-        }
-        return node;
-    }
-
-    private RedmineIssueNode createNode() {
-        return new RedmineIssueNode(this);
-    }
-
     public long getLastModify() {
         if (issue != null) {
             return issue.getUpdatedOn().getTime();
@@ -427,23 +395,6 @@ public final class RedmineIssue {
         return IssueStatusProvider.Status.SEEN;
     }
 
-    public static ColumnDescriptor<?>[] getColumnDescriptors(RedmineRepository repo) {
-        if (columnDescriptors == null) {
-            // setup column widths
-            JTable t = new JTable();
-            Map<String, Integer> widths = new HashMap<>();
-            widths.put("issue." + FIELD_ID, UIUtils.getColumnWidthInPixels(4, t));
-            widths.put("issue." + FIELD_SUBJECT, -1);
-
-            Node.Property<?>[] props = new RedmineIssueNode(new RedmineIssue(repo)).getProperties();
-            columnDescriptors = new ColumnDescriptor<?>[props.length];
-            for (int i = 0; i < props.length; i++) {
-                Node.Property<?> p = props[i];
-                columnDescriptors[i] = RedmineUtil.convertNodePropertyToColumnDescriptor(p, widths.get(p.getName()));
-            }
-        }
-        return columnDescriptors;
-    }
     private IssueScheduleInfo scheduleInfo;
     private Date dueDate;
 

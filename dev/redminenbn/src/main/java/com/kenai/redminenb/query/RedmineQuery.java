@@ -34,11 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
-import org.netbeans.modules.bugtracking.api.Issue;
 import org.netbeans.modules.bugtracking.spi.QueryProvider;
-import org.netbeans.modules.team.commons.LogUtils;
 import org.openide.util.Exceptions;
 
 /**
@@ -47,6 +46,7 @@ import org.openide.util.Exceptions;
  * @author Anchialas <anchialas@gmail.com>
  */
 public final class RedmineQuery {
+    private static final Logger LOG = Logger.getLogger(RedmineQuery.class.getName());
 
     private String name;
     private final RedmineRepository repository;
@@ -214,11 +214,12 @@ public final class RedmineQuery {
     }
 
     protected void logQueryEvent(int count, boolean autoRefresh) {
-        LogUtils.logQueryEvent(RedmineConnector.NAME,
+        LOG.fine(String.format("Query '%s-%s', Count: %d, Autorefresh: %b",
+                RedmineConnector.NAME,
                 name,
                 count,
-                false,
-                autoRefresh);
+                autoRefresh
+                ));
     }
 
     /**

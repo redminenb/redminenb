@@ -351,7 +351,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
 
                panel.progressPanel.removeAll();
-               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(repository.getCurrentUser().getFullName()),
+               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(repository.getCurrentUser().getUser().getFullName()),
                                                   Defaults.getIcon("info.png"),
                                                   SwingUtilities.LEADING), BorderLayout.NORTH);
                panel.progressPanel.setVisible(true);

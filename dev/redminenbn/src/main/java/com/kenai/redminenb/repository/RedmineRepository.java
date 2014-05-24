@@ -501,7 +501,8 @@ public class RedmineRepository {
             // since Redmine V2.2.0
             return Helper.getIssuePriorities(getManager());
         } catch (Exception ex) {
-            Redmine.LOG.log(Level.SEVERE, "Can't get issue priorities", ex);
+            // LOG on info level, as SEVERE causes 
+            Redmine.LOG.log(Level.INFO, "Can't get issue priorities", ex);
         }
         Redmine.LOG.log(Level.INFO, "Using default issue priorities");
         return Helper.storeIssuePriorities(Helper.getDefaultIssuePriorities());

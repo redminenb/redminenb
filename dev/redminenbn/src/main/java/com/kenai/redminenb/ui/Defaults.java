@@ -33,7 +33,6 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JSeparator;
-import org.netbeans.modules.team.spi.RepositoryUser;
 import org.openide.util.ImageUtilities;
 
 /**
@@ -136,9 +135,7 @@ public class Defaults {
 
             if (value instanceof RedmineUser) {
                 user = (RedmineUser) value;
-                value = user.getFullName();
-            } else if (value instanceof RepositoryUser) {
-                value = ((RepositoryUser) value).getFullName();
+                value = user.getUser().getFullName();
             } else if (value == null) {
                 value = " ";
             }

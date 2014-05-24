@@ -259,7 +259,7 @@
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
       </AuxValues>
     </Component>
-    <Component class="org.netbeans.modules.bugtracking.commons.LinkButton" name="createNewProjectButton">
+    <Component class="com.kenai.redminenb.util.LinkButton" name="createNewProjectButton">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/com/kenai/redminenb/resources/add.png"/>

@@ -25,8 +25,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
-import org.netbeans.modules.bugtracking.api.Repository;
-import org.netbeans.modules.bugtracking.issuetable.ColumnDescriptor;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.nodes.Node;
@@ -42,14 +40,6 @@ public final class RedmineUtil {
 
     private RedmineUtil() {
         // default constructor suppressed for non-instantiability
-    }
-
-    public static <T> ColumnDescriptor<T> convertNodePropertyToColumnDescriptor(Node.Property<T> prop, Integer width) {
-        return new ColumnDescriptor<>(prop.getName(),
-                prop.getValueType(),
-                prop.getDisplayName(),
-                prop.getShortDescription(),
-                width == null ? 0 : width);
     }
 
     /**

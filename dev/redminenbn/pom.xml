@@ -97,16 +97,6 @@
             <version>1.4</version>
         </dependency>
         <dependency>
-            <groupId>org.netbeans.modules</groupId>
-            <artifactId>org-netbeans-modules-bugtracking-commons</artifactId>
-            <version>${netbeans.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.netbeans.modules</groupId>
-            <artifactId>org-netbeans-modules-team-commons</artifactId>
-            <version>${netbeans.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.netbeans.external</groupId>
             <artifactId>org-apache-commons-lang</artifactId>
             <version>${netbeans.version}</version>
@@ -129,16 +119,6 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <moduleDependencies>
-                        <dependency>
-                            <id>org.netbeans.modules:org-netbeans-modules-bugtracking-commons</id>
-                            <type>impl</type>
-                        </dependency>
-                        <dependency>
-                            <id>org.netbeans.modules:org-netbeans-modules-team-commons</id>
-                            <type>impl</type>
-                        </dependency>
-                    </moduleDependencies>
                     <licenseName>Apache License 2.0</licenseName>
                     <licenseFile>apache-license20.txt</licenseFile>
                 </configuration>

@@ -11,7 +11,6 @@ import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.repository.RedmineRepositoryProvider;
 import java.awt.Image;
 import java.util.logging.Logger;
-import org.netbeans.modules.bugtracking.issuetable.IssueNode;
 import org.netbeans.modules.bugtracking.spi.BugtrackingSupport;
 import org.openide.util.*;
 
@@ -41,7 +40,6 @@ public final class Redmine {
 
     private RedmineRepositoryProvider rrp;
     private static Redmine instance;
-    private IssueNode.ChangesProvider<RedmineIssue> rcp;
 
     @SuppressWarnings("unchecked")
     private Redmine() {
@@ -136,17 +134,4 @@ public final class Redmine {
         }
         return rrp;
     }
-
-    public IssueNode.ChangesProvider<RedmineIssue> getChangesProvider() {
-        if (rcp == null) {
-            rcp = new IssueNode.ChangesProvider<RedmineIssue>() {
-                @Override
-                public String getRecentChanges(RedmineIssue i) {
-                    return i.getRecentChanges();
-                }
-            };
-        }
-        return rcp;
-    }
-
 }

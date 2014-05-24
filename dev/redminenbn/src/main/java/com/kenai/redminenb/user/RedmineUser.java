@@ -5,7 +5,6 @@ import com.taskadapter.redmineapi.bean.User;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.netbeans.modules.team.spi.RepositoryUser;
 
 /**
  * A Redmine {@link RepositoryUser repository user}.
@@ -13,7 +12,7 @@ import org.netbeans.modules.team.spi.RepositoryUser;
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
-public class RedmineUser extends RepositoryUser {
+public class RedmineUser {
 
     private final User user;
     /**
@@ -26,7 +25,6 @@ public class RedmineUser extends RepositoryUser {
     }
 
     public RedmineUser(User user, boolean isCurrentUser) {
-        super(user.getLogin(), user.getFullName());
         this.user = user;
         this.isCurrentUser = isCurrentUser;
     }
@@ -45,7 +43,7 @@ public class RedmineUser extends RepositoryUser {
 
     @Override
     public String toString() {
-        return getFullName();
+        return user.getFullName();
     }
 
     @Override
@@ -75,13 +73,5 @@ public class RedmineUser extends RepositoryUser {
 
     public static RedmineUser get(User user) {
         return user == null ? null : new RedmineUser(user);
-    }
-
-    public static Collection<RepositoryUser> convert(List<User> users) {
-        Collection<RepositoryUser> convertedUsers = new LinkedList<>();
-        for (User user : users) {
-            convertedUsers.add(new RedmineUser(user));
-        }
-        return convertedUsers;
     }
 }

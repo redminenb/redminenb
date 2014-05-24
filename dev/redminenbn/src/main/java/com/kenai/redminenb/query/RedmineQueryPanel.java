@@ -84,8 +84,9 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicTreeUI;
-import org.netbeans.modules.bugtracking.issuetable.Filter;
-import org.netbeans.modules.bugtracking.commons.LinkButton;
+import com.kenai.redminenb.util.LinkButton;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import org.openide.awt.Mnemonics;
 import org.openide.util.NbBundle;
 
@@ -131,8 +132,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       tableFieldsPanel.setVisible(false);
       saveChangesButton.setVisible(false);
       cancelChangesButton.setVisible(false);
-      filterComboBox.setVisible(false);
-      filterLabel.setVisible(false);
       refreshCheckBox.setVisible(false);
       noContentPanel.setVisible(false);
 
@@ -153,8 +152,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       resolutionList.getParent().getParent().setVisible(false);
       severityLabel.setVisible(false);
       severityList.getParent().getParent().setVisible(false);
-
-      filterComboBox.setRenderer(new FilterCellRenderer());
 
       setFocusListener(this);
 
@@ -185,7 +182,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       refreshButton.addFocusListener(f);
       webButton.addFocusListener(f);
 
-      filterComboBox.addFocusListener(f);
       issueIdTextField.addFocusListener(f);
       queryTextField.addFocusListener(f);
       tablePanel.addFocusListener(f);
@@ -199,8 +195,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       seenButton.setEnabled(!running);
       removeButton.setEnabled(!running);
       refreshButton.setEnabled(!running);
-      filterLabel.setEnabled(!running);
-      filterComboBox.setEnabled(!running);
    }
 
    void setGoToIssueInfo(String iconName, String text) {
@@ -224,11 +218,17 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         qCommentsCheckBox = new JCheckBox();
         tableFieldsPanel = new JPanel();
         tableHeaderPanel = new JPanel();
-        filterLabel = new JLabel();
         criteriaPanel = new JPanel();
+        gotoPanel = new JPanel();
+        gotoIssueButton = new JButton();
         issueIdTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
+        searchButton = new JButton();
         separatorLabel2 = new JLabel();
         separatorLabel1 = new JLabel();
+        saveButton = new LinkButton();
+        webButton = new LinkButton();
+        refreshConfigurationButton = new LinkButton();
+        gotoIssueInfo = new JLabel();
         queryHeaderPanel = new JPanel();
         lastRefreshLabel = new JLabel();
         jLabel4 = new JLabel();
@@ -498,9 +498,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         tableHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         tableHeaderPanel.setOpaque(false);
 
-        filterLabel.setLabelFor(filterComboBox);
-        Mnemonics.setLocalizedText(filterLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.filterLabel.text")); // NOI18N
-
         tableSummaryLabel.setFont(tableSummaryLabel.getFont().deriveFont(tableSummaryLabel.getFont().getStyle() | Font.BOLD, tableSummaryLabel.getFont().getSize()-2));
         tableSummaryLabel.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/redmine.png"))); // NOI18N
         Mnemonics.setLocalizedText(tableSummaryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.tableSummaryLabel.text")); // NOI18N
@@ -512,20 +509,12 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             .addGroup(tableHeaderPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(tableSummaryLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(filterLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(filterComboBox, GroupLayout.PREFERRED_SIZE, 117, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         tableHeaderPanelLayout.setVerticalGroup(
             tableHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(tableHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                .addComponent(filterComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addComponent(filterLabel)
-                .addComponent(tableSummaryLabel))
+            .addComponent(tableSummaryLabel)
         );
-
-        filterComboBox.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.filterComboBox.AccessibleContext.accessibleDescription")); // NOI18N
 
         tablePanel.setBackground(new Color(224, 224, 224));
         tablePanel.setBorder(BorderFactory.createEtchedBorder());
@@ -548,7 +537,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             .addGroup(tableFieldsPanelLayout.createSequentialGroup()
                 .addComponent(tableHeaderPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tablePanel, GroupLayout.PREFERRED_SIZE, 162, Short.MAX_VALUE)
+                .addComponent(tablePanel, GroupLayout.PREFERRED_SIZE, 170, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -628,17 +617,17 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(gotoPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(searchButton)
+                .addComponent(searchButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(11, 11, 11)
                 .addComponent(gotoIssueButton)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(issueIdTextField, GroupLayout.PREFERRED_SIZE, 68, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(gotoIssueInfo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(saveButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(separatorLabel1)
+                .addComponent(saveButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(separatorLabel1, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(webButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -650,28 +639,24 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gotoPanelLayout.setVerticalGroup(
             gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(gotoPanelLayout.createSequentialGroup()
-                .addGroup(gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(gotoIssueButton)
-                    .addComponent(issueIdTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(searchButton))
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(gotoPanelLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(0, 0, 0)
                 .addGroup(gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(GroupLayout.Alignment.TRAILING, gotoPanelLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addGroup(gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                .addComponent(separatorLabel1)
-                                .addComponent(separatorLabel2))
-                            .addComponent(webButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(refreshConfigurationButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(saveButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(gotoIssueInfo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addComponent(searchButton)
+                    .addGroup(gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(gotoIssueButton)
+                        .addComponent(issueIdTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(saveButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separatorLabel1, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(webButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separatorLabel2)
+                    .addComponent(refreshConfigurationButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(GroupLayout.Alignment.TRAILING, gotoPanelLayout.createSequentialGroup()
+                .addComponent(gotoIssueInfo, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                .addGap(24, 24, 24))
         );
 
-        gotoPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {separatorLabel1, separatorLabel2, webButton});
+        gotoPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {separatorLabel2, webButton});
 
         gotoIssueButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.gotoIssueButton.AccessibleContext.accessibleDescription")); // NOI18N
         searchButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.searchButton.AccessibleContext.accessibleDescription")); // NOI18N
@@ -699,7 +684,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(searchPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
+                .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(8, 8, 8)
@@ -858,6 +843,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     final JLabel assigneeLabel = new JLabel();
     final JList assigneeList = new JList();
@@ -867,71 +853,69 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JPanel byDetailsPanel = new JPanel();
     final JPanel byTextContainer = new JPanel();
     final JLabel byTextLabel = new JLabel();
-    private JPanel byTextPanel;
+    JPanel byTextPanel;
     final JButton cancelChangesButton = new JButton();
     final JLabel categoryLabel = new JLabel();
     final JList categoryList = new JList();
     public final LinkButton cloneQueryButton = new LinkButton();
-    private JPanel criteriaPanel;
-    final JComboBox filterComboBox = new JComboBox();
-    private JLabel filterLabel;
+    JPanel criteriaPanel;
     public final LinkButton findIssuesButton = new LinkButton();
-    final JButton gotoIssueButton = new JButton();
-    private final JLabel gotoIssueInfo = new JLabel();
-    final JPanel gotoPanel = new JPanel();
+    JButton gotoIssueButton;
+    JLabel gotoIssueInfo;
+    JPanel gotoPanel;
     JFormattedTextField issueIdTextField;
     final JScrollPane issueTypeScrollPane = new HackedScrollPane();
-    private JLabel jLabel4;
-    private JLabel jLabel5;
-    private JLabel jLabel6;
-    private JLabel jLabel7;
-    private JLabel jLabel8;
+    JLabel jLabel4;
+    JLabel jLabel5;
+    JLabel jLabel6;
+    JLabel jLabel7;
+    JLabel jLabel8;
     final JScrollPane jScrollPane2 = new HackedScrollPane();
     final JScrollPane jScrollPane3 = new HackedScrollPane();
     final JScrollPane jScrollPane4 = new HackedScrollPane();
     final JScrollPane jScrollPane5 = new HackedScrollPane();
     final JScrollPane jScrollPane6 = new HackedScrollPane();
     final JLabel lastRefreshDateLabel = new JLabel();
-    private JLabel lastRefreshLabel;
+    JLabel lastRefreshLabel;
     public final LinkButton modifyButton = new LinkButton();
     final JLabel nameLabel = new JLabel();
-    private JLabel noContentLabel;
-    private JPanel noContentPanel;
+    JLabel noContentLabel;
+    JPanel noContentPanel;
     final JLabel priorityLabel = new JLabel();
     final JList priorityList = new JList();
     JCheckBox qCommentsCheckBox;
     JCheckBox qDescriptionCheckBox;
     JCheckBox qSubjectCheckBox;
-    private JPanel queryHeaderPanel;
+    JPanel queryHeaderPanel;
     final JLabel queryLabel = new JLabel();
     final JTextField queryTextField = new JTextField();
     final LinkButton refreshButton = new LinkButton();
     final JCheckBox refreshCheckBox = new JCheckBox();
-    final LinkButton refreshConfigurationButton = new LinkButton();
+    LinkButton refreshConfigurationButton;
     public final LinkButton removeButton = new LinkButton();
     final JLabel resolutionLabel = new JLabel();
     final JList resolutionList = new JList();
-    final LinkButton saveButton = new LinkButton();
+    LinkButton saveButton;
     final JButton saveChangesButton = new JButton();
-    final JButton searchButton = new JButton();
+    JButton searchButton;
     final JPanel searchPanel = new JPanel();
     final LinkButton seenButton = new LinkButton();
-    private JLabel separatorLabel1;
-    private JLabel separatorLabel2;
+    JLabel separatorLabel1;
+    JLabel separatorLabel2;
     final JLabel severityLabel = new JLabel();
     final JList severityList = new JList();
     final JScrollPane severityScrollPane = new HackedScrollPane();
     final JLabel statusLabel = new JLabel();
     final JList statusList = new JList();
-    private JPanel tableFieldsPanel;
-    private JPanel tableHeaderPanel;
+    JPanel tableFieldsPanel;
+    JPanel tableHeaderPanel;
     final JPanel tablePanel = new JPanel();
     final JLabel tableSummaryLabel = new JLabel();
     final JLabel trackerLabel = new JLabel();
     final JList trackerList = new JList();
     final JLabel versionLabel = new JLabel();
     final JList versionList = new JList();
-    final LinkButton webButton = new LinkButton();
+    LinkButton webButton;
     // End of variables declaration//GEN-END:variables
 
    /**
@@ -1018,8 +1002,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
    void setSaved(String name, String lastRefresh) {
       searchPanel.setVisible(false);
       queryHeaderPanel.setVisible(true);
-      filterComboBox.setVisible(true); // XXX move to bugtracking IssueTable component
-      filterLabel.setVisible(true);
       tableHeaderPanel.setVisible(true);
       nameLabel.setText(name);
       setLastRefresh(lastRefresh);
@@ -1096,17 +1078,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       public void setVisible(boolean visible) {
          label.setVisible(visible);
          panel.setVisible(visible && expaned);
-      }
-   }
-
-   private static class FilterCellRenderer extends DefaultListCellRenderer {
-
-      @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-         if (value instanceof Filter) {
-            value = ((Filter)value).getDisplayName();
-         }
-         return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       }
    }
 

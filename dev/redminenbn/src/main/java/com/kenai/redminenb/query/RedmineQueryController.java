@@ -26,6 +26,11 @@ import com.kenai.redminenb.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.RedmineUtil;
+import com.kenai.redminenb.util.TableCellRendererCategory;
+import com.kenai.redminenb.util.TableCellRendererPriority;
+import com.kenai.redminenb.util.TableCellRendererTracker;
+import com.kenai.redminenb.util.TableCellRendererUser;
+import com.kenai.redminenb.util.TableCellRendererVersion;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
@@ -37,8 +42,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeListener;
@@ -55,17 +58,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
-import org.netbeans.modules.bugtracking.commons.SaveQueryPanel;
-import org.netbeans.modules.bugtracking.issuetable.Filter;
-import org.netbeans.modules.bugtracking.issuetable.IssueTable;
 import org.netbeans.modules.bugtracking.spi.QueryController;
-import org.netbeans.modules.team.commons.LogUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.HtmlBrowser;
@@ -102,10 +106,13 @@ import org.openide.util.RequestProcessor;
     "LBL_SelectKeywords=Select or deselect keywords."
 })
 public class RedmineQueryController
-        implements QueryController, ItemListener, ListSelectionListener, ActionListener, FocusListener, KeyListener {
+        implements QueryController, ListSelectionListener, ActionListener,
+        FocusListener, KeyListener {
+    private static final Logger LOG = Logger.getLogger(RedmineQueryController.class.getName());
 
     private RedmineQueryPanel queryPanel;
-    private IssueTable issueTable;
+    private final QueryListModel queryListModel = new QueryListModel();
+    private JTable issueTable;
     //
     private final RequestProcessor rp = new RequestProcessor("Redmine query", 1, true);  // NOI18N
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
@@ -133,7 +140,6 @@ public class RedmineQueryController
     }
 
     private void setListeners() {
-        queryPanel.filterComboBox.addItemListener(this);
         queryPanel.searchButton.addActionListener(this);
         queryPanel.refreshCheckBox.addActionListener(this);
         queryPanel.saveChangesButton.addActionListener(this);
@@ -169,13 +175,6 @@ public class RedmineQueryController
     @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
-    }
-
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-        if (e.getSource() == queryPanel.filterComboBox) {
-            onFilterChange((Filter) e.getItem());
-        }
     }
 
     @Override
@@ -270,9 +269,6 @@ public class RedmineQueryController
     }
 
     /////////////////////////////////////////////////////////////////////////////
-    private void onFilterChange(Filter filter) {
-        selectFilter(filter);
-    }
 
     private void onSave(final boolean refresh) throws RedmineException {
         Redmine.getInstance().getRequestProcessor().post(new Runnable() {
@@ -316,18 +312,10 @@ public class RedmineQueryController
     }
 
     private String getSaveName() {
-        SaveQueryPanel.QueryNameValidator v = new SaveQueryPanel.QueryNameValidator() {
-            @Override
-            public String isValid(String name) {
-                for (RedmineQuery q : repository.getQueries()) {
-                    if (q.getDisplayName().equals(name)) {
-                        return Bundle.MSG_SameName();
-                    }
-                }
-                return null;
-            }
-        };
-        return SaveQueryPanel.show(v, new HelpCtx("com.kenai.redminenb.query.savePanel"));
+        NotifyDescriptor.InputLine nd = new NotifyDescriptor.InputLine(
+                "Name", "Save query");
+        DialogDisplayer.getDefault().notify(nd);
+        return nd.getInputText();
     }
 
     private void onCancelChanges() {
@@ -338,33 +326,6 @@ public class RedmineQueryController
 //            }
 //        }
         setAsSaved();
-    }
-
-    public void selectFilter(final Filter filter) {
-        if (filter != null) {
-            // XXX this part should be handled in the issues table - move the filtercombo and the label over
-            int c = 0;
-            for (RedmineIssue issue : query.getIssues()) {
-                if (filter.accept(issue.getNode())) {
-                    c++;
-                }
-            }
-            final int issueCount = c;
-
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    queryPanel.filterComboBox.setSelectedItem(filter);
-                    setIssueCount(issueCount);
-                }
-            };
-            if (EventQueue.isDispatchThread()) {
-                r.run();
-            } else {
-                EventQueue.invokeLater(r);
-            }
-        }
-        issueTable.setFilter(filter);
     }
 
     private void setAsSaved() {
@@ -533,10 +494,11 @@ public class RedmineQueryController
     }
 
     protected void logAutoRefreshEvent(boolean autoRefresh) {
-        LogUtils.logAutoRefreshEvent(RedmineConnector.NAME,
+        LOG.fine(String.format("AutoRefresh '%s-%s', Count: %d, Autorefresh: %b",
+                RedmineConnector.NAME,
                 query.getDisplayName(),
-                false,
-                autoRefresh);
+                autoRefresh
+                ));
     }
 
     private void onRefreshConfiguration() {
@@ -643,7 +605,7 @@ public class RedmineQueryController
         pvList = new ArrayList<>();
         pvList.add(ParameterValue.NONE_PARAMETERVALUE);
         for (RedmineUser redmineUser : repository.getUsers()) {
-            pvList.add(new ParameterValue(redmineUser.getFullName(), redmineUser.getId(), redmineUser));
+            pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId(), redmineUser));
         }
         assigneeParameter.setParameterValues(pvList);
 
@@ -741,12 +703,77 @@ public class RedmineQueryController
     @Override
     public JComponent getComponent(QueryMode qm) {
         if (queryPanel == null) {
-            issueTable = new IssueTable(
-                    repository.getID(), query.getDisplayName(), this, RedmineIssue.getColumnDescriptors(repository), true/*RedmineUtil.getRepository(repository),
-             query, RedmineIssue.getColumnDescriptors(repository)*/);
-            issueTable.setRenderer(new RedmineQueryCellRenderer(issueTable.getRenderer()));
 
-            queryPanel = new RedmineQueryPanel(issueTable.getComponent(), this);
+            DefaultTableColumnModel tcm = new DefaultTableColumnModel();
+
+            TableColumn tce;
+
+            tce = new TableColumn(0);
+            tce.setHeaderValue("ID");
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(40);
+            tce.setMaxWidth(40);
+            tcm.addColumn(tce);
+
+            tce = new TableColumn(1);
+            tce.setHeaderValue("Summary");
+            tce.setPreferredWidth(250);
+            tcm.addColumn(tce);
+            
+            tce = new TableColumn(2);
+            tce.setHeaderValue("Tracker");
+            tce.setCellRenderer(new TableCellRendererTracker());
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(80);
+            tce.setMaxWidth(80);
+            tcm.addColumn(tce);
+
+            tce = new TableColumn(3);
+            tce.setHeaderValue("Priority");
+            tce.setCellRenderer(new TableCellRendererPriority());
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(80);
+            tce.setMaxWidth(80);
+            tcm.addColumn(tce);
+
+            tce = new TableColumn(4);
+            tce.setHeaderValue("Status");
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(80);
+            tce.setMaxWidth(80);
+            tcm.addColumn(tce);
+
+            tce = new TableColumn(5);
+            tce.setHeaderValue("Assigned to");
+            tce.setCellRenderer(new TableCellRendererUser());
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(80);
+            tce.setMaxWidth(80);
+            tcm.addColumn(tce);
+
+            tce = new TableColumn(6);
+            tce.setHeaderValue("Category");
+            tce.setCellRenderer(new TableCellRendererCategory());
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(80);
+            tce.setMaxWidth(80);
+            tcm.addColumn(tce);
+
+            tce = new TableColumn(6);
+            tce.setHeaderValue("Version");
+            tce.setCellRenderer(new TableCellRendererVersion());
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(80);
+            tce.setMaxWidth(80);
+            tcm.addColumn(tce);
+
+            issueTable = new JTable();
+            issueTable.setModel(queryListModel);
+            issueTable.setColumnModel(tcm);
+            issueTable.getTableHeader().setReorderingAllowed(false);
+            issueTable.doLayout();
+
+            queryPanel = new RedmineQueryPanel(new JScrollPane(issueTable), this);
             parameters = new LinkedHashMap<>();
             // set parameters
             trackerParameter = registerQueryParameter(ListParameter.class, queryPanel.trackerList, "tracker_id");
@@ -811,6 +838,7 @@ public class RedmineQueryController
         private boolean autoRefresh;
         private long progressMaxWorkunits;
         private int progressWorkunits;
+        private List<RedmineIssue> issues = new ArrayList<>();
 
         public QueryTask() {
             query.addNotifyListener(this);
@@ -914,7 +942,7 @@ public class RedmineQueryController
 
         @Override
         public void notifyData(RedmineIssue issue) {
-            issueTable.addNode(issue.getNode());
+            issues.add(issue);
             if (!query.contains(issue)) {
                 // XXX this is quite ugly - the query notifies an archoived issue
                 // but it doesn't "contain" it!
@@ -935,10 +963,12 @@ public class RedmineQueryController
         public void started() {
             counter = 0;
             setIssueCount(counter);
+            issues.clear();
         }
 
         @Override
         public void finished() {
+            queryListModel.setIssues(issues);
         }
     }
 }

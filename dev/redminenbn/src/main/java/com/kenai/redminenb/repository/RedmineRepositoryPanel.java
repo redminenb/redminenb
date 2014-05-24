@@ -15,7 +15,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
-import org.netbeans.modules.bugtracking.commons.LinkButton;
+import com.kenai.redminenb.util.LinkButton;
 import org.openide.util.NbBundle;
 
 /**

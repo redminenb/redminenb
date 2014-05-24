@@ -17,6 +17,11 @@
         </repository>
     </repositories>
 
+    <modules>
+        <module>redmine-java</module>
+        <module>redminenbn</module>
+    </modules>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -57,35 +62,8 @@
         </pluginManagement>
     </build>
 
-    <profiles>
-        <profile>
-            <id>bugapi</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <netbeans.version>RELEASE80</netbeans.version>
-            </properties>
-            <modules>
-                <module>redmine-java</module>
-                <module>redminenbn</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>before80</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <modules>
-                <module>redminenb</module>
-                <module>redmine-java</module>
-                <module>mylin.wikitext</module>
-            </modules>
-        </profile>
-    </profiles>
-
     <properties>
-        <netbeans.version>RELEASE74</netbeans.version>
+        <netbeans.version>RELEASE80</netbeans.version>
         <brandingToken>redminenb</brandingToken>
     </properties>
 </project>

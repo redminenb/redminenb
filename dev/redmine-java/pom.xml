@@ -35,6 +35,7 @@
             <groupId>org.netbeans.external</groupId>
             <artifactId>commons-logging-1.1.1</artifactId>
             <version>${netbeans.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -50,6 +51,27 @@
                         <publicPackage>com.*</publicPackage>
                     </publicPackages>
                 </configuration>
+            </plugin>
+            
+            <!-- commons-logging is needed at runtime, but not properly referenced  -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <target>
+                                <ant dir="." antfile="ant.xml" target="addDependencyToManifest"> 
+                                    <property name="dependency" value="org.apache.commons.logging &gt; 1.1.1" />
+                                </ant>                                
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

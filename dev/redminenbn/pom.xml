@@ -118,7 +118,19 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
+                <extensions>true</extensions>
                 <configuration>
+                    <useOSGiDependencies>true</useOSGiDependencies>
+                    <moduleDependencies>
+                        <dependency>
+                            <id>org.netbeans.external:org-eclipse-mylyn-wikitext-textile-core</id>
+                            <explicitValue>org.eclipse.mylyn.wikitext.textile.core &gt; 1.9.0</explicitValue>
+                        </dependency>
+                        <dependency>
+                            <id>org.netbeans.external:org-eclipse-mylyn-wikitext-core</id>
+                            <explicitValue>org.eclipse.mylyn.wikitext.core &gt; 1.9.0</explicitValue>
+                        </dependency>
+                    </moduleDependencies>
                     <licenseName>Apache License 2.0</licenseName>
                     <licenseFile>apache-license20.txt</licenseFile>
                 </configuration>

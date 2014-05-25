@@ -25,22 +25,31 @@ import javax.swing.JButton;
 public class LinkButton extends JButton {
 
     public LinkButton() {
+        init();
     }
 
     public LinkButton(Icon icon) {
         super(icon);
+        init();
     }
 
     public LinkButton(String text) {
         super(text);
+        init();
     }
 
     public LinkButton(Action a) {
         super(a);
+        init();
+        
     }
 
     public LinkButton(String text, Icon icon) {
         super(text, icon);
+        init();
     }
     
+    private void init() {
+        setUI(LinkButtonUI.createUI(this));
+    }
 }

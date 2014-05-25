@@ -10,6 +10,19 @@
             </goals>
         </action>
         <action>
+            <actionName>CUSTOM-Debug module suite</actionName>
+            <displayName>Debug module suite</displayName>
+            <goals>
+                <goal>package</goal>
+                <goal>nbm:cluster</goal>
+                <goal>nbm:run-ide</goal>
+            </goals>
+            <properties>
+                <jpda.listen>true</jpda.listen>
+                <netbeans.run.params.debug>-J-Xrunjdwp:transport=dt_socket,server=n,address=localhost:${jpda.address}</netbeans.run.params.debug>
+            </properties>
+        </action>
+        <action>
             <actionName>CUSTOM-Rebuild module suite</actionName>
             <displayName>Rebuild module suite</displayName>
             <goals>
@@ -24,6 +37,6 @@
                 <goal>clean</goal>
                 <goal>package</goal>
                 <goal>nbm:cluster</goal>
-            </goals>
+            </goals>      
         </action>
     </actions>

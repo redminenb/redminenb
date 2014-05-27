@@ -258,7 +258,11 @@ public class RedmineQueryController implements QueryController, ActionListener {
         NotifyDescriptor.InputLine nd = new NotifyDescriptor.InputLine(
                 "Name", "Save query");
         DialogDisplayer.getDefault().notify(nd);
-        return nd.getInputText();
+        if(nd.getValue() == NotifyDescriptor.OK_OPTION) {
+            return nd.getInputText();
+        } else {
+            return null;
+        }
     }
 
     private void onCancelChanges() {

@@ -107,11 +107,9 @@ import org.openide.util.RequestProcessor;
     "LBL_MatchingIssues=There {0,choice,0#are no issues|1#is one issue|1<are {0,number,integer} issues} matching this query.",
     "LBL_SelectKeywords=Select or deselect keywords."
 })
-public class RedmineQueryController
-        implements QueryController, ListSelectionListener, ActionListener,
-        FocusListener, KeyListener {
+public class RedmineQueryController implements QueryController, ActionListener {
     private static final Logger LOG = Logger.getLogger(RedmineQueryController.class.getName());
-
+    
     private RedmineQueryPanel queryPanel;
     private final QueryListModel queryListModel = new QueryListModel();
     private JTable issueTable;
@@ -156,17 +154,7 @@ public class RedmineQueryController
         queryPanel.refreshConfigurationButton.addActionListener(this);
         queryPanel.findIssuesButton.addActionListener(this);
         queryPanel.cloneQueryButton.addActionListener(this);
-
         queryPanel.issueIdTextField.addActionListener(this);
-
-        queryPanel.categoryList.addKeyListener(this);
-        queryPanel.versionList.addKeyListener(this);
-        queryPanel.statusList.addKeyListener(this);
-        queryPanel.resolutionList.addKeyListener(this);
-        queryPanel.severityList.addKeyListener(this);
-        queryPanel.priorityList.addKeyListener(this);
-        queryPanel.assigneeList.addKeyListener(this);
-
         queryPanel.queryTextField.addActionListener(this);
     }
 
@@ -177,28 +165,6 @@ public class RedmineQueryController
     @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
-    }
-
-    @Override
-    public void valueChanged(ListSelectionEvent e) {
-//      if (e.getSource() == queryPanel.productList) {
-//         onProductChanged(e);
-//      }
-    }
-
-    @Override
-    public void focusGained(FocusEvent e) {
-//      if (panel.changedFromTextField.getText().equals("")) {                   // NOI18N
-//         String lastChangeFrom = BugzillaConfig.getInstance().getLastChangeFrom();
-//         panel.changedFromTextField.setText(lastChangeFrom);
-//         panel.changedFromTextField.setSelectionStart(0);
-//         panel.changedFromTextField.setSelectionEnd(lastChangeFrom.length());
-//      }
-    }
-
-    @Override
-    public void focusLost(FocusEvent e) {
-        // do nothing
     }
 
     @Override
@@ -242,31 +208,6 @@ public class RedmineQueryController
             }
         } catch (RedmineException ex) {
             Exceptions.printStackTrace(ex);
-        }
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {
-        // do nothing
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        // do nothing
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-            return;
-        }
-        if (e.getSource() == queryPanel.categoryList
-                || e.getSource() == queryPanel.versionList
-                || e.getSource() == queryPanel.statusList
-                || e.getSource() == queryPanel.resolutionList
-                || e.getSource() == queryPanel.priorityList
-                || e.getSource() == queryPanel.assigneeList) {
-            onRefresh();
         }
     }
 

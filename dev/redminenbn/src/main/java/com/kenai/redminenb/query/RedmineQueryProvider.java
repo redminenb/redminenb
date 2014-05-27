@@ -47,34 +47,11 @@ public class RedmineQueryProvider implements QueryProvider<RedmineQuery, Redmine
         q.remove();
     }
 
-    /*@Override
-     public boolean isSaved(RedmineQuery query) {
-     return query.isSaved();
-     }*/
-
-    /*@Override
-     public Collection<RedmineIssue> getIssues(RedmineQuery query) {
-     return query.getIssues();
-     }*/
     @Override
     public void refresh(RedmineQuery query) {
         query.getController().refresh(true);
     }
 
-    /*@Override
-     public void removePropertyChangeListener(RedmineQuery query, PropertyChangeListener listener) {
-     query.removePropertyChangeListener(listener);
-     }
-
-     @Override
-     public void addPropertyChangeListener(RedmineQuery query, PropertyChangeListener listener) {
-     query.addPropertyChangeListener(listener);
-     }
-     */
-    /*@Override
-     public boolean contains(RedmineQuery query, String id) {
-     return query.contains(id);
-     }*/
     @Override
     public boolean canRemove(RedmineQuery q) {
         return q.canRemove();

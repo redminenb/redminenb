@@ -44,6 +44,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.lang.reflect.Constructor;
@@ -772,6 +774,8 @@ public class RedmineQueryController
             issueTable.setColumnModel(tcm);
             issueTable.getTableHeader().setReorderingAllowed(false);
             issueTable.doLayout();
+            issueTable.addMouseListener(issueTableIssueOpener);
+            issueTable.addKeyListener(issueTableIssueOpener);
 
             queryPanel = new RedmineQueryPanel(new JScrollPane(issueTable), this);
             parameters = new LinkedHashMap<>();
@@ -971,4 +975,67 @@ public class RedmineQueryController
             queryListModel.setIssues(issues);
         }
     }
+
+    private class IssueTableIssueOpener implements MouseListener, KeyListener {
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) {
+                int viewRow = issueTable.getSelectedRow();
+                if (viewRow == -1) {
+                    return;
+                }
+                int modelRow = issueTable.convertRowIndexToModel(viewRow);
+                RedmineIssue mi = queryListModel.getIssue(modelRow);
+                Redmine.getInstance().getSupport().openIssue(
+                        mi.getRepository(),
+                        mi);
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                e.consume();
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                int viewRow = issueTable.getSelectedRow();
+                if (viewRow == -1) {
+                    return;
+                }
+                int modelRow = issueTable.convertRowIndexToModel(viewRow);
+                RedmineIssue mi = queryListModel.getIssue(modelRow);
+                Redmine.getInstance().getSupport().openIssue(
+                        mi.getRepository(),
+                        mi);
+                e.consume();
+            }
+        }
+    }
+
+    IssueTableIssueOpener issueTableIssueOpener = new IssueTableIssueOpener();
 }

@@ -188,12 +188,6 @@ public final class RedmineIssue {
         if (Redmine.LOG.isLoggable(Level.FINE)) {
             Redmine.LOG.log(Level.FINE, "issue {0} open start", new Object[]{getID()});
         }
-//      if (!data.isNew()) {
-//         // 1.) to get seen attributes makes no sense for new issues
-//         // 2.) set seenAtributes on issue open, before its actuall
-//         //     state is written via setSeen().
-//         seenAtributes = repository.getIssueCache().getSeenAttributes(getID());
-//      }
         String refresh = System.getProperty("org.netbeans.modules.bugzilla.noIssueRefresh"); // NOI18N
         if (refresh != null && refresh.equals("true")) {                                      // NOI18N
             return;
@@ -209,7 +203,6 @@ public final class RedmineIssue {
             Redmine.LOG.log(Level.FINE, "issue {0} close start", new Object[]{getID()});
         }
         repository.stopRefreshing(getID());
-//      seenAtributes = null;
         if (Redmine.LOG.isLoggable(Level.FINE)) {
             Redmine.LOG.log(Level.FINE, "issue {0} close finish", new Object[]{getID()});
         }
@@ -258,7 +251,6 @@ public final class RedmineIssue {
         }
 
         issue.setStatusId(oldStatusId);
-//      wasSeen();
     }
 
     public void attachPatch(File file, String string) {
@@ -339,13 +331,6 @@ public final class RedmineIssue {
         return -1;
     }
 
-    /*public void setSeen(boolean seen) throws IOException {
-     repository.getIssueCache().setSeen(getID(), seen);
-     }
-
-     public boolean wasSeen() {
-     return repository.getIssueCache().wasSeen(getID());
-     }*/
     private TimeEntry createTimeEntry(String comment) throws IOException, AuthenticationException,
             RedmineException, NotFoundException {
         TimeEntry timeEntry = new TimeEntry();

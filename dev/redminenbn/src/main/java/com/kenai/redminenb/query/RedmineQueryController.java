@@ -149,7 +149,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
         queryPanel.saveButton.addActionListener(this);
         queryPanel.refreshButton.addActionListener(this);
         queryPanel.modifyButton.addActionListener(this);
-        queryPanel.seenButton.addActionListener(this);
         queryPanel.removeButton.addActionListener(this);
         queryPanel.refreshConfigurationButton.addActionListener(this);
         queryPanel.findIssuesButton.addActionListener(this);
@@ -186,8 +185,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 onRefresh();
             } else if (e.getSource() == queryPanel.modifyButton) {
                 onModify();
-            } else if (e.getSource() == queryPanel.seenButton) {
-                onMarkSeen();
             } else if (e.getSource() == queryPanel.removeButton) {
                 onRemove();
             } else if (e.getSource() == queryPanel.refreshCheckBox) {
@@ -533,9 +530,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
         // Status
         pvList = new ArrayList<>();
-//      pvList.add(new ParameterValue("open"));
-//      pvList.add(new ParameterValue("closed"));
-//      pvList.add(null);
         for (IssueStatus s : repository.getStatuses()) {
             pvList.add(new ParameterValue(s.getName(), s.getId()));
         }

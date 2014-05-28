@@ -272,7 +272,7 @@
                       <Component id="assigneeLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="subjectLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="subjectLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="seenButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="wikiSyntaxButton" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="categoryLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="targetVersionLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -370,7 +370,7 @@
                               <Group type="102" attributes="0">
                                   <Component id="descriptionLabel" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="seenButton" min="-2" max="-2" attributes="0"/>
+                                  <Component id="wikiSyntaxButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Component id="descScrollPane" pref="100" max="32767" attributes="0"/>
                           </Group>
@@ -598,20 +598,20 @@
             </Component>
           </SubComponents>
         </Container>
-        <Component class="com.kenai.redminenb.util.LinkButton" name="seenButton">
+        <Component class="com.kenai.redminenb.util.LinkButton" name="wikiSyntaxButton">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/com/kenai/redminenb/resources/help.png"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.seenButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.wikiSyntaxButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Lucida Grande" size="11" style="0"/>
             </Property>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="seenButtonActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="wikiSyntaxButtonActionPerformed"/>
           </Events>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>

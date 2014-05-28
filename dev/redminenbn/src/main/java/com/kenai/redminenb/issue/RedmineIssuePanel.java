@@ -641,12 +641,12 @@ public class RedmineIssuePanel extends JPanel {
         descTextArea.setColumns(20);
         descScrollPane.setViewportView(descTextArea);
 
-        seenButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/help.png"))); // NOI18N
-        seenButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.seenButton.text")); // NOI18N
-        seenButton.setFont(new Font("Lucida Grande", 0, 11)); // NOI18N
-        seenButton.addActionListener(new ActionListener() {
+        wikiSyntaxButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/help.png"))); // NOI18N
+        wikiSyntaxButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.wikiSyntaxButton.text")); // NOI18N
+        wikiSyntaxButton.setFont(new Font("Lucida Grande", 0, 11)); // NOI18N
+        wikiSyntaxButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                seenButtonActionPerformed(evt);
+                wikiSyntaxButtonActionPerformed(evt);
             }
         });
 
@@ -713,7 +713,7 @@ public class RedmineIssuePanel extends JPanel {
                     .addComponent(assigneeLabel)
                     .addComponent(subjectLabel)
                     .addComponent(subjectLabel1)
-                    .addComponent(seenButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(categoryLabel)
                     .addComponent(targetVersionLabel))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -790,7 +790,7 @@ public class RedmineIssuePanel extends JPanel {
                             .addGroup(issuePaneLayout.createSequentialGroup()
                                 .addComponent(descriptionLabel)
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(seenButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                             .addComponent(descScrollPane, GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -940,14 +940,14 @@ public class RedmineIssuePanel extends JPanel {
       }
    }//GEN-LAST:event_categoryAddButtonActionPerformed
 
-   private void seenButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_seenButtonActionPerformed
+   private void wikiSyntaxButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_wikiSyntaxButtonActionPerformed
       try {
          HtmlBrowser.URLDisplayer.getDefault().showURL(new URL(
                  redmineIssue.getRepository().getUrl() + "/help/wiki_syntax.html"));
       } catch (MalformedURLException ex) {
          Exceptions.printStackTrace(ex);
       }
-   }//GEN-LAST:event_seenButtonActionPerformed
+   }//GEN-LAST:event_wikiSyntaxButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     final LinkButton assignToMeButton = new LinkButton();
     private JComboBox assigneeComboBox;
@@ -981,7 +981,6 @@ public class RedmineIssuePanel extends JPanel {
     private JLabel priorityLabel;
     private JCheckBox privateCheckBox;
     final LinkButton projectNameButton = new LinkButton();
-    final LinkButton seenButton = new LinkButton();
     private JDateChooser startDateChooser;
     private JLabel startDateLabel;
     private JComboBox statusComboBox;
@@ -998,5 +997,6 @@ public class RedmineIssuePanel extends JPanel {
     private JLabel updatedLabel;
     private JLabel updatedValueLabel;
     final LinkButton versionAddButton = new LinkButton();
+    final LinkButton wikiSyntaxButton = new LinkButton();
     // End of variables declaration//GEN-END:variables
 }

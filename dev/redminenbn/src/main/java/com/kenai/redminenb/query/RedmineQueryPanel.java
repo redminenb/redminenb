@@ -173,7 +173,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       gotoIssueButton.addFocusListener(f);
       modifyButton.addFocusListener(f);
-      seenButton.addFocusListener(f);
       refreshCheckBox.addFocusListener(f);
       removeButton.addFocusListener(f);
       saveButton.addFocusListener(f);
@@ -192,13 +191,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
    void setQueryRunning(boolean running) {
       modifyButton.setEnabled(!running);
-      seenButton.setEnabled(!running);
       removeButton.setEnabled(!running);
       refreshButton.setEnabled(!running);
    }
 
    void setGoToIssueInfo(String iconName, String text) {
-      //gotoIssueInfo.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/" + iconName))); // NOI18N
       gotoIssueInfo.setIcon(iconName == null ? null : Defaults.getIcon(iconName));
       gotoIssueInfo.setText(text == null ? null : text);
    }
@@ -219,19 +216,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         tableFieldsPanel = new JPanel();
         tableHeaderPanel = new JPanel();
         criteriaPanel = new JPanel();
-        gotoPanel = new JPanel();
-        gotoIssueButton = new JButton();
         issueIdTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
-        searchButton = new JButton();
         separatorLabel2 = new JLabel();
         separatorLabel1 = new JLabel();
-        saveButton = new LinkButton();
-        webButton = new LinkButton();
-        refreshConfigurationButton = new LinkButton();
-        gotoIssueInfo = new JLabel();
         queryHeaderPanel = new JPanel();
         lastRefreshLabel = new JLabel();
-        jLabel4 = new JLabel();
         jLabel5 = new JLabel();
         jLabel6 = new JLabel();
         jLabel7 = new JLabel();
@@ -639,7 +628,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gotoPanelLayout.setVerticalGroup(
             gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(gotoPanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
                 .addGroup(gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(searchButton)
                     .addGroup(gotoPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -700,8 +688,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         queryHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         queryHeaderPanel.setOpaque(false);
 
-        Mnemonics.setLocalizedText(seenButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.seenButton.text")); // NOI18N
-
         Mnemonics.setLocalizedText(lastRefreshLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshLabel.text")); // NOI18N
 
         Mnemonics.setLocalizedText(removeButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.text")); // NOI18N
@@ -713,9 +699,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         Mnemonics.setLocalizedText(nameLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.nameLabel.text")); // NOI18N
 
         Mnemonics.setLocalizedText(modifyButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.text")); // NOI18N
-
-        Mnemonics.setLocalizedText(jLabel4, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel4.text")); // NOI18N
-        jLabel4.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
 
         Mnemonics.setLocalizedText(jLabel5, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel5.text")); // NOI18N
         jLabel5.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
@@ -751,10 +734,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lastRefreshDateLabel))
                     .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                        .addComponent(seenButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(233, 233, 233)
                         .addComponent(modifyButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addGap(7, 7, 7)
                         .addComponent(jLabel5, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE)
@@ -789,13 +769,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                             .addComponent(refreshCheckBox))))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
                 .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-                    .addComponent(jLabel4, GroupLayout.PREFERRED_SIZE, 11, GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5, GroupLayout.PREFERRED_SIZE, 11, GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6)
                     .addComponent(modifyButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(refreshButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(removeButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(seenButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel7)
                     .addComponent(findIssuesButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8, GroupLayout.PREFERRED_SIZE, 17, GroupLayout.PREFERRED_SIZE)
@@ -803,9 +781,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addContainerGap())
         );
 
-        queryHeaderPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {jLabel4, jLabel5, jLabel6, jLabel7, modifyButton, refreshButton, removeButton});
+        queryHeaderPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {jLabel5, jLabel6, jLabel7, modifyButton, refreshButton, removeButton});
 
-        seenButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshButton.AccessibleContext.accessibleDescription")); // NOI18N
         removeButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.AccessibleContext.accessibleDescription")); // NOI18N
         refreshButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.seenButton.AccessibleContext.accessibleDescription")); // NOI18N
         modifyButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.AccessibleContext.accessibleDescription")); // NOI18N
@@ -860,12 +837,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     public final LinkButton cloneQueryButton = new LinkButton();
     JPanel criteriaPanel;
     public final LinkButton findIssuesButton = new LinkButton();
-    JButton gotoIssueButton;
-    JLabel gotoIssueInfo;
-    JPanel gotoPanel;
+    final JButton gotoIssueButton = new JButton();
+    private final JLabel gotoIssueInfo = new JLabel();
+    final JPanel gotoPanel = new JPanel();
     JFormattedTextField issueIdTextField;
     final JScrollPane issueTypeScrollPane = new HackedScrollPane();
-    JLabel jLabel4;
     JLabel jLabel5;
     JLabel jLabel6;
     JLabel jLabel7;
@@ -891,15 +867,14 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JTextField queryTextField = new JTextField();
     final LinkButton refreshButton = new LinkButton();
     final JCheckBox refreshCheckBox = new JCheckBox();
-    LinkButton refreshConfigurationButton;
+    final LinkButton refreshConfigurationButton = new LinkButton();
     public final LinkButton removeButton = new LinkButton();
     final JLabel resolutionLabel = new JLabel();
     final JList resolutionList = new JList();
-    LinkButton saveButton;
+    final LinkButton saveButton = new LinkButton();
     final JButton saveChangesButton = new JButton();
-    JButton searchButton;
+    final JButton searchButton = new JButton();
     final JPanel searchPanel = new JPanel();
-    final LinkButton seenButton = new LinkButton();
     JLabel separatorLabel1;
     JLabel separatorLabel2;
     final JLabel severityLabel = new JLabel();
@@ -915,7 +890,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JList trackerList = new JList();
     final JLabel versionLabel = new JLabel();
     final JList versionList = new JList();
-    LinkButton webButton;
+    final LinkButton webButton = new LinkButton();
     // End of variables declaration//GEN-END:variables
 
    /**

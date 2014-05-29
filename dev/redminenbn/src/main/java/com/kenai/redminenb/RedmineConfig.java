@@ -1,6 +1,7 @@
 package com.kenai.redminenb;
 
 import com.kenai.redminenb.query.RedmineQuery;
+import com.kenai.redminenb.query.serialization.RedmineQueryXml;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.ui.Defaults;
 
@@ -8,10 +9,14 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,9 +24,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Icon;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -34,6 +44,7 @@ import org.openide.util.NbPreferences;
  */
 public class RedmineConfig {
 
+    private static final Logger LOG = Logger.getLogger(RedmineConfig.class.getName());
     private static final String REPO_ID = "redmine.repository";                      // NOI18N
     private static final String QUERY_NAME = "redmine.query_";                       // NOI18N
     private static final String QUERY_REFRESH_INT = "redmine.query_refresh";         // NOI18N
@@ -43,10 +54,25 @@ public class RedmineConfig {
     private static final String CHECK_UPDATES = "redmine.check_updates";             // NOI18N
     private static final String LAST_CHANGE_FROM = "redmine.last_change_from";       // NOI18N
     private static final String ACTIONITEMISSUES_STORAGE = "actionitemissues"; //NOI18N
-    private static final String ACTIONITEMISSUES_STORAGE_FILE = ACTIONITEMISSUES_STORAGE + ".data"; //NOI18N
+    private static final String ACTIONITEMISSUES_STORAGE_FILE = ACTIONITEMISSUES_STORAGE
+            + ".data"; //NOI18N
     //
     public static final int DEFAULT_QUERY_REFRESH = 30;
     public static final int DEFAULT_ISSUE_REFRESH = 15;
+    //
+    private static final JAXBContext jaxbContext;
+
+    static {
+        JAXBContext tempJaxbContext = null;
+        try {
+            tempJaxbContext = JAXBContext.newInstance(
+                    "com.kenai.redminenb.query.serialization",
+                    RedmineConfig.class.getClassLoader());
+        } catch (JAXBException ex) {
+            LOG.log(Level.WARNING, "Failed to initialize MantisQuery saving", ex);
+        }
+        jaxbContext = tempJaxbContext;
+    }
     //
     private Map<String, Icon> priorityIcons;
 
@@ -91,12 +117,20 @@ public class RedmineConfig {
     }
 
     public void putQuery(RedmineRepository repository, RedmineQuery query) {
-        getPreferences().put(getQueryKey(repository.getID(), query.getDisplayName()),
-                DELIMITER + query.getUrlParameters());
+        try (StringWriter sw = new StringWriter()) {
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(new RedmineQueryXml(query), sw);
+            getPreferences().put(getQueryKey(repository.getID(), query.getDisplayName()),
+                sw.toString());
+        } catch (JAXBException ex) {
+            LOG.log(Level.WARNING, "Failed to serialize data", ex);
+        } catch (IOException ex) {
+            LOG.log(Level.WARNING, "Could not open file: {0}", ex);
+        }
     }
-
-    public void removeQuery(RedmineRepository repository, RedmineQuery query) {
-        getPreferences().remove(getQueryKey(repository.getID(), query.getDisplayName()));
+    
+    public void removeQuery(RedmineRepository repository, String displayName) {
+        getPreferences().remove(getQueryKey(repository.getID(), displayName));
     }
 
     public String[] getQueries(String repoID) {
@@ -111,18 +145,45 @@ public class RedmineConfig {
         return getPreferences().get(getQueryKey(repository.getID(), queryName), null);
     }
 
+    public void reloadQuery(RedmineQuery rq) {
+        RedmineQueryXml rqx = loadSerializedQuery(rq.getRepository(), rq.getDisplayName());
+        if (rqx == null) {
+            return;
+        }
+        rqx.toRedmineQuery(rq);
+    }
+    
     public RedmineQuery getQuery(RedmineRepository repository, String queryName) {
+        RedmineQueryXml rqx = loadSerializedQuery(repository, queryName);
+        if(rqx == null) {
+            return null;
+        }
+        RedmineQuery rq = new RedmineQuery(repository);
+        rq.setName(queryName);
+        rqx.toRedmineQuery(rq);
+        return rq;
+    }
+
+    private RedmineQueryXml loadSerializedQuery(RedmineRepository repository, String queryName) {
         String value = getStoredQuery(repository, queryName);
         if (value == null) {
             return null;
         }
-        String[] values = value.split(DELIMITER);
-        assert values.length >= 2;
-        String urlParams = values[0];
-        boolean urlDef = values.length > 2 ? Boolean.parseBoolean(values[2]) : false;
-        return new RedmineQuery(queryName, repository, urlParams, true, urlDef, true);
+        try (StringWriter sw = new StringWriter()) {
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            Object o = unmarshaller.unmarshal(new StringReader(value));
+            if (o instanceof RedmineQueryXml) {
+                RedmineQueryXml rqx = (RedmineQueryXml) o;
+                return rqx;
+            }
+        } catch (JAXBException ex) {
+            LOG.log(Level.WARNING, "Failed to serialize data", ex);
+        } catch (IOException ex) {
+            LOG.log(Level.WARNING, "Could not open file: {0}", ex);
+        }
+        return null;
     }
-
+    
     public boolean getCheckUpdates() {
         return getPreferences().getBoolean(CHECK_UPDATES, true);
     }

@@ -49,7 +49,7 @@ public class RedmineQueryProvider implements QueryProvider<RedmineQuery, Redmine
 
     @Override
     public void refresh(RedmineQuery query) {
-        query.getController().refresh(true);
+        query.getController().refresh();
     }
 
     @Override

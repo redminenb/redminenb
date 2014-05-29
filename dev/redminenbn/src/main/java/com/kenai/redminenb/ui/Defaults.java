@@ -126,11 +126,7 @@ public class Defaults {
             RedmineUser user = null;
             if (value instanceof ParameterValue) {
                 ParameterValue pv = (ParameterValue) value;
-                if (pv.getUserObject() instanceof RedmineUser) {
-                    value = pv.getUserObject();
-                } else {
-                    value = ((ParameterValue) value).getDisplayName();
-                }
+                value = pv.getDisplayName();
             }
 
             if (value instanceof RedmineUser) {

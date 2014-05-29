@@ -40,8 +40,6 @@ import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -58,14 +56,13 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import org.apache.commons.lang.StringUtils;
@@ -136,7 +133,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
     public RedmineQueryController(RedmineRepository repository, RedmineQuery query) {
         this.repository = repository;
         this.query = query;
-
     }
 
     private void setListeners() {
@@ -151,8 +147,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
         queryPanel.modifyButton.addActionListener(this);
         queryPanel.removeButton.addActionListener(this);
         queryPanel.refreshConfigurationButton.addActionListener(this);
-        queryPanel.findIssuesButton.addActionListener(this);
-        queryPanel.cloneQueryButton.addActionListener(this);
         queryPanel.issueIdTextField.addActionListener(this);
         queryPanel.queryTextField.addActionListener(this);
     }
@@ -166,23 +160,43 @@ public class RedmineQueryController implements QueryController, ActionListener {
         return HelpCtx.DEFAULT_HELP;
     }
 
+    private void modelToGUI() {
+        for(Entry<String,ParameterValue[]> e: query.getParameters().entrySet()) {
+            if(parameters.containsKey(e.getKey())) {
+                parameters.get(e.getKey()).setValues(e.getValue());
+            }
+        }
+    }
+    
+    private void guiToModel() {
+        Map<String, ParameterValue[]> parameters = new HashMap<>();
+        for(RedmineQueryParameter rqp: this.parameters.values()) {
+            parameters.put(rqp.getParameter(), rqp.getValues());
+        }
+        query.setParameters(parameters);
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
             if (e.getSource() == queryPanel.searchButton) {
-                onRefresh();
+                guiToModel();
+                refresh();
             } else if (e.getSource() == queryPanel.gotoIssueButton) {
                 onGotoIssue();
             } else if (e.getSource() == queryPanel.saveChangesButton) {
+                guiToModel();
                 onSave(true); // refresh
             } else if (e.getSource() == queryPanel.cancelChangesButton) {
                 onCancelChanges();
+                modelToGUI();
             } else if (e.getSource() == queryPanel.webButton) {
                 onWeb();
             } else if (e.getSource() == queryPanel.saveButton) {
+                guiToModel();
                 onSave(false); // do not refresh
             } else if (e.getSource() == queryPanel.refreshButton) {
-                onRefresh();
+                refresh();
             } else if (e.getSource() == queryPanel.modifyButton) {
                 onModify();
             } else if (e.getSource() == queryPanel.removeButton) {
@@ -190,18 +204,14 @@ public class RedmineQueryController implements QueryController, ActionListener {
             } else if (e.getSource() == queryPanel.refreshCheckBox) {
                 onAutoRefresh();
             } else if (e.getSource() == queryPanel.refreshConfigurationButton) {
-                onRefreshConfiguration();
-            } else if (e.getSource() == queryPanel.findIssuesButton) {
-                onFindIssues();
-            } else if (e.getSource() == queryPanel.cloneQueryButton) {
-                onCloneQuery();
+                refreshConfiguration();
             } else if (e.getSource() == queryPanel.issueIdTextField) {
                 if (!queryPanel.issueIdTextField.getText().trim().equals("")) {                // NOI18N
                     onGotoIssue();
                 }
             } else if (e.getSource() == queryPanel.issueIdTextField
                     || e.getSource() == queryPanel.queryTextField) {
-                onRefresh();
+                refresh();
             }
         } catch (RedmineException ex) {
             Exceptions.printStackTrace(ex);
@@ -227,7 +237,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 Redmine.LOG.fine("on save finnish");
 
                 if (refresh) {
-                    onRefresh();
+                    refresh();
                 }
             }
         });
@@ -246,7 +256,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
         setAsSaved();
         if (!query.wasRun()) {
             Redmine.LOG.log(Level.FINE, "refreshing query '{0}' after save", new Object[]{name});
-            onRefresh();
+            refresh();
         }
         Redmine.LOG.log(Level.FINE, "query '{0}' saved", new Object[]{name});
     }
@@ -269,6 +279,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
 //                setParameters(urlParameters);
 //            }
 //        }
+        RedmineConfig.getInstance().reloadQuery(query);
+        modelToGUI();
         setAsSaved();
     }
 
@@ -350,17 +362,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
         });
     }
 
-    private void onCloneQuery() {
-        RedmineQuery q = new RedmineQuery(null, repository, null, false, false, true);
-        RedmineUtil.openQuery(q);
-    }
-
     public void autoRefresh() {
-        refresh(true, false);
-    }
-
-    public void refresh(boolean synchronously) {
-        refresh(false, synchronously);
+        refresh(true);
     }
 
     private void onAutoRefresh() {
@@ -374,11 +377,11 @@ public class RedmineQueryController implements QueryController, ActionListener {
         }
     }
 
-    public void onRefresh() {
-        refresh(false, false);
+    public void refresh() {
+        refresh(false);
     }
 
-    private void refresh(final boolean auto, boolean synchronously) {
+    private void refresh(final boolean auto) {
         RequestProcessor.Task t;
         synchronized (REFRESH_LOCK) {
             if (refreshTask == null) {
@@ -388,28 +391,10 @@ public class RedmineQueryController implements QueryController, ActionListener {
             }
             t = refreshTask.post(auto);
         }
-        if (synchronously) {
-            t.waitFinished();
-        }
     }
 
     private void onModify() {
         queryPanel.setModifyVisible(true);
-    }
-
-    private void onMarkSeen() throws RedmineException {
-        Redmine.getInstance().getRequestProcessor().post(new Runnable() {
-            @Override
-            public void run() {
-                /*for (RedmineIssue issue : query.getIssues()) {
-                 try {
-                 issue.setSeen(true);
-                 } catch (IOException ex) {
-                 Redmine.LOG.log(Level.SEVERE, null, ex);
-                 }
-                 }*/
-            }
-        });
     }
 
     private void onRemove() throws RedmineException {
@@ -426,11 +411,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
         }
     }
 
-    private void onFindIssues() {
-        throw new RuntimeException("Not supported");
-        //Util.createNewQuery(repository.getController().RedmineUtil.getRepository(repository));
-    }
-
     protected void scheduleForRefresh() {
         if (query.isSaved()) {
             repository.scheduleForRefresh(query);
@@ -445,7 +425,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 ));
     }
 
-    private void onRefreshConfiguration() {
+    private void refreshConfiguration() {
 //      postPopulate(query.getUrlParameters(), true);
         postPopulate();
     }
@@ -487,6 +467,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                         public void run() {
                             enableFields(true);
                             handle.finish();
+                            modelToGUI();
                             queryPanel.showRetrievingProgress(false, null, !query.isSaved());
                         }
                     });
@@ -546,7 +527,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
         pvList = new ArrayList<>();
         pvList.add(ParameterValue.NONE_PARAMETERVALUE);
         for (RedmineUser redmineUser : repository.getUsers()) {
-            pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId(), redmineUser));
+            pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
         }
         assigneeParameter.setParameterValues(pvList);
 
@@ -579,10 +560,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
         return null;
     }
 
-    public Map<String, RedmineQueryParameter> getSearchParameters() {
-        return new HashMap<>(parameters);
-    }
-
     protected void enableFields(boolean bl) {
         // set all non parameter fields
         queryPanel.enableFields(bl);
@@ -609,33 +586,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
         });
     }
 
-    void switchToDeterminateProgress(long issuesCount) {
-        if (refreshTask != null) {
-            refreshTask.switchToDeterminateProgress(issuesCount);
-        }
-    }
-
-    void addProgressUnit(String issueDesc) {
-        if (refreshTask != null) {
-            refreshTask.addProgressUnit(issueDesc);
-        }
-    }
-
-    /* @Override
-     public void setMode(QueryMode mode) {
-     Filter filter;
-     switch (mode) {
-     case SHOW_ALL:
-     filter = issueTable.getAllFilter();
-     break;
-     case SHOW_NEW_OR_CHANGED:
-     filter = issueTable.getNewOrChangedFilter();
-     break;
-     default:
-     throw new IllegalStateException("Unsupported mode " + mode);
-     }
-     selectFilter(filter);
-     }*/
     @Override
     public boolean providesMode(QueryMode qm) {
         return qm == QueryMode.EDIT;
@@ -741,6 +691,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
     @Override
     public void opened() {
+        modelToGUI();
     }
 
     @Override
@@ -759,7 +710,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
     @Override
     public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return query.isSaved();
     }
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
 
@@ -774,63 +725,38 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     private class QueryTask implements Runnable, Cancellable, QueryNotifyListener {
-
-        private ProgressHandle handle;
         private RequestProcessor.Task task;
         private int counter;
         private boolean autoRefresh;
-        private long progressMaxWorkunits;
-        private int progressWorkunits;
-        private List<RedmineIssue> issues = new ArrayList<>();
 
         public QueryTask() {
             query.addNotifyListener(this);
         }
 
         private void startQuery() {
-            handle = ProgressHandleFactory.createHandle(
-                    Bundle.MSG_SearchingQuery(query.getDisplayName() != null
-                            ? query.getDisplayName()
-                            : repository.getDisplayName()),
-                    this);
-            EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    enableFields(false);
-                    queryPanel.showSearchingProgress(true, Bundle.MSG_Searching());
-                }
-            });
-            handle.start();
+            if (queryPanel != null) {
+                EventQueue.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        enableFields(false);
+                        queryPanel.showSearchingProgress(true, Bundle.MSG_Searching());
+                    }
+                });
+            }
         }
 
         private synchronized void finnishQuery() {
             task = null;
-            if (handle != null) {
-                handle.finish();
-                handle = null;
-            }
-            EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    queryPanel.setQueryRunning(false);
-                    queryPanel.setLastRefresh(getLastRefresh());
-                    queryPanel.showNoContentPanel(false);
-                    enableFields(true);
-                }
-            });
-        }
-
-        synchronized void switchToDeterminateProgress(long progressMaxWorkunits) {
-            if (handle != null) {
-                handle.switchToDeterminate((int) progressMaxWorkunits);
-                this.progressMaxWorkunits = progressMaxWorkunits;
-                this.progressWorkunits = 0;
-            }
-        }
-
-        synchronized void addProgressUnit(String issueDesc) {
-            if (handle != null && progressWorkunits < progressMaxWorkunits) {
-                handle.progress(Bundle.LBL_RetrievingIssue(issueDesc), ++progressWorkunits);
+            if (queryPanel != null) {
+                EventQueue.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        queryPanel.setQueryRunning(false);
+                        queryPanel.setLastRefresh(getLastRefresh());
+                        queryPanel.showNoContentPanel(false);
+                        enableFields(true);
+                    }
+                });
             }
         }
 
@@ -846,12 +772,14 @@ public class RedmineQueryController implements QueryController, ActionListener {
         }
 
         private void setQueryRunning(final boolean running) {
-            EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    queryPanel.setQueryRunning(running);
-                }
-            });
+            if (queryPanel != null) {
+                EventQueue.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        queryPanel.setQueryRunning(running);
+                    }
+                });
+            }
         }
 
         @Override
@@ -885,33 +813,31 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
         @Override
         public void notifyData(RedmineIssue issue) {
-            issues.add(issue);
-            if (!query.contains(issue)) {
-                // XXX this is quite ugly - the query notifies an archoived issue
-                // but it doesn't "contain" it!
-                return;
-            }
-            setIssueCount(++counter);
-            if (counter == 1) {
-                EventQueue.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        queryPanel.showNoContentPanel(false);;
-                    }
-                });
+            counter++;
+            if (queryPanel != null) {
+                setIssueCount(counter);
+                if (counter == 1) {
+                    EventQueue.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            queryPanel.showNoContentPanel(false);
+                        }
+                    });
+                }
             }
         }
 
         @Override
         public void started() {
             counter = 0;
-            setIssueCount(counter);
-            issues.clear();
+            if (queryPanel != null) {
+                setIssueCount(counter);
+            }
         }
 
         @Override
         public void finished() {
-            queryListModel.setIssues(issues);
+            queryListModel.setIssues(query.getIssues());
         }
     }
 

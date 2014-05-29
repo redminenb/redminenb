@@ -16,7 +16,10 @@
 package com.kenai.redminenb.query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import org.netbeans.api.annotations.common.NonNull;
 import org.openide.util.NbBundle;
 
@@ -26,15 +29,18 @@ import org.openide.util.NbBundle;
  * @author Anchialas <anchialas@gmail.com>
  */
 @NbBundle.Messages("LBL_PVNone=(none)")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ParameterValue {
 
    static final String NONE_VALUE = "!*";
    static final ParameterValue NONE_PARAMETERVALUE = new ParameterValue(Bundle.LBL_PVNone(), NONE_VALUE);
    
-   private final String displayName;
-   private final String value;
-   private Object userObject;
+   private String displayName;
+   private String value;
 
+   private ParameterValue() {
+   }
+   
    public ParameterValue(@NonNull String value) {
       this(value, value);
    }
@@ -53,11 +59,6 @@ public class ParameterValue {
       this.value = String.valueOf(value);
    }
 
-   public ParameterValue(@NonNull String displayName, @NonNull Integer value, Object userObject) {
-      this(displayName, value);
-      this.userObject = userObject;
-   }
-
    static List<ParameterValue> convert(List<String> values) {
       List<ParameterValue> ret = new ArrayList<>(values.size());
       for (String v : values) {
@@ -72,10 +73,6 @@ public class ParameterValue {
 
    public String getValue() {
       return value;
-   }
-
-   public Object getUserObject() {
-      return userObject;
    }
 
    @Override
@@ -104,4 +101,19 @@ public class ParameterValue {
    public int hashCode() {
       return value.hashCode(); // value cannot be null!
    }
+   
+   public static String flattenList(ParameterValue... pvs) {
+       return flattenList(Arrays.asList(pvs));
+   }
+   
+   public static String flattenList(List<ParameterValue> pvs) {
+        StringBuilder sb = new StringBuilder();
+        for (ParameterValue pv : pvs) {
+            if (sb.length() > 0) {
+                sb.append(",");
+            }
+            sb.append(pv.getValue());
+        }
+        return sb.toString();
+    }
 }

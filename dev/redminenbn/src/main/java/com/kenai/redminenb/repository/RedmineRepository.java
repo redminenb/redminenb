@@ -30,6 +30,7 @@ import com.kenai.redminenb.api.Helper;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
@@ -37,7 +38,6 @@ import com.taskadapter.redmineapi.bean.Membership;
 import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
-import java.awt.EventQueue;
 import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -252,13 +252,10 @@ public class RedmineRepository {
         RedmineIssue redmineIssue = null;
         if (issueId != null) {
             synchronized (CACHE_LOCK) {
-
-                //IssueCache<RedmineIssue> issueCache = getIssueCache();
-//            redmineIssue = issueCache.getIssue(issueId);
                 if (redmineIssue == null) {
                     try {
-                        com.taskadapter.redmineapi.bean.Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
-                        //              redmineIssue = issueCache.setIssueData(issueId, new RedmineIssue(this, issue));
+                        Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
+                        redmineIssue = new RedmineIssue(this, issue);
                     } catch (NotFoundException ex) {
                         // do nothing
                     } catch (Exception ex) {
@@ -282,20 +279,6 @@ public class RedmineRepository {
     }
 
     public void remove() {
-//      try {
-//         Redmine.getInstance().removeRepository(this);
-//      } catch (com.kenai.redminenb.RedmineException ex) {
-//         JOptionPane.showMessageDialog(null, ex.getLocalizedMessage());
-//      }
-        /*synchronized (QUERIES_LOCK) {
-         for (RedmineQuery rq : doGetQueries()) {
-         removeQuery(rq);
-         }
-         }
-         resetRepository(true);*/
-        /*
-         RedmineTaskListProvider.getInstance().notifyRepositoryRemoved(this);
-         */
     }
 
     synchronized void resetRepository(boolean keepConfiguration) {
@@ -331,13 +314,9 @@ public class RedmineRepository {
         return new RedmineQuery(this);
     }
 
-    public void removeQuery(RedmineQuery query) {
-        RedmineConfig.getInstance().removeQuery(this, query);
-//      getIssueCache().removeQuery(query.getStoredQueryName());
-        //doGetQueries().remove(query);
-        //stopRefreshing(query)
-
-        queries.remove(query.getDisplayName());
+    public void removeQuery(String displayName) {
+        RedmineConfig.getInstance().removeQuery(this, displayName);
+        queries.remove(displayName);
         fireQueryListChanged();
 
     }
@@ -356,7 +335,6 @@ public class RedmineRepository {
     }
 
     private void doGetQueries() {
-        //if (queries == null) {
         queries.clear();// = new HashSet<>(10);
         String[] qs = RedmineConfig.getInstance().getQueries(getID());
         for (String queryName : qs) {
@@ -367,7 +345,6 @@ public class RedmineRepository {
                 Redmine.LOG.log(Level.WARNING, "Couldn''t find query with stored name {0}", queryName); // NOI18N
             }
         }
-        // }
     }
 
     public Collection<RedmineQuery> getQueries() {
@@ -700,28 +677,6 @@ public class RedmineRepository {
         synchronized (queriesToRefresh) {
             queriesToRefresh.remove(query);
         }
-    }
-
-    public void refreshAllQueries() {
-        refreshAllQueries(true);
-    }
-
-    protected void refreshAllQueries(final boolean onlyOpened) {
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                for (RedmineQuery q : getQueries()) {
-                    /*               if (!onlyOpened || !Redmine.getInstance().getBugtrackingFactory().isOpen(
-                     RedmineUtil.getRepository(RedmineRepository.this), q)) {
-                     continue;
-                     }
-                     Redmine.LOG.log(Level.FINER, "preparing to refresh query {0} - {1}",
-                     new Object[]{q.getDisplayName(), getDisplayName()}); // NOI18N
-                     RedmineQueryController qc = q.getController();
-                     qc.onRefresh();*/
-                }
-            }
-        });
     }
 
     @Override

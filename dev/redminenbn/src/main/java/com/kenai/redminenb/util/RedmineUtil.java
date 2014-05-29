@@ -15,6 +15,7 @@
  */
 package com.kenai.redminenb.util;
 
+import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.query.RedmineQuery;
 import com.kenai.redminenb.repository.RedmineRepository;
@@ -27,7 +28,6 @@ import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
-import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 
 /**
@@ -108,19 +108,6 @@ public final class RedmineUtil {
         }
     }
 
-//    public static Repository getRepository(RedmineRepository redmineRepository) {
-//        Repository repository = null;//Redmine.getInstance().getBugtrackingFactory().getRepository(
-//        //     RedmineConnector.ID, redmineRepository.getID());
-//   /*   if (repository == null) {
-//         repository = Redmine.getInstance().getBugtrackingFactory().createRepository(
-//         redmineRepository,
-//         Redmine.getInstance().getRepositoryProvider(),
-//         Redmine.getInstance().getQueryProvider(),
-//         Redmine.getInstance().getIssueProvider());
-//         }*/
-//        return repository;
-//    }
-
     /**
      * Get the RedmineIssue from the cache or from the Redmine application.
      *
@@ -137,12 +124,10 @@ public final class RedmineUtil {
     }
 
     public static void openIssue(RedmineIssue redmineIssue) {
-        /* Redmine.getInstance().getBugtrackingFactory().openIssue(
-         getRepository(redmineIssue.getRepository()), redmineIssue);*/
+        Redmine.getInstance().getSupport().openIssue(redmineIssue.getRepository(), redmineIssue);
     }
 
     public static void openQuery(RedmineQuery redmineQuery) {
-        /*     Redmine.getInstance().getBugtrackingFactory().openQuery(
-         getRepository(redmineQuery.getRepository()), redmineQuery);*/
+        Redmine.getInstance().getSupport().editQuery(redmineQuery.getRepository(), redmineQuery);
     }
 }

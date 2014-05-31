@@ -94,7 +94,7 @@ public final class RedmineQuery {
         if(parameters == null) {
             parameters = Collections.EMPTY_MAP;
         }
-        boolean changed = parameters.equals(this.parameters);
+        boolean changed = ! parameters.equals(this.parameters);
         this.parameters = parameters;
         if (changed) {
             firePropertyChanged();

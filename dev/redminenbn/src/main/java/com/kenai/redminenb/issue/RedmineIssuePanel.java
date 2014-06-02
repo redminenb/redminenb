@@ -8,6 +8,7 @@ import com.kenai.redminenb.util.RedmineUtil;
 import com.kenai.redminenb.util.markup.TextileUtil;
 
 import com.kenai.redminenb.api.Helper;
+import com.kenai.redminenb.repository.RedmineRepository;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
@@ -54,6 +55,9 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
 import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import com.kenai.redminenb.util.LinkButton;
+import com.taskadapter.redmineapi.bean.Issue;
+import java.util.concurrent.ExecutionException;
+import javax.swing.SwingWorker;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.DropDownButtonFactory;
@@ -358,39 +362,82 @@ public class RedmineIssuePanel extends JPanel {
       return redmineIssue;
    }
 
-   private boolean createIssue(com.taskadapter.redmineapi.bean.Issue issue) {
-      try {
-         setIssueData(issue);
-         this.redmineIssue.setIssue(this.redmineIssue.getRepository().getManager().createIssue(
-                 this.redmineIssue.getRepository().getProject().getIdentifier(), issue));
+    private void createIssue() {
+        com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
 
-         initIssue();
-         setInfoMessage("Issue successfully created.");
-         return true;
+        if (issue == null) {
+            issue = new Issue();
+            this.redmineIssue.setIssue(issue);
+        }
+        
+        setIssueData(issue);
+        
+        final Issue inputIssue = issue;
+        
+        new SwingWorker() {
 
-      } catch (Exception ex) {
-         Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex);
-         setErrorMessage("Can't create Redmine issue: " + ex.getMessage());
-      }
-      return false;
+           @Override
+           protected Object doInBackground() throws Exception {
+               RedmineRepository rr = redmineIssue.getRepository();
+               String projektId = rr.getProject().getIdentifier();
+               Issue issue =  rr.getManager().createIssue(projektId, inputIssue);
+               redmineIssue.setIssue(issue);
+               return null;
+           }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    initIssue();
+                    setInfoMessage("Issue successfully created.");
+                    createButton.setVisible(false);
+                    updateButton.setVisible(true);
+                } catch (InterruptedException ex) {
+                    Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex);
+                    setErrorMessage("Can't create Redmine issue: "
+                            + ex.getMessage());
+                } catch (ExecutionException ex) {
+                    Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex.getCause());
+                    setErrorMessage("Can't create Redmine issue: "
+                            + ex.getCause().getMessage());
+                }
+            }
+       }.execute();
    }
 
-   private boolean saveIssue() {
-      try {
-         com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
-         setIssueData(issue);
-         redmineIssue.getRepository().getManager().update(issue);
-         redmineIssue.refresh();
+   private void saveIssue() {
+        final Issue issue = this.redmineIssue.getIssue();
+        setIssueData(issue);
 
-         initIssue();
-         setInfoMessage("Issue successfully saved.");
-         return true;
+        new SwingWorker() {
 
-      } catch (Exception ex) {
-         Redmine.LOG.log(Level.SEVERE, "Can't save Redmine issue", ex);
-         setErrorMessage("Saving the Issue failed!");
-      }
-      return false;
+           @Override
+           protected Object doInBackground() throws Exception {
+                redmineIssue.getRepository().getManager().update(issue);
+                redmineIssue.refresh();
+                return null;
+           }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    initIssue();
+                    setInfoMessage("Issue successfully saved.");
+                    createButton.setVisible(false);
+                    updateButton.setVisible(true);
+                } catch (InterruptedException ex) {
+                    Redmine.LOG.log(Level.SEVERE, "Can't save Redmine issue", ex);
+                    setErrorMessage("Saving the Issue failed: "
+                            + ex.getMessage());
+                } catch (ExecutionException ex) {
+                    Redmine.LOG.log(Level.SEVERE, "Can't save Redmine issue", ex.getCause());
+                    setErrorMessage("Saving the Issue failed: "
+                            + ex.getCause().getMessage());
+                }
+            }
+       }.execute();
    }
 
    private void initValues() {
@@ -860,17 +907,7 @@ public class RedmineIssuePanel extends JPanel {
 
     private void createButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
        if (isIssueValid()) {
-          com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
-
-          if (issue == null) {
-             issue = new com.taskadapter.redmineapi.bean.Issue();
-             this.redmineIssue.setIssue(issue);
-          }
-
-          if (createIssue(issue)) {
-             createButton.setVisible(false);
-             updateButton.setVisible(true);
-          }
+           createIssue();
        }
     }//GEN-LAST:event_createButtonActionPerformed
 

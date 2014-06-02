@@ -17,6 +17,7 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -145,9 +146,21 @@ public class RedmineIssueController implements IssueController {
                 Defaults.getIcon("refresh.png")) {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        redmineIssue.refresh();
-                        issuePanel.initIssue();
-                        issuePanel.setInfoMessage("Issue successfully reloaded.");
+                        new SwingWorker() {
+
+                            @Override
+                            protected Object doInBackground() throws Exception {
+                                redmineIssue.refresh();
+                                return null;
+                            }
+
+                            @Override
+                            protected void done() {
+                                issuePanel.initIssue();
+                                issuePanel.setInfoMessage("Issue successfully reloaded.");
+                            }
+
+                        }.execute();
                     }
                 };
 

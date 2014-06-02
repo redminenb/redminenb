@@ -416,7 +416,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     protected void logAutoRefreshEvent(boolean autoRefresh) {
-        LOG.fine(String.format("AutoRefresh '%s-%s', Count: %d, Autorefresh: %b",
+        LOG.fine(String.format("AutoRefresh '%s-%s', Autorefresh: %b",
                 RedmineConnector.NAME,
                 query.getDisplayName(),
                 autoRefresh

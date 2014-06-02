@@ -49,6 +49,7 @@ import java.beans.PropertyChangeSupport;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -166,6 +167,9 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 parameters.get(e.getKey()).setValues(e.getValue());
             }
         }
+        queryPanel.setTitle(query.getDisplayName());
+        queryPanel.cancelChangesButton.setVisible(query.getDisplayName() != null);
+        queryPanel.setLastRefresh(getLastRefresh());
     }
     
     private void guiToModel() {
@@ -226,7 +230,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             public void run() {
                 Redmine.LOG.fine("on save start");
                 String name = query.getDisplayName();
-                if (!query.isSaved()) {
+                if (query.getDisplayName() == null || query.getDisplayName().isEmpty()) {
                     name = getSaveName();
                     if (name == null) {
                         return;
@@ -253,7 +257,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
         query.setName(name);
         repository.saveQuery(query);
         query.setSaved(true); // XXX
-        setAsSaved();
+        setAsSaved(false);
         if (!query.wasRun()) {
             Redmine.LOG.log(Level.FINE, "refreshing query '{0}' after save", new Object[]{name});
             refresh();
@@ -273,21 +277,15 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     private void onCancelChanges() {
-//        if(query.getDisplayName() != null) { // XXX need a better semantic - isSaved?
-//            String urlParameters = RedmineConfig.getInstance().getUrlParams(repository, query.getDisplayName());
-//            if(urlParameters != null) {
-//                setParameters(urlParameters);
-//            }
-//        }
         RedmineConfig.getInstance().reloadQuery(query);
         modelToGUI();
-        setAsSaved();
+        setAsSaved(false);
     }
 
-    private void setAsSaved() {
-        queryPanel.setSaved(query.getDisplayName(), getLastRefresh());
-        queryPanel.setModifyVisible(false);
-        queryPanel.refreshCheckBox.setVisible(true);
+    private void setAsSaved(boolean showModify) {
+        queryPanel.setModifyVisible(showModify);
+        queryPanel.cancelChangesButton.setVisible(! showModify);
+        queryPanel.refreshCheckBox.setVisible(! showModify);
     }
 
     private String getLastRefresh() throws MissingResourceException {
@@ -588,7 +586,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
     @Override
     public boolean providesMode(QueryMode qm) {
-        return qm == QueryMode.EDIT;
+        return qm == QueryMode.EDIT || qm == QueryMode.VIEW;
     }
 
     @Override
@@ -685,6 +683,11 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
             setListeners();
             postPopulate();
+        }
+        if(qm == QueryMode.VIEW) {
+            setAsSaved(false);
+        } else {
+            setAsSaved(true);
         }
         return queryPanel;
     }

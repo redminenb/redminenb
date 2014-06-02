@@ -129,7 +129,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       byText.expand();
       byDetails.expand();
 
-      queryHeaderPanel.setVisible(false);
       tableFieldsPanel.setVisible(false);
       saveChangesButton.setVisible(false);
       cancelChangesButton.setVisible(false);
@@ -687,6 +686,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         Mnemonics.setLocalizedText(nameLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.nameLabel.text")); // NOI18N
 
         Mnemonics.setLocalizedText(refreshCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.text")); // NOI18N
+        refreshCheckBox.setOpaque(false);
 
         topButtonPanel.setOpaque(false);
         topButtonPanel.setLayout(new GridBagLayout());
@@ -748,7 +748,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                         .addComponent(lastRefreshDateLabel))
                     .addGroup(queryHeaderPanelLayout.createSequentialGroup()
                         .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 399, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         queryHeaderPanelLayout.setVerticalGroup(
@@ -944,8 +944,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       cancelChangesButton.setVisible(b);
       saveChangesButton.setVisible(b);
 
-      tableFieldsPanel.setVisible(!b);
-      searchButton.setVisible(!b);
+      topButtonPanel.setVisible(!b);
       saveButton.setVisible(!b);
       webButton.setVisible(!b);
 
@@ -953,12 +952,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       separatorLabel2.setVisible(!b);
    }
 
-   void setSaved(String name, String lastRefresh) {
-      searchPanel.setVisible(false);
-      queryHeaderPanel.setVisible(true);
-      tableHeaderPanel.setVisible(true);
-      nameLabel.setText(name);
-      setLastRefresh(lastRefresh);
+   void setTitle(String name) {
+       nameLabel.setText(name);
    }
 
    void setLastRefresh(String lastRefresh) {

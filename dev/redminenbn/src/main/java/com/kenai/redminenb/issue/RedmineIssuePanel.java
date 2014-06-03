@@ -56,7 +56,10 @@ import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
 import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import com.kenai.redminenb.util.LinkButton;
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.Journal;
+import com.taskadapter.redmineapi.bean.JournalDetail;
 import java.util.concurrent.ExecutionException;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingWorker;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -109,8 +112,6 @@ public class RedmineIssuePanel extends JPanel {
    void updateTextileOutput() {
       String text = descTextArea.getText();
       if (StringUtils.isNotBlank(text)) {
-         //text = TextileUtil.getTextileMarkupParser().parseToHtml(text);
-         //text = "<html>" + text.substring(text.indexOf("<body>"));
          StringWriter writer = new StringWriter();
 
          HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer);
@@ -526,8 +527,6 @@ public class RedmineIssuePanel extends JPanel {
         priorityComboBox = new JComboBox();
         doneComboBox = new JComboBox();
         subjectTextField = new JTextField();
-        descScrollPane = new JScrollPane();
-        descTextArea = new JTextArea();
         categoryLabel = new JLabel();
         statusLabel = new JLabel();
         parentTaskTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
@@ -538,6 +537,9 @@ public class RedmineIssuePanel extends JPanel {
         subjectLabel2 = new JLabel();
         assigneeComboBox = new JComboBox();
         privateCheckBox = new JCheckBox();
+        descriptionPanel = new JTabbedPane();
+        descScrollPane = new JScrollPane();
+        descTextArea = new JTextArea();
         htmlOutputLabel = new JLabel();
 
         setOpaque(false);
@@ -685,9 +687,6 @@ public class RedmineIssuePanel extends JPanel {
 
         subjectTextField.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectTextField.text")); // NOI18N
 
-        descTextArea.setColumns(20);
-        descScrollPane.setViewportView(descTextArea);
-
         wikiSyntaxButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/help.png"))); // NOI18N
         wikiSyntaxButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.wikiSyntaxButton.text")); // NOI18N
         wikiSyntaxButton.setFont(new Font("Lucida Grande", 0, 11)); // NOI18N
@@ -743,9 +742,17 @@ public class RedmineIssuePanel extends JPanel {
 
         privateCheckBox.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.privateCheckBox.text")); // NOI18N
 
+        descTextArea.setColumns(20);
+        descScrollPane.setViewportView(descTextArea);
+
+        descriptionPanel.addTab(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.descScrollPane.TabConstraints.tabTitle"), descScrollPane); // NOI18N
+
+        htmlOutputLabel.setBackground(new Color(255, 255, 255));
         htmlOutputLabel.setFont(htmlOutputLabel.getFont().deriveFont(htmlOutputLabel.getFont().getSize()-2f));
         htmlOutputLabel.setVerticalAlignment(SwingConstants.TOP);
+        htmlOutputLabel.setOpaque(true);
         htmlOutputLabel.setVerticalTextPosition(SwingConstants.TOP);
+        descriptionPanel.addTab(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.htmlOutputLabel.TabConstraints.tabTitle"), htmlOutputLabel); // NOI18N
 
         GroupLayout issuePaneLayout = new GroupLayout(issuePane);
         issuePane.setLayout(issuePaneLayout);
@@ -767,53 +774,50 @@ public class RedmineIssuePanel extends JPanel {
                 .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(subjectTextField)
                     .addGroup(issuePaneLayout.createSequentialGroup()
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                            .addComponent(descScrollPane, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 613, GroupLayout.PREFERRED_SIZE)
-                            .addGroup(GroupLayout.Alignment.LEADING, issuePaneLayout.createSequentialGroup()
+                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addGroup(issuePaneLayout.createSequentialGroup()
+                                .addComponent(trackerComboBox, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(privateCheckBox))
+                            .addGroup(issuePaneLayout.createSequentialGroup()
                                 .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                    .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addComponent(trackerComboBox, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(privateCheckBox))
-                                    .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addComponent(targetVersionComboBox, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
-                                            .addGroup(GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
-                                                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                                    .addComponent(statusComboBox, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
-                                                    .addComponent(priorityComboBox, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE))
-                                                .addGap(53, 53, 53))
-                                            .addComponent(assigneeComboBox, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE))
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addComponent(versionAddButton, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(assignToMeButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                                    .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addComponent(categoryComboBox, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(categoryAddButton, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE)))
-                                .addGap(60, 60, 60)
+                                    .addComponent(targetVersionComboBox, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
+                                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                            .addComponent(statusComboBox, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(priorityComboBox, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE))
+                                        .addGap(53, 53, 53))
+                                    .addComponent(assigneeComboBox, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                    .addComponent(dueDateLabel)
-                                    .addComponent(startDateLabel)
-                                    .addComponent(parentIdLabel)
-                                    .addComponent(subjectLabel2)
-                                    .addComponent(doneLabel)
-                                    .addComponent(estimateTimeLabel))
-                                .addGap(8, 8, 8)
-                                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                    .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addComponent(estimateTimeTextField, GroupLayout.PREFERRED_SIZE, 93, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(estimateTimeLabel1))
-                                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(startDateChooser, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
-                                        .addComponent(dueDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(parentTaskTextField, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(projectNameButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(htmlOutputLabel, GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)))
+                                    .addComponent(versionAddButton, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(assignToMeButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(issuePaneLayout.createSequentialGroup()
+                                .addComponent(categoryComboBox, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(categoryAddButton, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE)))
+                        .addGap(60, 60, 60)
+                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(dueDateLabel)
+                            .addComponent(startDateLabel)
+                            .addComponent(parentIdLabel)
+                            .addComponent(subjectLabel2)
+                            .addComponent(doneLabel)
+                            .addComponent(estimateTimeLabel))
+                        .addGap(8, 8, 8)
+                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addGroup(issuePaneLayout.createSequentialGroup()
+                                .addComponent(estimateTimeTextField, GroupLayout.PREFERRED_SIZE, 93, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(estimateTimeLabel1))
+                            .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(startDateChooser, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+                                .addComponent(dueDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(parentTaskTextField, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(projectNameButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 54, Short.MAX_VALUE))
+                    .addComponent(descriptionPanel))
                 .addContainerGap())
         );
         issuePaneLayout.setVerticalGroup(
@@ -833,51 +837,49 @@ public class RedmineIssuePanel extends JPanel {
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addGroup(issuePaneLayout.createSequentialGroup()
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addGroup(issuePaneLayout.createSequentialGroup()
-                                .addComponent(descriptionLabel)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                            .addComponent(descScrollPane, GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))
+                        .addComponent(descriptionLabel)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                            .addComponent(statusComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(statusLabel)
-                            .addComponent(parentIdLabel)
-                            .addComponent(parentTaskTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                        .addGap(8, 8, 8)
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                .addComponent(priorityLabel)
-                                .addComponent(priorityComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(startDateLabel, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
-                            .addComponent(startDateChooser, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                .addComponent(assigneeLabel)
-                                .addComponent(dueDateLabel, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(assignToMeButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(assigneeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                            .addComponent(dueDateChooser, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(categoryAddButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                .addComponent(categoryLabel)
-                                .addComponent(categoryComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(estimateTimeLabel)
-                                .addComponent(estimateTimeTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(estimateTimeLabel1)))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(versionAddButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                .addComponent(targetVersionLabel)
-                                .addComponent(targetVersionComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(doneLabel)
-                                .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-                    .addComponent(htmlOutputLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 53, Short.MAX_VALUE))
+                    .addComponent(descriptionPanel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(statusComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(statusLabel)
+                    .addComponent(parentIdLabel)
+                    .addComponent(parentTaskTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(8, 8, 8)
+                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(priorityLabel)
+                        .addComponent(priorityComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(startDateLabel, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(startDateChooser, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(assigneeLabel)
+                        .addComponent(dueDateLabel, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(assignToMeButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(assigneeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(dueDateChooser, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(categoryAddButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(categoryLabel)
+                        .addComponent(categoryComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(estimateTimeLabel)
+                        .addComponent(estimateTimeTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(estimateTimeLabel1)))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(versionAddButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(targetVersionLabel)
+                        .addComponent(targetVersionComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(doneLabel)
+                        .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
 
@@ -987,52 +989,53 @@ public class RedmineIssuePanel extends JPanel {
    }//GEN-LAST:event_wikiSyntaxButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     final LinkButton assignToMeButton = new LinkButton();
-    private JComboBox assigneeComboBox;
-    private JLabel assigneeLabel;
+    JComboBox assigneeComboBox;
+    JLabel assigneeLabel;
     JPanel buttonPane;
     final LinkButton categoryAddButton = new LinkButton();
-    private JComboBox categoryComboBox;
-    private JLabel categoryLabel;
-    private JButton createButton;
-    private JLabel createdLabel;
-    private JLabel createdValueLabel;
-    private JScrollPane descScrollPane;
+    JComboBox categoryComboBox;
+    JLabel categoryLabel;
+    JButton createButton;
+    JLabel createdLabel;
+    JLabel createdValueLabel;
+    JScrollPane descScrollPane;
     JTextArea descTextArea;
-    private JLabel descriptionLabel;
-    private JComboBox doneComboBox;
-    private JLabel doneLabel;
-    private JDateChooser dueDateChooser;
-    private JLabel dueDateLabel;
-    private JLabel estimateTimeLabel;
-    private JLabel estimateTimeLabel1;
-    private JFormattedTextField estimateTimeTextField;
-    private JPanel headPane;
-    private JLabel headerLabel;
-    private JLabel htmlOutputLabel;
+    JLabel descriptionLabel;
+    JTabbedPane descriptionPanel;
+    JComboBox doneComboBox;
+    JLabel doneLabel;
+    JDateChooser dueDateChooser;
+    JLabel dueDateLabel;
+    JLabel estimateTimeLabel;
+    JLabel estimateTimeLabel1;
+    JFormattedTextField estimateTimeTextField;
+    JPanel headPane;
+    JLabel headerLabel;
+    JLabel htmlOutputLabel;
     final JLabel infoLabel = new JLabel();
-    private JPanel issuePane;
-    private JPanel parentHeaderPanel;
-    private JLabel parentIdLabel;
-    private JFormattedTextField parentTaskTextField;
+    JPanel issuePane;
+    JPanel parentHeaderPanel;
+    JLabel parentIdLabel;
+    JFormattedTextField parentTaskTextField;
     private JComboBox priorityComboBox;
-    private JLabel priorityLabel;
-    private JCheckBox privateCheckBox;
+    JLabel priorityLabel;
+    JCheckBox privateCheckBox;
     final LinkButton projectNameButton = new LinkButton();
-    private JDateChooser startDateChooser;
-    private JLabel startDateLabel;
-    private JComboBox statusComboBox;
-    private JLabel statusLabel;
-    private JLabel subjectLabel;
-    private JLabel subjectLabel1;
-    private JLabel subjectLabel2;
-    private JTextField subjectTextField;
-    private JComboBox targetVersionComboBox;
-    private JLabel targetVersionLabel;
-    private Toolbar toolbar;
-    private JComboBox trackerComboBox;
-    private JButton updateButton;
-    private JLabel updatedLabel;
-    private JLabel updatedValueLabel;
+    JDateChooser startDateChooser;
+    JLabel startDateLabel;
+    JComboBox statusComboBox;
+    JLabel statusLabel;
+    JLabel subjectLabel;
+    JLabel subjectLabel1;
+    JLabel subjectLabel2;
+    JTextField subjectTextField;
+    JComboBox targetVersionComboBox;
+    JLabel targetVersionLabel;
+    Toolbar toolbar;
+    JComboBox trackerComboBox;
+    JButton updateButton;
+    JLabel updatedLabel;
+    JLabel updatedValueLabel;
     final LinkButton versionAddButton = new LinkButton();
     final LinkButton wikiSyntaxButton = new LinkButton();
     // End of variables declaration//GEN-END:variables

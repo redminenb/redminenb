@@ -28,6 +28,7 @@
             <goals>
                 <goal>package</goal>
                 <goal>nbm:cluster</goal>
+                <goal>nbm:autoupdate</goal>
             </goals>
         </action>
         <action>
@@ -37,6 +38,7 @@
                 <goal>clean</goal>
                 <goal>package</goal>
                 <goal>nbm:cluster</goal>
+                <goal>nbm:autoupdate</goal>
             </goals>      
         </action>
     </actions>

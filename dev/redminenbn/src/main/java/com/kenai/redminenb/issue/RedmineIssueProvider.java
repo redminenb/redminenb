@@ -75,8 +75,8 @@ public final class RedmineIssueProvider implements IssueProvider<RedmineIssue> {
     }
 
     @Override
-    public void attachFile(RedmineIssue data, File file, String description, boolean bln) {
-        data.attachPatch(file, description);
+    public void attachFile(RedmineIssue data, File file, String description, boolean patch) {
+        data.attachPatch(file, description, patch);
     }
 
     @Override

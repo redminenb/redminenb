@@ -20,7 +20,8 @@ import com.kenai.redminenb.repository.RedmineRepository;
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
-import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.RedmineManager.INCLUDE;
+import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -41,7 +42,6 @@ import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
 import org.openide.util.Exceptions;
-import org.openide.util.Mutex;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -224,7 +224,7 @@ public final class RedmineIssue {
 
         try {
             if (issue.getId() != null) {
-                setIssue(getRepository().getManager().getIssueById(issue.getId(), RedmineManager.INCLUDE.journals));
+                setIssue(getRepository().getManager().getIssueById(issue.getId(), INCLUDE.journals, INCLUDE.attachments));
             }
             return true;
         } catch (NotFoundException ex) {
@@ -247,7 +247,6 @@ public final class RedmineIssue {
                 // TODO This works for default Redmine Settings only. Add resolved status ID configuration to Redmine Option.
                 issue.setStatusId(3);
                 //issue.setStatusName("Resolved"); // not needed
-
                 getRepository().getManager().update(issue);
             }
             return;
@@ -263,9 +262,16 @@ public final class RedmineIssue {
         issue.setStatusId(oldStatusId);
     }
 
-    public void attachPatch(File file, String string) {
-        // TODO Implement file addition as soon as the function is supported by Redmine API
-        throw new UnsupportedOperationException("REDMINE API: Not supported yet.");
+    public void attachPatch(File file, String description, boolean patch) {
+        try {
+            Attachment a = getRepository().getManager().uploadAttachment("application/octed-stream", file);
+            a.setDescription(description);
+            issue.getAttachments().add(a);
+            getRepository().getManager().update(issue);
+        } catch (RedmineException | IOException ex) {
+            // TODO Notify user that Redmine internal error has happened
+            Redmine.LOG.log(Level.SEVERE, "Can't attach file to a Redmine issue", ex);
+        }
     }
 
     public IssueController getController() {

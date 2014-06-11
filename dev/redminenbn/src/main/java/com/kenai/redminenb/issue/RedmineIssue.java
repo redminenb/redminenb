@@ -17,10 +17,10 @@ package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.repository.RedmineRepository;
-import com.kenai.redminenb.util.RedmineUtil;
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -35,13 +35,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
-import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
+import org.openide.util.Mutex;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -192,6 +192,17 @@ public final class RedmineIssue {
         if (refresh != null && refresh.equals("true")) {                                      // NOI18N
             return;
         }
+        if(SwingUtilities.isEventDispatchThread()) {
+            new SwingWorker<Object, Object>() {
+                @Override
+                protected Object doInBackground() throws Exception {
+                    refresh();
+                    return null;
+                };
+            }.execute();
+        } else{
+            refresh();
+        }
         repository.scheduleForRefresh(getID());
         if (Redmine.LOG.isLoggable(Level.FINE)) {
             Redmine.LOG.log(Level.FINE, "issue {0} open finish", new Object[]{getID()});
@@ -208,13 +219,12 @@ public final class RedmineIssue {
         }
     }
 
-    public boolean refresh() {
+    public synchronized boolean refresh() {
         assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
 
         try {
             if (issue.getId() != null) {
-                setIssue(getRepository().getManager().getIssueById(issue.getId()));
-//            getRepository().getIssueCache().setIssueData(getID(), this);
+                setIssue(getRepository().getManager().getIssueById(issue.getId(), RedmineManager.INCLUDE.journals));
             }
             return true;
         } catch (NotFoundException ex) {
@@ -270,7 +280,7 @@ public final class RedmineIssue {
     }
 
     public void setIssue(com.taskadapter.redmineapi.bean.Issue issue) {
-        this.issue = issue;
+        this.issue = issue;    
     }
 
     public static Collection<RedmineIssue> getIssues(RedmineRepository repository,

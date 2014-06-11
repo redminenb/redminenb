@@ -58,8 +58,11 @@ import com.kenai.redminenb.util.LinkButton;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.JournalDetail;
+import java.awt.BorderLayout;
 import java.util.concurrent.ExecutionException;
+import javax.swing.BoxLayout;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -162,6 +165,7 @@ public class RedmineIssuePanel extends JPanel {
    }
 
    final void initIssue() {
+      assert SwingUtilities.isEventDispatchThread() : "Need to be on EDT when updating components";
       com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
 
       headPane.setVisible(!redmineIssue.isNew() || issue != null);
@@ -221,6 +225,19 @@ public class RedmineIssuePanel extends JPanel {
          estimateTimeTextField.setValue(issue.getEstimatedHours());
          doneComboBox.setSelectedIndex(Math.round(issue.getDoneRatio() / 10));
 
+         if(issue.getJournals() != null && issue.getJournals().size() > 0) {
+             journalOuterPane.setVisible(true);
+         } else {
+             journalOuterPane.setVisible(false);
+         }
+         journalPane.removeAll();
+         for(Journal jd: issue.getJournals()) {
+             JournalDisplay jdisplay = new JournalDisplay(jd);
+             journalPane.add(jdisplay);
+         }
+         journalPane.doLayout();
+         journalPane.revalidate();
+         
          if (redmineIssue.hasParent()) {
             final String parentKey = String.valueOf(issue.getParentId());
             RP.post(new Runnable() {
@@ -541,6 +558,8 @@ public class RedmineIssuePanel extends JPanel {
         descScrollPane = new JScrollPane();
         descTextArea = new JTextArea();
         htmlOutputLabel = new JLabel();
+        journalOuterPane = new JPanel();
+        journalPane = new JPanel();
 
         setOpaque(false);
 
@@ -732,6 +751,7 @@ public class RedmineIssuePanel extends JPanel {
             }
         });
 
+        assignToMeButton.setBorder(null);
         assignToMeButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.assignToMeButton.text")); // NOI18N
         assignToMeButton.setFont(new Font("Lucida Grande", 0, 11)); // NOI18N
         assignToMeButton.addActionListener(new ActionListener() {
@@ -741,6 +761,8 @@ public class RedmineIssuePanel extends JPanel {
         });
 
         privateCheckBox.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.privateCheckBox.text")); // NOI18N
+
+        descriptionPanel.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
         descTextArea.setColumns(20);
         descScrollPane.setViewportView(descTextArea);
@@ -768,9 +790,9 @@ public class RedmineIssuePanel extends JPanel {
                     .addComponent(subjectLabel)
                     .addComponent(subjectLabel1)
                     .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(categoryLabel)
-                    .addComponent(targetVersionLabel))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(targetVersionLabel)
+                    .addComponent(categoryLabel))
+                .addGap(0, 0, 0)
                 .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(subjectTextField)
                     .addGroup(issuePaneLayout.createSequentialGroup()
@@ -816,7 +838,7 @@ public class RedmineIssuePanel extends JPanel {
                                 .addComponent(dueDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(parentTaskTextField, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(projectNameButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 54, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(descriptionPanel))
                 .addContainerGap())
         );
@@ -840,7 +862,7 @@ public class RedmineIssuePanel extends JPanel {
                         .addComponent(descriptionLabel)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 53, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(descriptionPanel))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -874,14 +896,24 @@ public class RedmineIssuePanel extends JPanel {
                         .addComponent(estimateTimeLabel1)))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(versionAddButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(targetVersionLabel)
-                        .addComponent(targetVersionComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(doneLabel)
-                        .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(versionAddButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(issuePaneLayout.createSequentialGroup()
+                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                            .addComponent(targetVersionLabel)
+                            .addComponent(targetVersionComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(doneLabel)
+                            .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
+
+        journalOuterPane.setBorder(BorderFactory.createTitledBorder(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.journalOuterPane.border.title"))); // NOI18N
+        journalOuterPane.setOpaque(false);
+        journalOuterPane.setLayout(new BorderLayout());
+
+        journalPane.setOpaque(false);
+        journalPane.setLayout(new BoxLayout(journalPane, BoxLayout.PAGE_AXIS));
+        journalOuterPane.add(journalPane, BorderLayout.PAGE_START);
 
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
@@ -892,7 +924,8 @@ public class RedmineIssuePanel extends JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(buttonPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(issuePane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(issuePane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(journalOuterPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -900,10 +933,12 @@ public class RedmineIssuePanel extends JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(headPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addComponent(buttonPane, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(issuePane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(journalOuterPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1014,10 +1049,12 @@ public class RedmineIssuePanel extends JPanel {
     JLabel htmlOutputLabel;
     final JLabel infoLabel = new JLabel();
     JPanel issuePane;
+    JPanel journalOuterPane;
+    JPanel journalPane;
     JPanel parentHeaderPanel;
     JLabel parentIdLabel;
     JFormattedTextField parentTaskTextField;
-    private JComboBox priorityComboBox;
+    JComboBox priorityComboBox;
     JLabel priorityLabel;
     JCheckBox privateCheckBox;
     final LinkButton projectNameButton = new LinkButton();

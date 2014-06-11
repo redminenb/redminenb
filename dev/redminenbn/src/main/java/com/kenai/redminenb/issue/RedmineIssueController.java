@@ -40,21 +40,18 @@ public class RedmineIssueController implements IssueController {
     public RedmineIssueController(RedmineIssue issue) {
         this.redmineIssue = issue;
         issuePanel = new RedmineIssuePanel(issue);
-        //issuePane.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
 
         initActions();
         initListeners();
 
         JScrollPane scrollPane = new JScrollPane(issuePanel);
         scrollPane.setBorder(null);
-        //UIUtils.keepFocusedComponentVisible(scrollPane);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
 
         JPanel pane = new JPanel(new BorderLayout());
         pane.setBorder(null);
         pane.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
-//         if (!issue.isNew()) {
-//            pane.add(issuePane.headPanel, BorderLayout.NORTH);
-//         }
+
         pane.add(scrollPane, BorderLayout.CENTER);
         component = pane;
     }
@@ -70,6 +67,20 @@ public class RedmineIssueController implements IssueController {
             issuePanel.opened();
             redmineIssue.opened();
         }
+        new SwingWorker() {
+
+            @Override
+            protected Object doInBackground() throws Exception {
+                redmineIssue.refresh();
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                issuePanel.initIssue();
+            }
+            
+        }.execute();
     }
 
     @Override
@@ -85,15 +96,6 @@ public class RedmineIssueController implements IssueController {
         return new HelpCtx(getClass().getName());
     }
 
-    /*@Override
-     public boolean isValid() {
-     return true; // PENDING
-     }
-
-     @Override
-     public void applyChanges() {
-     System.out.println("applyChanges " + this);
-     }*/
     private RedmineIssue createSubTask() {
         Issue issue = redmineIssue.getIssue();
         // TODO: check if issue is available (id != 0)
@@ -185,8 +187,6 @@ public class RedmineIssueController implements IssueController {
                         RedmineUtil.openIssue(subTask);
                     }
                 };
-
-        //issuePanel.setDefaultPopupAction(showInBrowserAction);
         issuePanel.addToolbarAction(showInBrowserAction, false);
         issuePanel.addToolbarAction(createSubTaskAction, false);
         issuePanel.addToolbarAction(new ActionItemAction(), false);

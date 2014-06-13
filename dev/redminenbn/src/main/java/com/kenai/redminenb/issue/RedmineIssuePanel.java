@@ -350,7 +350,7 @@ public class RedmineIssuePanel extends JPanel {
       issue.setSubject(subjectTextField.getText());
       issue.setParentId(getParentTaskId());
       issue.setDescription(descTextArea.getText());
-      //issue.setPriorityId(priorityComboBox.getSelectedItem());
+      issue.setPriorityId(((IssuePriority) priorityComboBox.getSelectedItem()).getId());
       issue.setAssignee(getSelectedAssignee());
       issue.setCategory((IssueCategory)categoryComboBox.getSelectedItem());
       issue.setTargetVersion(targetVersionComboBox.getSelectedItem() == null ? null : (Version)targetVersionComboBox.getSelectedItem());

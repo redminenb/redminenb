@@ -43,6 +43,7 @@
 package com.kenai.redminenb.query;
 
 import com.kenai.redminenb.ui.Defaults;
+import com.kenai.redminenb.util.ExpandablePanel;
 import java.awt.BorderLayout;
 
 import java.awt.Color;
@@ -57,18 +58,13 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -76,14 +72,11 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.JTree;
 import javax.swing.LayoutStyle;
 import javax.swing.ListCellRenderer;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.plaf.basic.BasicTreeUI;
 import com.kenai.redminenb.util.LinkButton;
 import java.awt.FlowLayout;
 import java.awt.Insets;
@@ -145,15 +138,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       tablePanel.add(tableComponent);
 
-      BasicTreeUI tvui = (BasicTreeUI)new JTree().getUI();
-      Icon ei = tvui.getExpandedIcon();
-      Icon ci = tvui.getCollapsedIcon();
-
       byTextContainer.add(byTextPanel);
       byDetailsContainer.add(byDetailsPanel);
 
-      byText = new ExpandablePanel(byTextLabel, byTextContainer, ei, ci);
-      byDetails = new ExpandablePanel(byDetailsLabel, byDetailsContainer, ei, ci);
+      byText = new ExpandablePanel(byTextLabel, byTextContainer);
+      byDetails = new ExpandablePanel(byDetailsLabel, byDetailsContainer);
 
       byText.expand();
       byDetails.expand();
@@ -1037,54 +1026,9 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       // do nothing
    }
 
-
-
    @Override
    protected void paintComponent(Graphics g) {
       super.paintComponent(Defaults.paintGradient((Graphics2D)g, getWidth(), getHeight()));
-   }
-
-   class ExpandablePanel {
-
-      private final JPanel panel;
-      private final JLabel label;
-      private final Icon ei;
-      private final Icon ci;
-      private boolean expaned = true;
-
-      public ExpandablePanel(JLabel l, JPanel p, final Icon ei, final Icon ci) {
-         this.panel = p;
-         this.label = l;
-         this.ci = ci;
-         this.ei = ei;
-         this.label.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-               if (panel.isVisible()) {
-                  colapse();
-               } else {
-                  expand();
-               }
-            }
-         });
-      }
-
-      public void expand() {
-         expaned = true;
-         panel.setVisible(true);
-         label.setIcon(ei);
-      }
-
-      public void colapse() {
-         expaned = false;
-         panel.setVisible(false);
-         label.setIcon(ci);
-      }
-
-      public void setVisible(boolean visible) {
-         label.setVisible(visible);
-         panel.setVisible(visible && expaned);
-      }
    }
 
    static class HackedScrollPane extends JScrollPane {

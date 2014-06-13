@@ -89,6 +89,7 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.Box;
 import org.openide.awt.Mnemonics;
 import org.openide.util.NbBundle;
 
@@ -104,8 +105,35 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
    final ExpandablePanel byText;
    final ExpandablePanel byDetails;
    //
-   private Color defaultTextColor;
+   private final Color defaultTextColor;
+   
+   private final ActionListener clearActionListener = new ActionListener() {
 
+       @Override
+       public void actionPerformed(ActionEvent e) {
+           switch (e.getActionCommand()) {
+               case "tracker":
+                   trackerList.clearSelection();
+                   break;
+               case "category":
+                   categoryList.clearSelection();
+                   break;
+               case "version":
+                   versionList.clearSelection();
+                   break;
+               case "status":
+                   statusList.clearSelection();
+                   break;
+               case "priority":
+                   priorityList.clearSelection();
+                   break;
+               case "assignee":
+                   assigneeList.clearSelection();
+                   break;
+           }
+       }
+   };
+   
    public RedmineQueryPanel(JComponent tableComponent, RedmineQueryController controller) {
       super();
       initComponents();
@@ -139,20 +167,25 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       refreshCheckBox.setOpaque(false);
 
       ListCellRenderer parameterValueLCR = new Defaults.ParameterValueLCR();
+      
       trackerList.setCellRenderer(parameterValueLCR);
+      trackerClear.setActionCommand("tracker");
+      trackerClear.addActionListener(clearActionListener);
       categoryList.setCellRenderer(parameterValueLCR);
+      categoryClear.setActionCommand("category");
+      categoryClear.addActionListener(clearActionListener);
       versionList.setCellRenderer(parameterValueLCR);
+      versionClear.setActionCommand("version");
+      versionClear.addActionListener(clearActionListener);
       statusList.setCellRenderer(parameterValueLCR);
+      statusClear.setActionCommand("status");
+      statusClear.addActionListener(clearActionListener);
       priorityList.setCellRenderer(new Defaults.PriorityLCR());
-
+      priorityClear.setActionCommand("priority");
+      priorityClear.addActionListener(clearActionListener);
       assigneeList.setCellRenderer(new Defaults.RepositoryUserLCR());
-
-      //resolutionList.setCellRenderer(parameterValueLCR);
-      //severityList.setCellRenderer(parameterValueLCR);
-      resolutionLabel.setVisible(false);
-      resolutionList.getParent().getParent().setVisible(false);
-      severityLabel.setVisible(false);
-      severityList.getParent().getParent().setVisible(false);
+      assigneeClear.setActionCommand("assignee");
+      assigneeClear.addActionListener(clearActionListener);
 
       setFocusListener(this);
 
@@ -165,8 +198,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       categoryList.addFocusListener(f);
       priorityList.addFocusListener(f);
-      resolutionList.addFocusListener(f);
-      severityList.addFocusListener(f);
       trackerList.addFocusListener(f);
       statusList.addFocusListener(f);
       versionList.addFocusListener(f);
@@ -206,6 +237,13 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     private void initComponents() {
         GridBagConstraints gridBagConstraints;
 
+        trackerClear = new LinkButton();
+        statusClear = new LinkButton();
+        priorityClear = new LinkButton();
+        assigneeClear = new LinkButton();
+        categoryClear = new LinkButton();
+        versionClear = new LinkButton();
+        filler1 = new Box.Filler(new Dimension(0, 0), new Dimension(0, 0), new Dimension(0, 0));
         byTextPanel = new JPanel();
         qSubjectCheckBox = new JCheckBox();
         qDescriptionCheckBox = new JCheckBox();
@@ -225,205 +263,257 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         noContentLabel = new JLabel();
 
         byDetailsPanel.setBackground(UIManager.getDefaults().getColor("TextArea.background"));
+        byDetailsPanel.setLayout(new GridBagLayout());
 
         versionLabel.setFont(versionLabel.getFont().deriveFont(versionLabel.getFont().getStyle() | Font.BOLD, versionLabel.getFont().getSize()-2));
         versionLabel.setLabelFor(versionList);
         Mnemonics.setLocalizedText(versionLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(versionLabel, gridBagConstraints);
 
         jScrollPane2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane2.setMinimumSize(new Dimension(100, 120));
+        jScrollPane2.setPreferredSize(new Dimension(100, 120));
 
         versionList.setModel(new AbstractListModel() {
             String[] strings = { "" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        versionList.setMinimumSize(new Dimension(100, 2));
         versionList.setVisibleRowCount(6);
         jScrollPane2.setViewportView(versionList);
         versionList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionList.AccessibleContext.accessibleDescription")); // NOI18N
 
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane2, gridBagConstraints);
+
         statusLabel.setFont(statusLabel.getFont().deriveFont(statusLabel.getFont().getStyle() | Font.BOLD, statusLabel.getFont().getSize()-2));
         statusLabel.setLabelFor(statusList);
         Mnemonics.setLocalizedText(statusLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(statusLabel, gridBagConstraints);
 
         jScrollPane3.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane3.setMinimumSize(new Dimension(100, 120));
+        jScrollPane3.setPreferredSize(new Dimension(100, 120));
 
         statusList.setModel(new AbstractListModel() {
             String[] strings = { "" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        statusList.setMinimumSize(new Dimension(100, 2));
         statusList.setVisibleRowCount(6);
         jScrollPane3.setViewportView(statusList);
         statusList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusList.AccessibleContext.accessibleDescription")); // NOI18N
 
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane3, gridBagConstraints);
+
         priorityLabel.setFont(priorityLabel.getFont().deriveFont(priorityLabel.getFont().getStyle() | Font.BOLD, priorityLabel.getFont().getSize()-2));
         priorityLabel.setLabelFor(priorityList);
         Mnemonics.setLocalizedText(priorityLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(priorityLabel, gridBagConstraints);
 
         jScrollPane4.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane4.setMinimumSize(new Dimension(100, 120));
+        jScrollPane4.setPreferredSize(new Dimension(100, 120));
 
         priorityList.setModel(new AbstractListModel() {
             String[] strings = { "" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        priorityList.setMinimumSize(new Dimension(100, 2));
         priorityList.setVisibleRowCount(6);
         jScrollPane4.setViewportView(priorityList);
         priorityList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityList.AccessibleContext.accessibleDescription")); // NOI18N
 
-        resolutionLabel.setFont(resolutionLabel.getFont().deriveFont(resolutionLabel.getFont().getStyle() | Font.BOLD, resolutionLabel.getFont().getSize()-2));
-        resolutionLabel.setLabelFor(resolutionList);
-        Mnemonics.setLocalizedText(resolutionLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.resolutionLabel.text")); // NOI18N
-
-        jScrollPane5.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        resolutionList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
-        resolutionList.setMinimumSize(new Dimension(100, 2));
-        resolutionList.setVisibleRowCount(6);
-        jScrollPane5.setViewportView(resolutionList);
-        resolutionList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.resolutionList.AccessibleContext.accessibleDescription")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane4, gridBagConstraints);
 
         categoryLabel.setFont(categoryLabel.getFont().deriveFont(categoryLabel.getFont().getStyle() | Font.BOLD, categoryLabel.getFont().getSize()-2));
         categoryLabel.setLabelFor(categoryList);
         Mnemonics.setLocalizedText(categoryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(categoryLabel, gridBagConstraints);
 
         jScrollPane6.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane6.setMinimumSize(new Dimension(100, 120));
+        jScrollPane6.setPreferredSize(new Dimension(100, 120));
 
         categoryList.setModel(new AbstractListModel() {
             String[] strings = { "" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        categoryList.setMinimumSize(new Dimension(100, 2));
         categoryList.setVisibleRowCount(6);
         jScrollPane6.setViewportView(categoryList);
         categoryList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.componentList.AccessibleContext.accessibleDescription")); // NOI18N
 
-        severityLabel.setFont(severityLabel.getFont().deriveFont(severityLabel.getFont().getStyle() | Font.BOLD, severityLabel.getFont().getSize()-2));
-        severityLabel.setLabelFor(severityList);
-        Mnemonics.setLocalizedText(severityLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.severityLabel.text")); // NOI18N
-
-        severityScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        severityList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
-        severityList.setMinimumSize(new Dimension(100, 2));
-        severityList.setVisibleRowCount(6);
-        severityScrollPane.setViewportView(severityList);
-        severityList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.severityList.AccessibleContext.accessibleDescription")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane6, gridBagConstraints);
 
         trackerLabel.setFont(trackerLabel.getFont().deriveFont(trackerLabel.getFont().getStyle() | Font.BOLD, trackerLabel.getFont().getSize()-2));
         trackerLabel.setLabelFor(trackerList);
         Mnemonics.setLocalizedText(trackerLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(trackerLabel, gridBagConstraints);
 
         issueTypeScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        issueTypeScrollPane.setMinimumSize(new Dimension(100, 120));
+        issueTypeScrollPane.setName(""); // NOI18N
+        issueTypeScrollPane.setPreferredSize(new Dimension(100, 120));
 
         trackerList.setModel(new AbstractListModel() {
             String[] strings = { "" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        trackerList.setMinimumSize(new Dimension(100, 2));
         trackerList.setVisibleRowCount(6);
         issueTypeScrollPane.setViewportView(trackerList);
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(issueTypeScrollPane, gridBagConstraints);
 
         assigneeLabel.setFont(assigneeLabel.getFont().deriveFont(assigneeLabel.getFont().getStyle() | Font.BOLD, assigneeLabel.getFont().getSize()-2));
         assigneeLabel.setLabelFor(assigneeList);
         Mnemonics.setLocalizedText(assigneeLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.assigneeLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(assigneeLabel, gridBagConstraints);
 
         assigneeScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        assigneeScrollPane.setMinimumSize(new Dimension(100, 120));
+        assigneeScrollPane.setPreferredSize(new Dimension(100, 120));
 
         assigneeList.setModel(new AbstractListModel() {
             String[] strings = { "" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        assigneeList.setMinimumSize(new Dimension(100, 2));
         assigneeList.setVisibleRowCount(6);
         assigneeScrollPane.setViewportView(assigneeList);
 
-        GroupLayout byDetailsPanelLayout = new GroupLayout(byDetailsPanel);
-        byDetailsPanel.setLayout(byDetailsPanelLayout);
-        byDetailsPanelLayout.setHorizontalGroup(
-            byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(trackerLabel)
-                    .addComponent(issueTypeScrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(statusLabel)
-                    .addComponent(jScrollPane3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(priorityLabel)
-                    .addComponent(jScrollPane4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(assigneeLabel)
-                    .addComponent(assigneeScrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(categoryLabel)
-                    .addComponent(jScrollPane6, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(versionLabel)
-                    .addComponent(jScrollPane2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(resolutionLabel)
-                    .addComponent(jScrollPane5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(severityLabel)
-                    .addComponent(severityScrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        byDetailsPanelLayout.setVerticalGroup(
-            byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                        .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                            .addComponent(statusLabel)
-                            .addComponent(resolutionLabel)
-                            .addComponent(priorityLabel)
-                            .addComponent(severityLabel)
-                            .addComponent(assigneeLabel))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane4)
-                            .addComponent(jScrollPane3)
-                            .addComponent(jScrollPane5)
-                            .addComponent(severityScrollPane)
-                            .addComponent(assigneeScrollPane)))
-                    .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                        .addComponent(trackerLabel)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(issueTypeScrollPane, GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE))
-                    .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                        .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                            .addComponent(categoryLabel)
-                            .addComponent(versionLabel))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(byDetailsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane6)
-                            .addComponent(jScrollPane2))))
-                .addContainerGap())
-        );
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(assigneeScrollPane, gridBagConstraints);
+
+        trackerClear.setBorder(null);
+        Mnemonics.setLocalizedText(trackerClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerClear.text")); // NOI18N
+        trackerClear.setFont(trackerClear.getFont().deriveFont(trackerClear.getFont().getStyle() & ~Font.BOLD, trackerClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(trackerClear, gridBagConstraints);
+
+        statusClear.setBorder(null);
+        Mnemonics.setLocalizedText(statusClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusClear.text")); // NOI18N
+        statusClear.setFont(statusClear.getFont().deriveFont(statusClear.getFont().getStyle() & ~Font.BOLD, statusClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(statusClear, gridBagConstraints);
+
+        priorityClear.setBorder(null);
+        Mnemonics.setLocalizedText(priorityClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityClear.text")); // NOI18N
+        priorityClear.setFont(priorityClear.getFont().deriveFont(priorityClear.getFont().getStyle() & ~Font.BOLD, priorityClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(priorityClear, gridBagConstraints);
+
+        assigneeClear.setBorder(null);
+        Mnemonics.setLocalizedText(assigneeClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.assigneeClear.text")); // NOI18N
+        assigneeClear.setFont(assigneeClear.getFont().deriveFont(assigneeClear.getFont().getStyle() & ~Font.BOLD, assigneeClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(assigneeClear, gridBagConstraints);
+
+        categoryClear.setBorder(null);
+        Mnemonics.setLocalizedText(categoryClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryClear.text")); // NOI18N
+        categoryClear.setFont(categoryClear.getFont().deriveFont(categoryClear.getFont().getStyle() & ~Font.BOLD, categoryClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(categoryClear, gridBagConstraints);
+
+        versionClear.setBorder(null);
+        Mnemonics.setLocalizedText(versionClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionClear.text")); // NOI18N
+        versionClear.setFont(versionClear.getFont().deriveFont(versionClear.getFont().getStyle() & ~Font.BOLD, versionClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(versionClear, gridBagConstraints);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.weightx = 1.0;
+        byDetailsPanel.add(filler1, gridBagConstraints);
 
         byTextPanel.setBackground(UIManager.getDefaults().getColor("TextArea.background"));
 
@@ -621,7 +711,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         searchPanel.setLayout(searchPanelLayout);
         searchPanelLayout.setHorizontalGroup(
             searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)
+            .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 778, Short.MAX_VALUE)
             .addGroup(searchPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -773,6 +863,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    LinkButton assigneeClear;
     final JLabel assigneeLabel = new JLabel();
     final JList assigneeList = new JList();
     final JScrollPane assigneeScrollPane = new HackedScrollPane();
@@ -783,9 +874,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JLabel byTextLabel = new JLabel();
     JPanel byTextPanel;
     final JButton cancelChangesButton = new JButton();
+    LinkButton categoryClear;
     final JLabel categoryLabel = new JLabel();
     final JList categoryList = new JList();
     JPanel criteriaPanel;
+    Box.Filler filler1;
     final JButton gotoIssueButton = new JButton();
     final JPanel gotoPanel = new JPanel();
     JFormattedTextField issueIdTextField;
@@ -795,7 +888,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JScrollPane jScrollPane2 = new HackedScrollPane();
     final JScrollPane jScrollPane3 = new HackedScrollPane();
     final JScrollPane jScrollPane4 = new HackedScrollPane();
-    final JScrollPane jScrollPane5 = new HackedScrollPane();
     final JScrollPane jScrollPane6 = new HackedScrollPane();
     final JLabel lastRefreshDateLabel = new JLabel();
     JLabel lastRefreshLabel;
@@ -803,6 +895,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JLabel nameLabel = new JLabel();
     JLabel noContentLabel;
     JPanel noContentPanel;
+    LinkButton priorityClear;
     final JLabel priorityLabel = new JLabel();
     final JList priorityList = new JList();
     JCheckBox qCommentsCheckBox;
@@ -815,17 +908,13 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JCheckBox refreshCheckBox = new JCheckBox();
     final LinkButton refreshConfigurationButton = new LinkButton();
     public final LinkButton removeButton = new LinkButton();
-    final JLabel resolutionLabel = new JLabel();
-    final JList resolutionList = new JList();
     final LinkButton saveButton = new LinkButton();
     final JButton saveChangesButton = new JButton();
     final JButton searchButton = new JButton();
     final JPanel searchPanel = new JPanel();
     JLabel separatorLabel1;
     JLabel separatorLabel2;
-    final JLabel severityLabel = new JLabel();
-    final JList severityList = new JList();
-    final JScrollPane severityScrollPane = new HackedScrollPane();
+    LinkButton statusClear;
     final JLabel statusLabel = new JLabel();
     final JList statusList = new JList();
     JPanel tableFieldsPanel;
@@ -833,8 +922,10 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JPanel tablePanel = new JPanel();
     final JLabel tableSummaryLabel = new JLabel();
     JPanel topButtonPanel;
+    LinkButton trackerClear;
     final JLabel trackerLabel = new JLabel();
     final JList trackerList = new JList();
+    LinkButton versionClear;
     final JLabel versionLabel = new JLabel();
     final JList versionList = new JList();
     final LinkButton webButton = new LinkButton();
@@ -851,8 +942,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       categoryLabel.setEnabled(enable);
       versionLabel.setEnabled(enable);
       statusLabel.setEnabled(enable);
-      severityLabel.setEnabled(enable);
-      resolutionLabel.setEnabled(enable);
       priorityLabel.setEnabled(enable);
       trackerLabel.setEnabled(enable);
 

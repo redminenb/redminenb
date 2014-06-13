@@ -12,98 +12,7 @@
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
       </AuxValues>
 
-      <Layout>
-        <DimensionLayout dim="0">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="trackerLabel" alignment="0" min="-2" max="-2" attributes="1"/>
-                      <Component id="issueTypeScrollPane" alignment="0" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="statusLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="jScrollPane3" alignment="0" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="priorityLabel" min="-2" max="-2" attributes="1"/>
-                      <Component id="jScrollPane4" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="assigneeLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="assigneeScrollPane" alignment="0" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="categoryLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="jScrollPane6" alignment="0" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="versionLabel" alignment="0" min="-2" max="-2" attributes="1"/>
-                      <Component id="jScrollPane2" alignment="0" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="resolutionLabel" alignment="0" min="-2" max="-2" attributes="1"/>
-                      <Component id="jScrollPane5" alignment="0" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="severityLabel" alignment="0" min="-2" max="-2" attributes="1"/>
-                      <Component id="severityScrollPane" alignment="0" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <EmptySpace max="32767" attributes="0"/>
-              </Group>
-          </Group>
-        </DimensionLayout>
-        <DimensionLayout dim="1">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="statusLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="resolutionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="priorityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="severityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="assigneeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="jScrollPane4" max="32767" attributes="1"/>
-                              <Component id="jScrollPane3" alignment="0" max="32767" attributes="1"/>
-                              <Component id="jScrollPane5" alignment="0" max="32767" attributes="1"/>
-                              <Component id="severityScrollPane" alignment="0" max="32767" attributes="1"/>
-                              <Component id="assigneeScrollPane" max="32767" attributes="0"/>
-                          </Group>
-                      </Group>
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="trackerLabel" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Component id="issueTypeScrollPane" pref="18" max="32767" attributes="1"/>
-                      </Group>
-                      <Group type="102" alignment="0" attributes="0">
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="categoryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="versionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="jScrollPane6" alignment="0" max="32767" attributes="1"/>
-                              <Component id="jScrollPane2" alignment="0" max="32767" attributes="1"/>
-                          </Group>
-                      </Group>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-              </Group>
-          </Group>
-        </DimensionLayout>
-      </Layout>
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
       <SubComponents>
         <Component class="javax.swing.JLabel" name="versionLabel">
           <Properties>
@@ -122,16 +31,32 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="5" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="5" insetsLeft="5" insetsBottom="2" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
         </Component>
         <Container class="javax.swing.JScrollPane" name="jScrollPane2">
           <Properties>
             <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
+            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
             <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="5" gridY="1" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="5" insetsBottom="0" insetsRight="5" anchor="18" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
@@ -141,9 +66,6 @@
                   <StringArray count="1">
                     <StringItem index="0" value=""/>
                   </StringArray>
-                </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
                 </Property>
                 <Property name="visibleRowCount" type="int" value="6"/>
               </Properties>
@@ -175,16 +97,32 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="1" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="5" insetsLeft="5" insetsBottom="2" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
         </Component>
         <Container class="javax.swing.JScrollPane" name="jScrollPane3">
           <Properties>
             <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
+            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
             <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="1" gridY="1" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="5" insetsBottom="0" insetsRight="5" anchor="18" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
@@ -194,9 +132,6 @@
                   <StringArray count="1">
                     <StringItem index="0" value=""/>
                   </StringArray>
-                </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
                 </Property>
                 <Property name="visibleRowCount" type="int" value="6"/>
               </Properties>
@@ -228,16 +163,32 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="2" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="5" insetsLeft="5" insetsBottom="2" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
         </Component>
         <Container class="javax.swing.JScrollPane" name="jScrollPane4">
           <Properties>
             <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
+            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
             <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="2" gridY="1" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="5" insetsBottom="0" insetsRight="5" anchor="18" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
@@ -248,67 +199,11 @@
                     <StringItem index="0" value=""/>
                   </StringArray>
                 </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
-                </Property>
                 <Property name="visibleRowCount" type="int" value="6"/>
               </Properties>
               <AccessibilityProperties>
                 <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.priorityList.AccessibleContext.accessibleDescription" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
-              </AccessibilityProperties>
-              <AuxValues>
-                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-              </AuxValues>
-            </Component>
-          </SubComponents>
-        </Container>
-        <Component class="javax.swing.JLabel" name="resolutionLabel">
-          <Properties>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
-              <FontInfo relative="true">
-                <Font bold="true" component="resolutionLabel" property="font" relativeSize="true" size="-2"/>
-              </FontInfo>
-            </Property>
-            <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-              <ComponentRef name="resolutionList"/>
-            </Property>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.resolutionLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
-          </Properties>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-          </AuxValues>
-        </Component>
-        <Container class="javax.swing.JScrollPane" name="jScrollPane5">
-          <Properties>
-            <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
-          </Properties>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
-            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-            <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
-          </AuxValues>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-          <SubComponents>
-            <Component class="javax.swing.JList" name="resolutionList">
-              <Properties>
-                <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
-                  <StringArray count="1">
-                    <StringItem index="0" value=""/>
-                  </StringArray>
-                </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
-                </Property>
-                <Property name="visibleRowCount" type="int" value="6"/>
-              </Properties>
-              <AccessibilityProperties>
-                <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.resolutionList.AccessibleContext.accessibleDescription" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </AccessibilityProperties>
               <AuxValues>
@@ -334,16 +229,32 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="4" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="5" insetsLeft="5" insetsBottom="2" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
         </Component>
         <Container class="javax.swing.JScrollPane" name="jScrollPane6">
           <Properties>
             <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
+            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
             <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="4" gridY="1" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="5" insetsBottom="0" insetsRight="5" anchor="18" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
@@ -354,67 +265,11 @@
                     <StringItem index="0" value=""/>
                   </StringArray>
                 </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
-                </Property>
                 <Property name="visibleRowCount" type="int" value="6"/>
               </Properties>
               <AccessibilityProperties>
                 <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.componentList.AccessibleContext.accessibleDescription" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
-              </AccessibilityProperties>
-              <AuxValues>
-                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-              </AuxValues>
-            </Component>
-          </SubComponents>
-        </Container>
-        <Component class="javax.swing.JLabel" name="severityLabel">
-          <Properties>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
-              <FontInfo relative="true">
-                <Font bold="true" component="severityLabel" property="font" relativeSize="true" size="-2"/>
-              </FontInfo>
-            </Property>
-            <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-              <ComponentRef name="severityList"/>
-            </Property>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.severityLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
-          </Properties>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-          </AuxValues>
-        </Component>
-        <Container class="javax.swing.JScrollPane" name="severityScrollPane">
-          <Properties>
-            <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
-          </Properties>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
-            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-            <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
-          </AuxValues>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-          <SubComponents>
-            <Component class="javax.swing.JList" name="severityList">
-              <Properties>
-                <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
-                  <StringArray count="1">
-                    <StringItem index="0" value=""/>
-                  </StringArray>
-                </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
-                </Property>
-                <Property name="visibleRowCount" type="int" value="6"/>
-              </Properties>
-              <AccessibilityProperties>
-                <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.severityList.AccessibleContext.accessibleDescription" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </AccessibilityProperties>
               <AuxValues>
@@ -440,16 +295,33 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="0" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="5" insetsLeft="5" insetsBottom="2" insetsRight="5" anchor="18" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
         </Component>
         <Container class="javax.swing.JScrollPane" name="issueTypeScrollPane">
           <Properties>
             <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
+            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
+            <Property name="name" type="java.lang.String" value="" noResource="true"/>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
             <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="0" gridY="1" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="5" insetsBottom="0" insetsRight="5" anchor="18" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
@@ -459,9 +331,6 @@
                   <StringArray count="1">
                     <StringItem index="0" value=""/>
                   </StringArray>
-                </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
                 </Property>
                 <Property name="visibleRowCount" type="int" value="6"/>
               </Properties>
@@ -488,16 +357,32 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="3" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="5" insetsLeft="5" insetsBottom="2" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
         </Component>
         <Container class="javax.swing.JScrollPane" name="assigneeScrollPane">
           <Properties>
             <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
+            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[100, 120]"/>
+            </Property>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new HackedScrollPane()"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
             <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
           </AuxValues>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="3" gridY="1" gridWidth="1" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="5" insetsBottom="0" insetsRight="5" anchor="18" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
@@ -508,9 +393,6 @@
                     <StringItem index="0" value=""/>
                   </StringArray>
                 </Property>
-                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[100, 2]"/>
-                </Property>
                 <Property name="visibleRowCount" type="int" value="6"/>
               </Properties>
               <AuxValues>
@@ -519,6 +401,133 @@
             </Component>
           </SubComponents>
         </Container>
+        <Component class="com.kenai.redminenb.util.LinkButton" name="trackerClear">
+          <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="null"/>
+            </Property>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.trackerClear.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font bold="false" component="trackerClear" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="0" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="5" insetsBottom="5" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="com.kenai.redminenb.util.LinkButton" name="statusClear">
+          <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="null"/>
+            </Property>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.statusClear.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font bold="false" component="statusClear" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="1" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="5" insetsBottom="5" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="com.kenai.redminenb.util.LinkButton" name="priorityClear">
+          <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="null"/>
+            </Property>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.priorityClear.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font bold="false" component="priorityClear" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="2" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="5" insetsBottom="5" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="com.kenai.redminenb.util.LinkButton" name="assigneeClear">
+          <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="null"/>
+            </Property>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.assigneeClear.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font bold="false" component="assigneeClear" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="3" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="5" insetsBottom="5" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="com.kenai.redminenb.util.LinkButton" name="categoryClear">
+          <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="null"/>
+            </Property>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.categoryClear.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font bold="false" component="categoryClear" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="4" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="5" insetsBottom="5" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="com.kenai.redminenb.util.LinkButton" name="versionClear">
+          <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="null"/>
+            </Property>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/query/Bundle.properties" key="RedmineQueryPanel.versionClear.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font bold="false" component="versionClear" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="5" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="5" insetsBottom="5" insetsRight="5" anchor="512" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="javax.swing.Box$Filler" name="filler1">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="8" gridY="1" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="10" weightX="1.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPanel" name="byTextPanel">

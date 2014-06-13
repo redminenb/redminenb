@@ -277,15 +277,16 @@ public class RedmineIssuePanel extends JPanel {
                      }
                   });
                }
-            });
+            });            
          } else {
             // no parent issue
             //parentHeaderPanel.setVisible(false);
             parentHeaderPanel.setVisible(true);
             parentHeaderPanel.removeAll();
             headerLabel.setIcon(null);
+            
          }
-
+        descriptionPanel.setSelectedIndex(1);
       } else {
          // new issue
          setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
@@ -303,6 +304,7 @@ public class RedmineIssuePanel extends JPanel {
          dueDateChooser.setDate(null);
          estimateTimeTextField.setValue(null);
          doneComboBox.setSelectedIndex(0);
+         descriptionPanel.setSelectedIndex(0);
       }
       setInfoMessage(null);
       updateTextileOutput();

@@ -52,6 +52,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -64,6 +65,8 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import org.apache.commons.lang.StringUtils;
@@ -648,7 +651,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             tce.setMaxWidth(80);
             tcm.addColumn(tce);
 
-            tce = new TableColumn(6);
+            tce = new TableColumn(7);
             tce.setHeaderValue("Version");
             tce.setCellRenderer(new TableCellRendererVersion());
             tce.setMinWidth(0);
@@ -657,8 +660,10 @@ public class RedmineQueryController implements QueryController, ActionListener {
             tcm.addColumn(tce);
 
             issueTable = new JTable();
+            issueTable.setAutoCreateRowSorter(true);
             issueTable.setModel(queryListModel);
             issueTable.setColumnModel(tcm);
+            issueTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
             issueTable.getTableHeader().setReorderingAllowed(false);
             issueTable.doLayout();
             issueTable.addMouseListener(issueTableIssueOpener);

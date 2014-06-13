@@ -85,6 +85,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicTreeUI;
 import com.kenai.redminenb.util.LinkButton;
+import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -215,11 +216,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         issueIdTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
         separatorLabel2 = new JLabel();
         separatorLabel1 = new JLabel();
-        queryHeaderPanel = new JPanel();
-        lastRefreshLabel = new JLabel();
         topButtonPanel = new JPanel();
         jLabel5 = new JLabel();
         jLabel6 = new JLabel();
+        queryHeaderPanel = new JPanel();
+        lastRefreshLabel = new JLabel();
         noContentPanel = new JPanel();
         noContentLabel = new JLabel();
 
@@ -477,53 +478,26 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         setOpaque(false);
 
         tableFieldsPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        tableFieldsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
         tableFieldsPanel.setOpaque(false);
+        tableFieldsPanel.setLayout(new BorderLayout());
 
         tableHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         tableHeaderPanel.setOpaque(false);
+        tableHeaderPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
         tableSummaryLabel.setFont(tableSummaryLabel.getFont().deriveFont(tableSummaryLabel.getFont().getStyle() | Font.BOLD, tableSummaryLabel.getFont().getSize()-2));
         tableSummaryLabel.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/redmine.png"))); // NOI18N
         Mnemonics.setLocalizedText(tableSummaryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.tableSummaryLabel.text")); // NOI18N
+        tableHeaderPanel.add(tableSummaryLabel);
 
-        GroupLayout tableHeaderPanelLayout = new GroupLayout(tableHeaderPanel);
-        tableHeaderPanel.setLayout(tableHeaderPanelLayout);
-        tableHeaderPanelLayout.setHorizontalGroup(
-            tableHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(tableHeaderPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(tableSummaryLabel)
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        tableHeaderPanelLayout.setVerticalGroup(
-            tableHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(tableSummaryLabel)
-        );
+        tableFieldsPanel.add(tableHeaderPanel, BorderLayout.NORTH);
 
         tablePanel.setBackground(new Color(224, 224, 224));
         tablePanel.setBorder(BorderFactory.createEtchedBorder());
         tablePanel.setMinimumSize(new Dimension(100, 350));
         tablePanel.setLayout(new BorderLayout());
-
-        GroupLayout tableFieldsPanelLayout = new GroupLayout(tableFieldsPanel);
-        tableFieldsPanel.setLayout(tableFieldsPanelLayout);
-        tableFieldsPanelLayout.setHorizontalGroup(
-            tableFieldsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(tableFieldsPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(tableFieldsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(tablePanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(tableHeaderPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-        tableFieldsPanelLayout.setVerticalGroup(
-            tableFieldsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(tableFieldsPanelLayout.createSequentialGroup()
-                .addComponent(tableHeaderPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tablePanel, GroupLayout.PREFERRED_SIZE, 170, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        tableFieldsPanel.add(tablePanel, BorderLayout.CENTER);
 
         searchPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         searchPanel.setOpaque(false);
@@ -647,7 +621,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         searchPanel.setLayout(searchPanelLayout);
         searchPanelLayout.setHorizontalGroup(
             searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)
             .addGroup(searchPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -656,17 +630,16 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cancelChangesButton)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(criteriaPanel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         searchPanelLayout.setVerticalGroup(
             searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(searchPanelLayout.createSequentialGroup()
-                .addContainerGap()
                 .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(8, 8, 8)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(saveChangesButton)
                     .addComponent(cancelChangesButton))
@@ -675,18 +648,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         cancelChangesButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
         saveChangesButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
-
-        queryHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
-        queryHeaderPanel.setOpaque(false);
-
-        Mnemonics.setLocalizedText(lastRefreshLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshLabel.text")); // NOI18N
-
-        Mnemonics.setLocalizedText(lastRefreshDateLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshDateLabel.text")); // NOI18N
-
-        Mnemonics.setLocalizedText(nameLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.nameLabel.text")); // NOI18N
-
-        Mnemonics.setLocalizedText(refreshCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.text")); // NOI18N
-        refreshCheckBox.setOpaque(false);
 
         topButtonPanel.setOpaque(false);
         topButtonPanel.setLayout(new GridBagLayout());
@@ -731,42 +692,44 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.ipady = 20;
         topButtonPanel.add(jLabel6, gridBagConstraints);
 
+        queryHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        queryHeaderPanel.setOpaque(false);
+
+        Mnemonics.setLocalizedText(lastRefreshLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshLabel.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(lastRefreshDateLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshDateLabel.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(nameLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.nameLabel.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(refreshCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.text")); // NOI18N
+        refreshCheckBox.setOpaque(false);
+
         GroupLayout queryHeaderPanelLayout = new GroupLayout(queryHeaderPanel);
         queryHeaderPanel.setLayout(queryHeaderPanelLayout);
         queryHeaderPanelLayout.setHorizontalGroup(
             queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                        .addComponent(nameLabel)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(refreshCheckBox)
-                        .addGap(18, 18, 18)
-                        .addComponent(lastRefreshLabel)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lastRefreshDateLabel))
-                    .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                        .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 399, Short.MAX_VALUE)))
+                .addComponent(nameLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 372, Short.MAX_VALUE)
+                .addComponent(refreshCheckBox)
+                .addGap(18, 18, 18)
+                .addComponent(lastRefreshLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lastRefreshDateLabel)
                 .addContainerGap())
         );
         queryHeaderPanelLayout.setVerticalGroup(
             queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                        .addGap(11, 11, 11)
-                        .addComponent(nameLabel))
-                    .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                            .addComponent(lastRefreshDateLabel)
-                            .addComponent(lastRefreshLabel)
-                            .addComponent(refreshCheckBox))))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
-                .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(11, 11, 11)
+                .addComponent(nameLabel))
+            .addGroup(queryHeaderPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(lastRefreshDateLabel)
+                    .addComponent(lastRefreshLabel)
+                    .addComponent(refreshCheckBox)))
         );
 
         refreshCheckBox.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.AccessibleContext.accessibleDescription")); // NOI18N
@@ -784,20 +747,25 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(queryHeaderPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(searchPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(noContentPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
-            .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(queryHeaderPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(searchPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(noContentPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())

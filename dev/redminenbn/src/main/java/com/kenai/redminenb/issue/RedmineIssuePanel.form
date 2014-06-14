@@ -52,7 +52,7 @@
               <Component id="issuePane" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="journalOuterPane" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="updateCommentOuterPanel" min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -199,7 +199,7 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="infoLabel" min="-2" pref="360" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Component id="toolbar" pref="388" max="32767" attributes="0"/>
+                  <Component id="toolbar" max="32767" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -351,7 +351,7 @@
                                           <Component id="projectNameButton" alignment="0" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
-                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                  <EmptySpace min="0" pref="349" max="32767" attributes="0"/>
                               </Group>
                               <Component id="descriptionPanel" alignment="0" max="32767" attributes="0"/>
                           </Group>
@@ -360,7 +360,12 @@
                           <Component id="updateCommentLabel" min="-2" pref="879" max="-2" attributes="0"/>
                           <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
-                      <Component id="updateCommentTabPanel" max="32767" attributes="0"/>
+                      <Component id="updateCommentTabPanel" alignment="0" max="32767" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="attachmentLabel" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="attachmentPanel" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -390,7 +395,7 @@
                           <Component id="wikiSyntaxButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
-                      <Component id="descriptionPanel" pref="100" max="32767" attributes="0"/>
+                      <Component id="descriptionPanel" pref="47" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -443,10 +448,15 @@
                       </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="attachmentLabel" min="-2" max="-2" attributes="0"/>
+                      <Component id="attachmentPanel" max="32767" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="updateCommentLabel" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="updateCommentTabPanel" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="-2" attributes="0"/>
+                  <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -907,6 +917,22 @@
               </SubComponents>
             </Container>
           </SubComponents>
+        </Container>
+        <Component class="javax.swing.JLabel" name="attachmentLabel">
+          <Properties>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.attachmentLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
+        </Component>
+        <Container class="com.kenai.redminenb.util.DelegatingBaseLineJPanel" name="attachmentPanel">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
+
+          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout">
+            <Property name="axis" type="int" value="3"/>
+          </Layout>
         </Container>
       </SubComponents>
     </Container>

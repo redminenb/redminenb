@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import org.apache.commons.lang.StringUtils;
 import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
@@ -262,11 +263,14 @@ public final class RedmineIssue {
         issue.setStatusId(oldStatusId);
     }
 
-    public void attachPatch(File file, String description, boolean patch) {
+    public void attachFile(File file, String description, String comment, boolean patch) {
         try {
             Attachment a = getRepository().getManager().uploadAttachment("application/octed-stream", file);
             a.setDescription(description);
             issue.getAttachments().add(a);
+            if(! StringUtils.isBlank(comment)) {
+                issue.setNotes(comment);
+            }
             getRepository().getManager().update(issue);
         } catch (RedmineException | IOException ex) {
             // TODO Notify user that Redmine internal error has happened

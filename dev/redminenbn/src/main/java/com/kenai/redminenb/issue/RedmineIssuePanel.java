@@ -9,6 +9,7 @@ import com.kenai.redminenb.util.markup.TextileUtil;
 
 import com.kenai.redminenb.api.Helper;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.util.AttachmentDisplay;
 import com.kenai.redminenb.util.ExpandablePanel;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -16,15 +17,12 @@ import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.User;
 import com.taskadapter.redmineapi.bean.Version;
-import com.toedter.calendar.JDateChooser;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -38,31 +36,33 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.LayoutStyle;
-import javax.swing.SwingConstants;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
 import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import com.kenai.redminenb.util.LinkButton;
+import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Journal;
-import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import javax.swing.Box.Filler;
 import javax.swing.BoxLayout;
-import javax.swing.JTabbedPane;
+import javax.swing.JFileChooser;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.text.JTextComponent;
@@ -70,10 +70,8 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.DropDownButtonFactory;
 import org.openide.awt.HtmlBrowser;
-import org.openide.awt.Toolbar;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
-import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
 /**
@@ -85,6 +83,7 @@ import org.openide.util.RequestProcessor;
 public class RedmineIssuePanel extends JPanel {
 
    private static final long serialVersionUID = 9011030935877495476L;
+   private static File lastDirectory;
    //
    static final RequestProcessor RP = new RequestProcessor("Redmine Issue Panel", 5, false); // NOI18N
    //
@@ -252,6 +251,78 @@ public class RedmineIssuePanel extends JPanel {
          journalPane.doLayout();
          journalPane.revalidate();
          
+          attachmentPanel.removeAll();
+          if (issue.getAttachments() != null) {
+              for (Attachment ad : issue.getAttachments()) {
+                  AttachmentDisplay adisplay = new AttachmentDisplay(redmineIssue, ad);
+                  adisplay.setAlignmentX(Component.LEFT_ALIGNMENT);
+                  attachmentPanel.add(adisplay);
+              }
+          }
+          LinkButton lb = new LinkButton();
+          lb.setBorder(null);
+          lb.setText("Add");
+          lb.setActionCommand("addAttachment");
+          lb.addActionListener(new ActionListener() {
+
+             @Override
+             public void actionPerformed(ActionEvent e) {
+                  JPanel panel = new JPanel(new GridBagLayout());
+                  final JLabel descLabel = new JLabel("Description: ");
+                  final JLabel commandLabel = new JLabel("Comment: ");
+                  final JTextArea comment = new JTextArea();
+                  JScrollPane commenctScrollPane = new JScrollPane(comment);
+                  final JTextField description = new JTextField();
+                  Dimension min = description.getMinimumSize();
+                  Dimension pref = description.getPreferredSize();
+                  Dimension max = description.getMaximumSize();
+                  min.setSize(250, min.getHeight());
+                  pref.setSize(250, min.getHeight());
+                  max.setSize(max.getWidth(), min.getHeight());
+                  description.setMinimumSize(min);
+                  description.setPreferredSize(pref);
+                  description.setMaximumSize(max);
+                  GridBagConstraints gbc = new GridBagConstraints();
+                  gbc.anchor = GridBagConstraints.BASELINE_LEADING;
+                  gbc.fill = GridBagConstraints.BOTH;
+                  gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0; gbc.weighty = 0;
+                  panel.add(descLabel, gbc);
+                  gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 1; gbc.weighty = 0;
+                  panel.add(description, gbc);
+                  gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0; gbc.weighty = 0;
+                  panel.add(commandLabel, gbc);
+                  gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 1; gbc.weighty = 1;
+                  panel.add(commenctScrollPane, gbc);
+                  panel.add(new Filler(new Dimension(0,0),new Dimension(0,0),new Dimension(Short.MAX_VALUE, Short.MAX_VALUE)));
+                  JFileChooser fileChooser = new JFileChooser(lastDirectory);
+                  fileChooser.setAccessory(panel);
+                  fileChooser.setDialogTitle("Add attachment");
+                  int result = fileChooser.showOpenDialog(RedmineIssuePanel.this);
+                  if (result == JFileChooser.APPROVE_OPTION) {
+                      lastDirectory = fileChooser.getCurrentDirectory();
+                      final File selectedFile = fileChooser.getSelectedFile();
+                      new SwingWorker() {
+
+                          @Override
+                          protected Object doInBackground() throws Exception {
+                              redmineIssue.attachFile(selectedFile,
+                                      description.getText(),
+                                      comment.getText(),
+                                      false);
+                              redmineIssue.refresh();
+                              return null;
+                          }
+
+                          @Override
+                          protected void done() {
+                              initIssue();
+                          }
+                      }.execute();
+                  }
+              }
+          });
+          attachmentPanel.add(lb);
+          
          if (redmineIssue.hasParent()) {
             final String parentKey = String.valueOf(issue.getParentId());
             RP.post(new Runnable() {
@@ -298,7 +369,6 @@ public class RedmineIssuePanel extends JPanel {
             parentHeaderPanel.setVisible(true);
             parentHeaderPanel.removeAll();
             headerLabel.setIcon(null);
-            
          }
          journalOuterPane.setVisible(true);
          commentPanel.setVisible(true);
@@ -540,110 +610,112 @@ public class RedmineIssuePanel extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        headPane = new JPanel();
-        headerLabel = new JLabel();
-        parentHeaderPanel = new JPanel();
-        updatedLabel = new JLabel();
-        createdLabel = new JLabel();
-        createdValueLabel = new JLabel();
-        updatedValueLabel = new JLabel();
-        buttonPane = new JPanel();
-        updateButton = new JButton();
-        createButton = new JButton();
-        toolbar = new Toolbar();
-        issuePane = new JPanel();
-        descriptionLabel = new JLabel();
-        categoryComboBox = new JComboBox();
-        priorityLabel = new JLabel();
-        estimateTimeLabel1 = new JLabel();
-        subjectLabel = new JLabel();
-        estimateTimeLabel = new JLabel();
-        subjectLabel1 = new JLabel();
-        parentIdLabel = new JLabel();
-        doneLabel = new JLabel();
-        dueDateChooser = new JDateChooser();
-        trackerComboBox = new JComboBox();
+        headPane = new javax.swing.JPanel();
+        headerLabel = new javax.swing.JLabel();
+        parentHeaderPanel = new javax.swing.JPanel();
+        updatedLabel = new javax.swing.JLabel();
+        createdLabel = new javax.swing.JLabel();
+        createdValueLabel = new javax.swing.JLabel();
+        updatedValueLabel = new javax.swing.JLabel();
+        buttonPane = new javax.swing.JPanel();
+        updateButton = new javax.swing.JButton();
+        createButton = new javax.swing.JButton();
+        toolbar = new org.openide.awt.Toolbar();
+        issuePane = new javax.swing.JPanel();
+        descriptionLabel = new javax.swing.JLabel();
+        categoryComboBox = new javax.swing.JComboBox();
+        priorityLabel = new javax.swing.JLabel();
+        estimateTimeLabel1 = new javax.swing.JLabel();
+        subjectLabel = new javax.swing.JLabel();
+        estimateTimeLabel = new javax.swing.JLabel();
+        subjectLabel1 = new javax.swing.JLabel();
+        parentIdLabel = new javax.swing.JLabel();
+        doneLabel = new javax.swing.JLabel();
+        dueDateChooser = new com.toedter.calendar.JDateChooser();
+        trackerComboBox = new javax.swing.JComboBox();
         estimateTimeTextField = new JFormattedTextField(NumberFormat.getNumberInstance());
-        startDateLabel = new JLabel();
-        dueDateLabel = new JLabel();
-        statusComboBox = new JComboBox();
-        priorityComboBox = new JComboBox();
-        doneComboBox = new JComboBox();
-        subjectTextField = new JTextField();
-        categoryLabel = new JLabel();
-        statusLabel = new JLabel();
+        startDateLabel = new javax.swing.JLabel();
+        dueDateLabel = new javax.swing.JLabel();
+        statusComboBox = new javax.swing.JComboBox();
+        priorityComboBox = new javax.swing.JComboBox();
+        doneComboBox = new javax.swing.JComboBox();
+        subjectTextField = new javax.swing.JTextField();
+        categoryLabel = new javax.swing.JLabel();
+        statusLabel = new javax.swing.JLabel();
         parentTaskTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
-        targetVersionComboBox = new JComboBox();
-        targetVersionLabel = new JLabel();
-        assigneeLabel = new JLabel();
-        startDateChooser = new JDateChooser();
-        subjectLabel2 = new JLabel();
-        assigneeComboBox = new JComboBox();
-        privateCheckBox = new JCheckBox();
-        descriptionPanel = new JTabbedPane();
-        descScrollPane = new JScrollPane();
-        descTextArea = new JTextArea();
-        htmlOutputLabel = new JLabel();
-        updateCommentLabel = new JLabel();
-        updateCommentTabPanel = new JTabbedPane();
-        updateCommentScrollPane1 = new JScrollPane();
-        updateCommentTextArea = new JTextArea();
-        jScrollPane1updateCommentScrollPane2 = new JScrollPane();
-        updateCommentHtmlOutputLabel = new JLabel();
-        journalOuterPane = new JPanel();
-        journalPane = new JPanel();
-        updateCommentOuterPanel = new JPanel();
+        targetVersionComboBox = new javax.swing.JComboBox();
+        targetVersionLabel = new javax.swing.JLabel();
+        assigneeLabel = new javax.swing.JLabel();
+        startDateChooser = new com.toedter.calendar.JDateChooser();
+        subjectLabel2 = new javax.swing.JLabel();
+        assigneeComboBox = new javax.swing.JComboBox();
+        privateCheckBox = new javax.swing.JCheckBox();
+        descriptionPanel = new javax.swing.JTabbedPane();
+        descScrollPane = new javax.swing.JScrollPane();
+        descTextArea = new javax.swing.JTextArea();
+        htmlOutputLabel = new javax.swing.JLabel();
+        updateCommentLabel = new javax.swing.JLabel();
+        updateCommentTabPanel = new javax.swing.JTabbedPane();
+        updateCommentScrollPane1 = new javax.swing.JScrollPane();
+        updateCommentTextArea = new javax.swing.JTextArea();
+        jScrollPane1updateCommentScrollPane2 = new javax.swing.JScrollPane();
+        updateCommentHtmlOutputLabel = new javax.swing.JLabel();
+        attachmentLabel = new javax.swing.JLabel();
+        attachmentPanel = new com.kenai.redminenb.util.DelegatingBaseLineJPanel();
+        journalOuterPane = new javax.swing.JPanel();
+        journalPane = new javax.swing.JPanel();
+        updateCommentOuterPanel = new javax.swing.JPanel();
 
         setOpaque(false);
 
-        headPane.setBackground(new Color(255, 255, 255));
+        headPane.setBackground(new java.awt.Color(255, 255, 255));
 
-        headerLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.headerLabel.text")); // NOI18N
+        headerLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.headerLabel.text")); // NOI18N
 
         updatedLabel.setFont(updatedLabel.getFont().deriveFont(updatedLabel.getFont().getSize()-2f));
-        updatedLabel.setForeground(new Color(128, 128, 128));
-        updatedLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updatedLabel.text")); // NOI18N
+        updatedLabel.setForeground(new java.awt.Color(128, 128, 128));
+        updatedLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updatedLabel.text")); // NOI18N
 
         createdLabel.setFont(createdLabel.getFont().deriveFont(createdLabel.getFont().getSize()-2f));
-        createdLabel.setForeground(new Color(128, 128, 128));
-        createdLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createdLabel.text")); // NOI18N
+        createdLabel.setForeground(new java.awt.Color(128, 128, 128));
+        createdLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createdLabel.text")); // NOI18N
 
         createdValueLabel.setFont(createdValueLabel.getFont().deriveFont(createdValueLabel.getFont().getSize()-2f));
-        createdValueLabel.setForeground(new Color(22, 75, 123));
-        createdValueLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createdValueLabel.text")); // NOI18N
+        createdValueLabel.setForeground(new java.awt.Color(22, 75, 123));
+        createdValueLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createdValueLabel.text")); // NOI18N
 
         updatedValueLabel.setFont(updatedValueLabel.getFont().deriveFont(updatedValueLabel.getFont().getSize()-2f));
-        updatedValueLabel.setForeground(new Color(22, 75, 123));
-        updatedValueLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updatedValueLabel.text")); // NOI18N
+        updatedValueLabel.setForeground(new java.awt.Color(22, 75, 123));
+        updatedValueLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updatedValueLabel.text")); // NOI18N
 
-        GroupLayout headPaneLayout = new GroupLayout(headPane);
+        javax.swing.GroupLayout headPaneLayout = new javax.swing.GroupLayout(headPane);
         headPane.setLayout(headPaneLayout);
         headPaneLayout.setHorizontalGroup(
-            headPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            headPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(headPaneLayout.createSequentialGroup()
                 .addGap(12, 12, 12)
-                .addGroup(headPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(headPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(headPaneLayout.createSequentialGroup()
                         .addComponent(createdLabel)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(createdValueLabel)
                         .addGap(18, 18, 18)
                         .addComponent(updatedLabel)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(updatedValueLabel))
-                    .addComponent(parentHeaderPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(headerLabel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(parentHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(headerLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         headPaneLayout.setVerticalGroup(
-            headPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            headPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(headPaneLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(parentHeaderPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addComponent(parentHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(1, 1, 1)
-                .addComponent(headerLabel, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                .addComponent(headerLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(3, 3, 3)
-                .addGroup(headPaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(headPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(createdLabel)
                     .addComponent(updatedLabel)
                     .addComponent(createdValueLabel)
@@ -653,234 +725,239 @@ public class RedmineIssuePanel extends JPanel {
 
         buttonPane.setOpaque(false);
 
-        updateButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateButton.text")); // NOI18N
-        updateButton.setToolTipText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateButton.toolTipText")); // NOI18N
+        updateButton.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateButton.text")); // NOI18N
+        updateButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateButton.toolTipText")); // NOI18N
         updateButton.setSelected(true);
-        updateButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        updateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 updateButtonActionPerformed(evt);
             }
         });
 
-        createButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createButton.text")); // NOI18N
-        createButton.setToolTipText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createButton.toolTipText")); // NOI18N
+        createButton.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createButton.text")); // NOI18N
+        createButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.createButton.toolTipText")); // NOI18N
         createButton.setSelected(true);
-        createButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        createButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 createButtonActionPerformed(evt);
             }
         });
 
-        infoLabel.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/info.png"))); // NOI18N
+        infoLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/info.png"))); // NOI18N
 
         toolbar.setRollover(true);
         toolbar.setBorderPainted(false);
         toolbar.setOpaque(false);
 
-        GroupLayout buttonPaneLayout = new GroupLayout(buttonPane);
+        javax.swing.GroupLayout buttonPaneLayout = new javax.swing.GroupLayout(buttonPane);
         buttonPane.setLayout(buttonPaneLayout);
         buttonPaneLayout.setHorizontalGroup(
-            buttonPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            buttonPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(buttonPaneLayout.createSequentialGroup()
                 .addComponent(createButton)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(updateButton)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(infoLabel, GroupLayout.PREFERRED_SIZE, 360, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(toolbar, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(infoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 360, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         buttonPaneLayout.setVerticalGroup(
-            buttonPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            buttonPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(buttonPaneLayout.createSequentialGroup()
-                .addGroup(buttonPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(buttonPaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(buttonPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(buttonPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(createButton)
                         .addComponent(updateButton))
-                    .addComponent(infoLabel, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(toolbar, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(infoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         issuePane.setOpaque(false);
 
-        descriptionLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.descriptionLabel.text")); // NOI18N
+        descriptionLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.descriptionLabel.text")); // NOI18N
 
-        priorityLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.priorityLabel.text")); // NOI18N
+        priorityLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.priorityLabel.text")); // NOI18N
 
-        estimateTimeLabel1.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.estimateTimeLabel1.text")); // NOI18N
+        estimateTimeLabel1.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.estimateTimeLabel1.text")); // NOI18N
 
-        subjectLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectLabel.text")); // NOI18N
+        subjectLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectLabel.text")); // NOI18N
 
-        estimateTimeLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.estimateTimeLabel.text")); // NOI18N
+        estimateTimeLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.estimateTimeLabel.text")); // NOI18N
 
-        subjectLabel1.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectLabel1.text")); // NOI18N
+        subjectLabel1.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectLabel1.text")); // NOI18N
 
-        parentIdLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.parentIdLabel.text")); // NOI18N
+        parentIdLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.parentIdLabel.text")); // NOI18N
 
-        doneLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.doneLabel.text")); // NOI18N
+        doneLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.doneLabel.text")); // NOI18N
 
         dueDateChooser.setOpaque(false);
 
-        trackerComboBox.setModel(new DefaultComboBoxModel(new String[] { "Bug", "Feature", "Support" }));
+        trackerComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Bug", "Feature", "Support" }));
 
-        startDateLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.startDateLabel.text")); // NOI18N
+        startDateLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.startDateLabel.text")); // NOI18N
 
-        dueDateLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.dueDateLabel.text")); // NOI18N
+        dueDateLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.dueDateLabel.text")); // NOI18N
 
-        statusComboBox.setModel(new DefaultComboBoxModel(new String[] { "New" }));
+        statusComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "New" }));
 
-        priorityComboBox.setModel(new DefaultComboBoxModel(new String[] { "Low", "Normal", "High", "Urgent", "Immediate" }));
+        priorityComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Low", "Normal", "High", "Urgent", "Immediate" }));
         priorityComboBox.setSelectedIndex(1);
 
         doneComboBox.setMaximumRowCount(11);
-        doneComboBox.setModel(new DefaultComboBoxModel(new String[] { "0 %", "10 %", "20 %", "30 %", "40 %", "50 %", "60 %", "70 %", "80 %", "90 %", "100 %" }));
+        doneComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0 %", "10 %", "20 %", "30 %", "40 %", "50 %", "60 %", "70 %", "80 %", "90 %", "100 %" }));
 
-        subjectTextField.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectTextField.text")); // NOI18N
+        subjectTextField.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectTextField.text")); // NOI18N
 
         wikiSyntaxButton.setBorder(null);
-        wikiSyntaxButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/help.png"))); // NOI18N
-        wikiSyntaxButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.wikiSyntaxButton.text")); // NOI18N
-        wikiSyntaxButton.setFont(new Font("Lucida Grande", 0, 11)); // NOI18N
-        wikiSyntaxButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        wikiSyntaxButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/help.png"))); // NOI18N
+        wikiSyntaxButton.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.wikiSyntaxButton.text")); // NOI18N
+        wikiSyntaxButton.setFont(new java.awt.Font("Lucida Grande", 0, 11)); // NOI18N
+        wikiSyntaxButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 wikiSyntaxButtonActionPerformed(evt);
             }
         });
 
-        categoryLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.categoryLabel.text")); // NOI18N
+        categoryLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.categoryLabel.text")); // NOI18N
 
-        statusLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.statusLabel.text")); // NOI18N
+        statusLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.statusLabel.text")); // NOI18N
 
-        categoryAddButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
-        categoryAddButton.setToolTipText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.categoryAddButton.toolTipText")); // NOI18N
-        categoryAddButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        categoryAddButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
+        categoryAddButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.categoryAddButton.toolTipText")); // NOI18N
+        categoryAddButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 categoryAddButtonActionPerformed(evt);
             }
         });
 
-        targetVersionLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.targetVersionLabel.text")); // NOI18N
+        targetVersionLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.targetVersionLabel.text")); // NOI18N
 
-        versionAddButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
-        versionAddButton.setToolTipText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.versionAddButton.toolTipText")); // NOI18N
-        versionAddButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        versionAddButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
+        versionAddButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.versionAddButton.toolTipText")); // NOI18N
+        versionAddButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 versionAddButtonActionPerformed(evt);
             }
         });
 
-        assigneeLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.assigneeLabel.text")); // NOI18N
+        assigneeLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.assigneeLabel.text")); // NOI18N
 
         startDateChooser.setOpaque(false);
 
-        subjectLabel2.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectLabel2.text")); // NOI18N
+        subjectLabel2.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.subjectLabel2.text")); // NOI18N
 
         projectNameButton.setBorder(null);
-        projectNameButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.projectNameButton.text")); // NOI18N
-        projectNameButton.setToolTipText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.projectNameButton.toolTipText")); // NOI18N
-        projectNameButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        projectNameButton.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.projectNameButton.text")); // NOI18N
+        projectNameButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.projectNameButton.toolTipText")); // NOI18N
+        projectNameButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 projectNameButtonActionPerformed(evt);
             }
         });
 
         assignToMeButton.setBorder(null);
-        assignToMeButton.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.assignToMeButton.text")); // NOI18N
-        assignToMeButton.setFont(new Font("Lucida Grande", 0, 11)); // NOI18N
-        assignToMeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        assignToMeButton.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.assignToMeButton.text")); // NOI18N
+        assignToMeButton.setFont(new java.awt.Font("Lucida Grande", 0, 11)); // NOI18N
+        assignToMeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 assignToMeButtonActionPerformed(evt);
             }
         });
 
-        privateCheckBox.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.privateCheckBox.text")); // NOI18N
+        privateCheckBox.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.privateCheckBox.text")); // NOI18N
 
-        descriptionPanel.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        descriptionPanel.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
 
         descTextArea.setColumns(20);
         descScrollPane.setViewportView(descTextArea);
 
-        descriptionPanel.addTab(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.descScrollPane.TabConstraints.tabTitle"), descScrollPane); // NOI18N
+        descriptionPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.descScrollPane.TabConstraints.tabTitle"), descScrollPane); // NOI18N
 
-        htmlOutputLabel.setBackground(new Color(255, 255, 255));
+        htmlOutputLabel.setBackground(new java.awt.Color(255, 255, 255));
         htmlOutputLabel.setFont(htmlOutputLabel.getFont().deriveFont(htmlOutputLabel.getFont().getSize()-2f));
-        htmlOutputLabel.setVerticalAlignment(SwingConstants.TOP);
+        htmlOutputLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         htmlOutputLabel.setOpaque(true);
-        htmlOutputLabel.setVerticalTextPosition(SwingConstants.TOP);
-        descriptionPanel.addTab(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.htmlOutputLabel.TabConstraints.tabTitle"), htmlOutputLabel); // NOI18N
+        htmlOutputLabel.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
+        descriptionPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.htmlOutputLabel.TabConstraints.tabTitle"), htmlOutputLabel); // NOI18N
 
-        updateCommentLabel.setText(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentLabel.text")); // NOI18N
+        updateCommentLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentLabel.text")); // NOI18N
 
-        updateCommentTabPanel.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        updateCommentTabPanel.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
 
-        updateCommentScrollPane1.setMinimumSize(new Dimension(22, 80));
-        updateCommentScrollPane1.setPreferredSize(new Dimension(228, 120));
+        updateCommentScrollPane1.setMinimumSize(new java.awt.Dimension(22, 80));
+        updateCommentScrollPane1.setPreferredSize(new java.awt.Dimension(228, 120));
 
         updateCommentTextArea.setColumns(20);
         updateCommentScrollPane1.setViewportView(updateCommentTextArea);
 
-        updateCommentTabPanel.addTab(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentScrollPane1.TabConstraints.tabTitle"), updateCommentScrollPane1); // NOI18N
+        updateCommentTabPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentScrollPane1.TabConstraints.tabTitle"), updateCommentScrollPane1); // NOI18N
 
-        jScrollPane1updateCommentScrollPane2.setMinimumSize(new Dimension(22, 80));
-        jScrollPane1updateCommentScrollPane2.setPreferredSize(new Dimension(228, 120));
+        jScrollPane1updateCommentScrollPane2.setMinimumSize(new java.awt.Dimension(22, 80));
+        jScrollPane1updateCommentScrollPane2.setPreferredSize(new java.awt.Dimension(228, 120));
 
-        updateCommentHtmlOutputLabel.setBackground(new Color(255, 255, 255));
+        updateCommentHtmlOutputLabel.setBackground(new java.awt.Color(255, 255, 255));
         updateCommentHtmlOutputLabel.setFont(updateCommentHtmlOutputLabel.getFont().deriveFont(updateCommentHtmlOutputLabel.getFont().getSize()-2f));
-        updateCommentHtmlOutputLabel.setVerticalAlignment(SwingConstants.TOP);
+        updateCommentHtmlOutputLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         updateCommentHtmlOutputLabel.setOpaque(true);
-        updateCommentHtmlOutputLabel.setVerticalTextPosition(SwingConstants.TOP);
+        updateCommentHtmlOutputLabel.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
         jScrollPane1updateCommentScrollPane2.setViewportView(updateCommentHtmlOutputLabel);
 
-        updateCommentTabPanel.addTab(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.jScrollPane1updateCommentScrollPane2.TabConstraints.tabTitle"), jScrollPane1updateCommentScrollPane2); // NOI18N
+        updateCommentTabPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.jScrollPane1updateCommentScrollPane2.TabConstraints.tabTitle"), jScrollPane1updateCommentScrollPane2); // NOI18N
 
-        GroupLayout issuePaneLayout = new GroupLayout(issuePane);
+        attachmentLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.attachmentLabel.text")); // NOI18N
+
+        attachmentPanel.setOpaque(false);
+        attachmentPanel.setLayout(new javax.swing.BoxLayout(attachmentPanel, javax.swing.BoxLayout.PAGE_AXIS));
+
+        javax.swing.GroupLayout issuePaneLayout = new javax.swing.GroupLayout(issuePane);
         issuePane.setLayout(issuePaneLayout);
         issuePaneLayout.setHorizontalGroup(
-            issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(issuePaneLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
+                        .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(descriptionLabel)
                             .addComponent(statusLabel)
                             .addComponent(priorityLabel)
                             .addComponent(assigneeLabel)
                             .addComponent(subjectLabel)
                             .addComponent(subjectLabel1)
-                            .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(wikiSyntaxButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(targetVersionLabel)
                             .addComponent(categoryLabel))
                         .addGap(0, 0, 0)
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(subjectTextField)
                             .addGroup(issuePaneLayout.createSequentialGroup()
-                                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addComponent(trackerComboBox, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(trackerComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(18, 18, 18)
                                         .addComponent(privateCheckBox))
                                     .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addComponent(targetVersionComboBox, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
-                                            .addGroup(GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
-                                                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                                    .addComponent(statusComboBox, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
-                                                    .addComponent(priorityComboBox, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(targetVersionComboBox, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, issuePaneLayout.createSequentialGroup()
+                                                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                                    .addComponent(statusComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addComponent(priorityComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
                                                 .addGap(53, 53, 53))
-                                            .addComponent(assigneeComboBox, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE))
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addComponent(versionAddButton, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(assignToMeButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                            .addComponent(assigneeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(versionAddButton, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(assignToMeButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                     .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addComponent(categoryComboBox, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(categoryAddButton, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE)))
+                                        .addComponent(categoryComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(categoryAddButton, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addGap(60, 60, 60)
-                                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(dueDateLabel)
                                     .addComponent(startDateLabel)
                                     .addComponent(parentIdLabel)
@@ -888,137 +965,145 @@ public class RedmineIssuePanel extends JPanel {
                                     .addComponent(doneLabel)
                                     .addComponent(estimateTimeLabel))
                                 .addGap(8, 8, 8)
-                                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(issuePaneLayout.createSequentialGroup()
-                                        .addComponent(estimateTimeTextField, GroupLayout.PREFERRED_SIZE, 93, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(estimateTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(estimateTimeLabel1))
-                                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(startDateChooser, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
-                                        .addComponent(dueDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(parentTaskTextField, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(projectNameButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                                .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(startDateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+                                        .addComponent(dueDateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(parentTaskTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(projectNameButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 349, Short.MAX_VALUE))
                             .addComponent(descriptionPanel)))
                     .addGroup(issuePaneLayout.createSequentialGroup()
-                        .addComponent(updateCommentLabel, GroupLayout.PREFERRED_SIZE, 879, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(updateCommentLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 879, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(updateCommentTabPanel))
+                    .addComponent(updateCommentTabPanel)
+                    .addGroup(issuePaneLayout.createSequentialGroup()
+                        .addComponent(attachmentLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(attachmentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         issuePaneLayout.setVerticalGroup(
-            issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(issuePaneLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(subjectLabel1)
-                    .addComponent(trackerComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(trackerComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(subjectLabel2)
-                    .addComponent(projectNameButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(projectNameButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(privateCheckBox))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(subjectTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(subjectTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(subjectLabel))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(issuePaneLayout.createSequentialGroup()
                         .addComponent(descriptionLabel)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(wikiSyntaxButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(wikiSyntaxButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(descriptionPanel, GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(statusComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(descriptionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 47, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(statusLabel)
                     .addComponent(parentIdLabel)
-                    .addComponent(parentTaskTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(parentTaskTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(8, 8, 8)
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(priorityLabel)
-                        .addComponent(priorityComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(startDateLabel, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
-                    .addComponent(startDateChooser, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(priorityComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(startDateLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(startDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(assigneeLabel)
-                        .addComponent(dueDateLabel, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(assignToMeButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(assigneeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                    .addComponent(dueDateChooser, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(categoryAddButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addComponent(dueDateLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(assignToMeButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(assigneeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(dueDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(categoryAddButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(categoryLabel)
-                        .addComponent(categoryComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(categoryComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(estimateTimeLabel)
-                        .addComponent(estimateTimeTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(estimateTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(estimateTimeLabel1)))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(versionAddButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(versionAddButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(issuePaneLayout.createSequentialGroup()
-                        .addGroup(issuePaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(targetVersionLabel)
-                            .addComponent(targetVersionComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(targetVersionComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(doneLabel)
-                            .addComponent(doneComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                            .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE)))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(attachmentLabel)
+                    .addComponent(attachmentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(updateCommentLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(updateCommentTabPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(updateCommentTabPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
-        journalOuterPane.setBorder(BorderFactory.createTitledBorder(NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.journalOuterPane.border.title"))); // NOI18N
+        journalOuterPane.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.journalOuterPane.border.title"))); // NOI18N
         journalOuterPane.setOpaque(false);
-        journalOuterPane.setLayout(new BorderLayout());
+        journalOuterPane.setLayout(new java.awt.BorderLayout());
 
         journalPane.setOpaque(false);
-        journalPane.setLayout(new BoxLayout(journalPane, BoxLayout.PAGE_AXIS));
-        journalOuterPane.add(journalPane, BorderLayout.PAGE_START);
+        journalPane.setLayout(new javax.swing.BoxLayout(journalPane, javax.swing.BoxLayout.PAGE_AXIS));
+        journalOuterPane.add(journalPane, java.awt.BorderLayout.PAGE_START);
 
         updateCommentOuterPanel.setOpaque(false);
-        updateCommentOuterPanel.setLayout(new BorderLayout());
+        updateCommentOuterPanel.setLayout(new java.awt.BorderLayout());
 
-        GroupLayout layout = new GroupLayout(this);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(headPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(headPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(buttonPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(issuePane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(buttonPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(issuePane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(502, 502, 502)
-                        .addComponent(updateCommentOuterPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(updateCommentOuterPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(journalOuterPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(journalOuterPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(headPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonPane, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(issuePane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(journalOuterPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(updateCommentOuterPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addComponent(headPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonPane, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(issuePane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(journalOuterPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(updateCommentOuterPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1103,64 +1188,66 @@ public class RedmineIssuePanel extends JPanel {
       }
    }//GEN-LAST:event_wikiSyntaxButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    final LinkButton assignToMeButton = new LinkButton();
-    JComboBox assigneeComboBox;
-    JLabel assigneeLabel;
-    JPanel buttonPane;
-    final LinkButton categoryAddButton = new LinkButton();
-    JComboBox categoryComboBox;
-    JLabel categoryLabel;
-    JButton createButton;
-    JLabel createdLabel;
-    JLabel createdValueLabel;
-    JScrollPane descScrollPane;
-    JTextArea descTextArea;
-    JLabel descriptionLabel;
-    JTabbedPane descriptionPanel;
-    JComboBox doneComboBox;
-    JLabel doneLabel;
-    JDateChooser dueDateChooser;
-    JLabel dueDateLabel;
-    JLabel estimateTimeLabel;
-    JLabel estimateTimeLabel1;
-    JFormattedTextField estimateTimeTextField;
-    JPanel headPane;
-    JLabel headerLabel;
-    JLabel htmlOutputLabel;
-    final JLabel infoLabel = new JLabel();
-    JPanel issuePane;
-    JScrollPane jScrollPane1updateCommentScrollPane2;
-    JPanel journalOuterPane;
-    JPanel journalPane;
-    JPanel parentHeaderPanel;
-    JLabel parentIdLabel;
-    JFormattedTextField parentTaskTextField;
-    JComboBox priorityComboBox;
-    JLabel priorityLabel;
-    JCheckBox privateCheckBox;
-    final LinkButton projectNameButton = new LinkButton();
-    JDateChooser startDateChooser;
-    JLabel startDateLabel;
-    JComboBox statusComboBox;
-    JLabel statusLabel;
-    JLabel subjectLabel;
-    JLabel subjectLabel1;
-    JLabel subjectLabel2;
-    JTextField subjectTextField;
-    JComboBox targetVersionComboBox;
-    JLabel targetVersionLabel;
-    Toolbar toolbar;
-    JComboBox trackerComboBox;
-    JButton updateButton;
-    JLabel updateCommentHtmlOutputLabel;
-    JLabel updateCommentLabel;
-    JPanel updateCommentOuterPanel;
-    JScrollPane updateCommentScrollPane1;
-    JTabbedPane updateCommentTabPanel;
-    JTextArea updateCommentTextArea;
-    JLabel updatedLabel;
-    JLabel updatedValueLabel;
-    final LinkButton versionAddButton = new LinkButton();
-    final LinkButton wikiSyntaxButton = new LinkButton();
+    final com.kenai.redminenb.util.LinkButton assignToMeButton = new com.kenai.redminenb.util.LinkButton();
+    javax.swing.JComboBox assigneeComboBox;
+    javax.swing.JLabel assigneeLabel;
+    javax.swing.JLabel attachmentLabel;
+    com.kenai.redminenb.util.DelegatingBaseLineJPanel attachmentPanel;
+    javax.swing.JPanel buttonPane;
+    final com.kenai.redminenb.util.LinkButton categoryAddButton = new com.kenai.redminenb.util.LinkButton();
+    javax.swing.JComboBox categoryComboBox;
+    javax.swing.JLabel categoryLabel;
+    javax.swing.JButton createButton;
+    javax.swing.JLabel createdLabel;
+    javax.swing.JLabel createdValueLabel;
+    javax.swing.JScrollPane descScrollPane;
+    javax.swing.JTextArea descTextArea;
+    javax.swing.JLabel descriptionLabel;
+    javax.swing.JTabbedPane descriptionPanel;
+    javax.swing.JComboBox doneComboBox;
+    javax.swing.JLabel doneLabel;
+    com.toedter.calendar.JDateChooser dueDateChooser;
+    javax.swing.JLabel dueDateLabel;
+    javax.swing.JLabel estimateTimeLabel;
+    javax.swing.JLabel estimateTimeLabel1;
+    javax.swing.JFormattedTextField estimateTimeTextField;
+    javax.swing.JPanel headPane;
+    javax.swing.JLabel headerLabel;
+    javax.swing.JLabel htmlOutputLabel;
+    final javax.swing.JLabel infoLabel = new javax.swing.JLabel();
+    javax.swing.JPanel issuePane;
+    javax.swing.JScrollPane jScrollPane1updateCommentScrollPane2;
+    javax.swing.JPanel journalOuterPane;
+    javax.swing.JPanel journalPane;
+    javax.swing.JPanel parentHeaderPanel;
+    javax.swing.JLabel parentIdLabel;
+    javax.swing.JFormattedTextField parentTaskTextField;
+    javax.swing.JComboBox priorityComboBox;
+    javax.swing.JLabel priorityLabel;
+    javax.swing.JCheckBox privateCheckBox;
+    final com.kenai.redminenb.util.LinkButton projectNameButton = new com.kenai.redminenb.util.LinkButton();
+    com.toedter.calendar.JDateChooser startDateChooser;
+    javax.swing.JLabel startDateLabel;
+    javax.swing.JComboBox statusComboBox;
+    javax.swing.JLabel statusLabel;
+    javax.swing.JLabel subjectLabel;
+    javax.swing.JLabel subjectLabel1;
+    javax.swing.JLabel subjectLabel2;
+    javax.swing.JTextField subjectTextField;
+    javax.swing.JComboBox targetVersionComboBox;
+    javax.swing.JLabel targetVersionLabel;
+    org.openide.awt.Toolbar toolbar;
+    javax.swing.JComboBox trackerComboBox;
+    javax.swing.JButton updateButton;
+    javax.swing.JLabel updateCommentHtmlOutputLabel;
+    javax.swing.JLabel updateCommentLabel;
+    javax.swing.JPanel updateCommentOuterPanel;
+    javax.swing.JScrollPane updateCommentScrollPane1;
+    javax.swing.JTabbedPane updateCommentTabPanel;
+    javax.swing.JTextArea updateCommentTextArea;
+    javax.swing.JLabel updatedLabel;
+    javax.swing.JLabel updatedValueLabel;
+    final com.kenai.redminenb.util.LinkButton versionAddButton = new com.kenai.redminenb.util.LinkButton();
+    final com.kenai.redminenb.util.LinkButton wikiSyntaxButton = new com.kenai.redminenb.util.LinkButton();
     // End of variables declaration//GEN-END:variables
 }

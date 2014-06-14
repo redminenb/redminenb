@@ -117,7 +117,7 @@ public class RedmineIssueController implements IssueController {
     }
 
     private void initListeners() {
-        issuePanel.descTextArea.getDocument().addDocumentListener(new DocumentListener() {
+        abstract class DelegateChangeHandler implements DocumentListener {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 changedUpdate(e);
@@ -126,11 +126,20 @@ public class RedmineIssueController implements IssueController {
             @Override
             public void removeUpdate(DocumentEvent e) {
                 changedUpdate(e);
-            }
-
+            }            
+        };
+        
+        issuePanel.descTextArea.getDocument().addDocumentListener(new DelegateChangeHandler() {
             @Override
             public void changedUpdate(DocumentEvent e) {
                 issuePanel.updateTextileOutput();
+            }
+        });
+        
+        issuePanel.updateCommentTextArea.getDocument().addDocumentListener(new DelegateChangeHandler() {
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                issuePanel.updateCommentTextileOutput();
             }
         });
     }

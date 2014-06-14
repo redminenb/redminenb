@@ -23,41 +23,35 @@ import org.openide.util.NbBundle;
  * @author matthias
  */
 public class JournalDisplay extends javax.swing.JPanel {
-    private final MessageFormat leftTemplate= new MessageFormat("Updated by {0} on {1,date,medium}, {1,time,medium}");
-    private final MessageFormat rightTemplate= new MessageFormat("# {0, number, integer}");
-    
     /**
      * Creates new form JournalDisplay
      */
-    public JournalDisplay() {
+    private JournalDisplay() {
         initComponents();
     }
     
-    public JournalDisplay(Journal jd) {
+    public JournalDisplay(Journal jd, int index) {
         initComponents();
-        setJournalData(jd);
+        setJournalData(jd, index);
     }
     
-    public synchronized void setJournalData(Journal jd) {
-        leftLabel.setText(leftTemplate.format(new Object[]{
-            jd.getUser().getFullName(),
-            jd.getCreatedOn()}));
-        rightLabel.setText(rightTemplate.format(new Object[]{jd.getId()}));
+    public synchronized void setJournalData(Journal jd, int index) {
+        Object[] rightParams = new Object[] {jd.getId(), index + 1};
+        Object[] leftParams = new Object[]{ jd.getUser().getFullName(), jd.getCreatedOn()};
+        leftLabel.setText(NbBundle.getMessage(JournalDisplay.class, 
+                "journalDisplay.leftTemplate", leftParams));
+        leftLabel.setToolTipText(NbBundle.getMessage(JournalDisplay.class, 
+                "journalDisplay.leftTemplateTooltip", leftParams));
+        rightLabel.setText(NbBundle.getMessage(JournalDisplay.class, 
+                "journalDisplay.rightTemplate", rightParams));
+        rightLabel.setToolTipText(NbBundle.getMessage(JournalDisplay.class, 
+                "journalDisplay.rightTemplateTooltip", rightParams));
+        
         String noteText = jd.getNotes();
         StringWriter writer = new StringWriter();
-        if (StringUtils.isNotBlank(noteText)) {
-            HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer);
-            // avoid the <html> and <body> tags
-            builder.setEmitAsDocument(false);
-
-            MarkupParser parser = TextileUtil.getTextileMarkupParser();
-            parser.setBuilder(builder);
-            parser.parse(noteText);
-            parser.setBuilder(null);
-        }
 
         if (jd.getDetails() != null && jd.getDetails().size() > 0) {
-            writer.append("<ul style='padding-top: 0px; margin-top: 0px; padding-bottom: 0px; margin-bottom: 0px'>");
+            writer.append("<ul style='padding-top: 0px; margin-top: 5px; padding-bottom: 0px; margin-bottom: 5px'>");
             for (JournalDetail detail : jd.getDetails()) {
                 writer.append("<li>");
                 String fieldName = detail.getName();
@@ -92,6 +86,20 @@ public class JournalDisplay extends javax.swing.JPanel {
             }
             writer.append("</ul>");
         }
+        
+        if (StringUtils.isNotBlank(noteText)) {
+            writer.append("<div style='padding: 5px'>");
+            HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer);
+            // avoid the <html> and <body> tags
+            builder.setEmitAsDocument(false);
+
+            MarkupParser parser = TextileUtil.getTextileMarkupParser();
+            parser.setBuilder(builder);
+            parser.parse(noteText);
+            parser.setBuilder(null);
+            writer.append("</div>");
+        }
+        
         String output = writer.toString();
         if(output.length() > 0) {
             output = "<html><body>" + output + "</body></html>";

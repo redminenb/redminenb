@@ -59,6 +59,7 @@ import com.kenai.redminenb.util.LinkButton;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Journal;
 import java.awt.BorderLayout;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.swing.BoxLayout;
 import javax.swing.JTabbedPane;
@@ -243,8 +244,9 @@ public class RedmineIssuePanel extends JPanel {
              journalOuterPane.setVisible(false);
          }
          journalPane.removeAll();
-         for(Journal jd: issue.getJournals()) {
-             JournalDisplay jdisplay = new JournalDisplay(jd);
+         List<Journal> journalEntries = issue.getJournals();
+         for(int i = 0; i < journalEntries.size(); i++) {
+             JournalDisplay jdisplay = new JournalDisplay(journalEntries.get(i), i);
              journalPane.add(jdisplay);
          }
          journalPane.doLayout();

@@ -201,7 +201,7 @@ public final class RedmineQuery {
         boolean searchSubject = false;
         boolean searchDescription = false;
         boolean searchComments = false;
-        ParameterValue[] queryStringParameter = parameters.remove("query");
+        ParameterValue[] queryStringParameter = parameters.get("query");
         Map<String,ParameterValue[]> multiValueParameters = new HashMap<>();
 
         Map<String, String> m = new HashMap<>();
@@ -209,6 +209,10 @@ public final class RedmineQuery {
 
         for (Entry<String,ParameterValue[]> p : parameters.entrySet()) {
             String parameter = p.getKey();
+            // Query parameter is handled seperatedly
+            if("query".equals(parameter)) {
+                continue;
+            }
             ParameterValue[] paramValues = p.getValue();
             if (StringUtils.isNotBlank(ParameterValue.flattenList(paramValues))) {
                 if (paramValues.length == 1) {

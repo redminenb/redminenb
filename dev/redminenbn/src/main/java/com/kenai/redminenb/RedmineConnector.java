@@ -57,8 +57,8 @@ public class RedmineConnector implements BugtrackingConnector {
     private Repository createRepository(RedmineRepository repo) {
         return Redmine.getInstance().getSupport().createRepository(
                 repo,
-                Redmine.getInstance().getIssueStatusProvider(),
-                Redmine.getInstance().getIssueScheduleProvider(),
+                null, // Status provider needs a persistent cache
+                null, // Schedule provider needs a persistent cache
                 Redmine.getInstance().getIssuePriorityProvider(),
                 null);
     }

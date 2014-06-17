@@ -24,7 +24,6 @@ public class RedmineIssuePriorityProvider implements IssuePriorityProvider<Redmi
     }
 
     @Override
-    @SuppressWarnings("empty-statement")
     public IssuePriorityInfo[] getPriorityInfos() {
         // need per manager list
         List<IssuePriority> li = Helper.getDefaultIssuePriorities();

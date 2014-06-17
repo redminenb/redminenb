@@ -250,7 +250,7 @@ public final class RedmineQuery {
         if (!multiValueParameters.isEmpty()) {
             List<Issue> newArr = new ArrayList<>(issueArr.size());
             for (Issue issue : issueArr) {
-                for (Entry<String,ParameterValue[]> p : parameters.entrySet()) {
+                for (Entry<String,ParameterValue[]> p : multiValueParameters.entrySet()) {
                     // TODO: map FIELD_xxx property to query parameter
                     String paramName = p.getKey();
                     ParameterValue[] parameterValues = p.getValue();

@@ -514,7 +514,7 @@ public class RedmineIssuePanel extends JPanel {
        }.execute();
    }
 
-   private void saveIssue() {
+   void saveIssue() {
         final Issue issue = this.redmineIssue.getIssue();
         setIssueData(issue);
         String comment = updateCommentTextArea.getText();

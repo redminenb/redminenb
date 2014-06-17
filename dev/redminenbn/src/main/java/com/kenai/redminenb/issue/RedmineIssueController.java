@@ -24,6 +24,7 @@ import javax.swing.event.DocumentListener;
 import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.openide.awt.HtmlBrowser;
 import org.openide.util.HelpCtx;
+import org.openide.util.Mutex;
 import org.openide.util.NbBundle;
 
 /**
@@ -205,12 +206,23 @@ public class RedmineIssueController implements IssueController {
 
     @Override
     public boolean saveChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // @todo: Clean this up - the logic of issue handling has to be moved
+        // from the panel into the controller...
+        Mutex.EVENT.writeAccess(new Runnable() {
+            @Override
+            public void run() {
+                issuePanel.saveIssue();
+            }
+        });
+        return true;
     }
 
     @Override
     public boolean discardUnsavedChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(issuePanel != null) {
+            issuePanel.initIssue();
+        }
+        return true;
     }
 
     @Override

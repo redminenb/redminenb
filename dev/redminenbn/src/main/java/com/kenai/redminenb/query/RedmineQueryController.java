@@ -195,8 +195,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 guiToModel();
                 onSave(true); // refresh
             } else if (e.getSource() == queryPanel.cancelChangesButton) {
-                onCancelChanges();
-                modelToGUI();
+                discardUnsavedChanges();
             } else if (e.getSource() == queryPanel.webButton) {
                 onWeb();
             } else if (e.getSource() == queryPanel.saveButton) {
@@ -240,7 +239,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                     }
                 }
                 assert name != null;
-                save(name);
+                saveChanges(name);
                 Redmine.LOG.fine("on save finnish");
 
                 if (refresh) {
@@ -248,24 +247,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 }
             }
         });
-    }
-
-    /**
-     * Saves the query under the given name
-     *
-     * @param name
-     */
-    private void save(String name) {
-        Redmine.LOG.log(Level.FINE, "saving query '{0}'", new Object[]{name});
-        query.setName(name);
-        repository.saveQuery(query);
-        query.setSaved(true); // XXX
-        setAsSaved(false);
-        if (!query.wasRun()) {
-            Redmine.LOG.log(Level.FINE, "refreshing query '{0}' after save", new Object[]{name});
-            refresh();
-        }
-        Redmine.LOG.log(Level.FINE, "query '{0}' saved", new Object[]{name});
     }
 
     private String getSaveName() {
@@ -277,12 +258,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
         } else {
             return null;
         }
-    }
-
-    private void onCancelChanges() {
-        RedmineConfig.getInstance().reloadQuery(query);
-        modelToGUI();
-        setAsSaved(false);
     }
 
     private void setAsSaved(boolean showModify) {
@@ -707,19 +682,33 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     @Override
-    public boolean saveChanges(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean saveChanges(String name) {
+        Redmine.LOG.log(Level.FINE, "saving query '{0}'", new Object[]{name});
+        query.setName(name);
+        repository.saveQuery(query);
+        query.setSaved(true); // XXX
+        setAsSaved(false);
+        if (!query.wasRun()) {
+            Redmine.LOG.log(Level.FINE, "refreshing query '{0}' after save", new Object[]{name});
+            refresh();
+        }
+        Redmine.LOG.log(Level.FINE, "query '{0}' saved", new Object[]{name});
+        return true;
     }
 
     @Override
     public boolean discardUnsavedChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        RedmineConfig.getInstance().reloadQuery(query);
+        modelToGUI();
+        setAsSaved(false);
+        return true;
     }
 
     @Override
     public boolean isChanged() {
         return query.isSaved();
     }
+    
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
 
     @Override

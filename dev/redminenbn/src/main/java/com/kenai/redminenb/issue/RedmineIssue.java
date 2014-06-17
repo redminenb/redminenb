@@ -351,24 +351,6 @@ public final class RedmineIssue {
         return -1;
     }
 
-    private TimeEntry createTimeEntry(String comment) throws IOException, AuthenticationException,
-            RedmineException, NotFoundException {
-        TimeEntry timeEntry = new TimeEntry();
-
-        timeEntry.setIssueId(issue.getId());
-        timeEntry.setProjectId(issue.getProject().getId());
-        timeEntry.setUserId(getRepository().getCurrentUser().getId());
-        // TODO This works for default Redmine Settings only. Add activity ID configuration to Redmine Option.
-        timeEntry.setActivityId(9);
-        timeEntry.setComment(comment);
-        // TODO Implement spend date selection for the user.
-        timeEntry.setSpentOn(new Date());
-        // TODO Implement hours input for the user.
-        timeEntry.setHours(0f);
-
-        return timeEntry;
-    }
-
     /**
      * Returns the value represented by the given field name
      *

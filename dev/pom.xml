@@ -19,7 +19,7 @@
 
     <modules>
         <module>redmine-java</module>
-        <module>redminenbn</module>
+        <module>redminenb</module>
     </modules>
 
     <build>

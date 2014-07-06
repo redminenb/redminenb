@@ -22,28 +22,28 @@ import org.openide.util.NbBundle.Messages;
 /**
  * Advanced option controller.
  * <p>
- * See BugtrackingOptionsDialog entry in layer.xml 
- * 
+ * See BugtrackingOptionsDialog entry in layer.xml
+ *
  * @author Anchialas <anchialas@gmail.com>
  */
 @Messages({
-   "RedmineOptions.displayName=Redmine",
-   "RedmineOptions.toolTip=Redmine Options"
+    "RedmineOptions.displayName=Redmine",
+    "RedmineOptions.toolTip=Redmine Options"
 })
 public class RedmineOptions extends AdvancedOption {
 
-   @Override
-   public String getDisplayName() {
-      return Bundle.RedmineOptions_displayName();
-   }
+    @Override
+    public String getDisplayName() {
+        return Bundle.RedmineOptions_displayName();
+    }
 
-   @Override
-   public String getTooltip() {
-      return Bundle.RedmineOptions_toolTip();
-   }
+    @Override
+    public String getTooltip() {
+        return Bundle.RedmineOptions_toolTip();
+    }
 
-   @Override
-   public OptionsPanelController create() {
-      return new RedmineOptionsController();
-   }
+    @Override
+    public OptionsPanelController create() {
+        return new RedmineOptionsController();
+    }
 }

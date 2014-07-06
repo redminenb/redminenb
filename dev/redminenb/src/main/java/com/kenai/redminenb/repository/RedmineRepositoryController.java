@@ -27,7 +27,6 @@ import com.taskadapter.redmineapi.bean.Project;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
@@ -234,7 +233,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    }
 
    @Override
-   public void applyChanges() throws IOException {
+   public void applyChanges() {
       repository.setInfoValues(getName(),
                                getUrl(),
                                getUser(),
@@ -352,7 +351,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
 
                panel.progressPanel.removeAll();
-               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(repository.getCurrentUser().getFullName()),
+               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(repository.getCurrentUser().getUser().getFullName()),
                                                   Defaults.getIcon("info.png"),
                                                   SwingUtilities.LEADING), BorderLayout.NORTH);
                panel.progressPanel.setVisible(true);
@@ -364,7 +363,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                   @Override
                   public void run() {
                      Object item = panel.projectComboBox.getSelectedItem();
-                     panel.projectComboBox.setModel(new ListComboBoxModel<Project>(projects));
+                     panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
                      panel.projectComboBox.setSelectedItem(item);
                      panel.projectComboBox.setEnabled(true);
                      onProjectSelected();
@@ -409,7 +408,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
             List<Project> projects = repository.getManager().getProjects();
             Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
 
-            panel.projectComboBox.setModel(new ListComboBoxModel<Project>(projects));
+            panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
             for (Project p : projects) {
                if (p.getIdentifier().equals(projectPanel.getIdentifier())) {
                   selectedProject = p;
@@ -464,6 +463,10 @@ public class RedmineRepositoryController implements RepositoryController, Docume
    protected void fireChange() {
       support.fireChange();
    }
+
+    @Override
+    public void cancelChanges() {
+    }
 
    //
    // inner classes

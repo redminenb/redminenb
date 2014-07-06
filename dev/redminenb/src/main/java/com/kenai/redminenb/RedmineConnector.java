@@ -19,9 +19,7 @@ import com.kenai.redminenb.repository.RedmineRepository;
 
 import org.netbeans.modules.bugtracking.api.Repository;
 import org.netbeans.modules.bugtracking.spi.BugtrackingConnector;
-import org.netbeans.modules.bugtracking.spi.IssueFinder;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
-import org.netbeans.modules.bugtracking.util.SimpleIssueFinder;
 import org.openide.util.NbBundle;
 
 /**
@@ -30,38 +28,38 @@ import org.openide.util.NbBundle;
  * @author Anchialas <anchialas@gmail.com>
  */
 @NbBundle.Messages({
-   "LBL_ConnectorName=Redmine",
-   "LBL_ConnectorTooltip=NetBeans plugin for integration with Redmine"
+    "LBL_ConnectorTooltip=NetBeans plugin for integration with Redmine"
 })
 @BugtrackingConnector.Registration(id = RedmineConnector.ID,
-                                   displayName = "#LBL_ConnectorName",
-                                   tooltip = "#LBL_ConnectorTooltip",
-                                   iconPath = "com/kenai/redminenb/resources/redmine.png")
-public class RedmineConnector extends BugtrackingConnector {
+        displayName = RedmineConnector.NAME,
+        tooltip = "#LBL_ConnectorTooltip",
+        iconPath = "com/kenai/redminenb/resources/redmine.png")
+public class RedmineConnector implements BugtrackingConnector {
 
-   public static final String ID = "com.kenai.redminenb";
+    public static final String ID = "com.kenai.redminenb";
+    public static final String NAME = "Redmine";
 
-   public static String getConnectorName() {
-      return Bundle.LBL_ConnectorName();
-   }
+    private RedmineConnector() {
+    }
 
-   @Override
-   public Repository createRepository(RepositoryInfo info) {
-      return Redmine.getInstance().getBugtrackingFactory().createRepository(
-              RedmineRepository.create(info),
-              Redmine.getInstance().getRepositoryProvider(),
-              Redmine.getInstance().getQueryProvider(),
-              Redmine.getInstance().getIssueProvider());
-   }
+    @Override
+    public Repository createRepository(RepositoryInfo info) {
+        RedmineRepository repo = new RedmineRepository(info);
+        return createRepository(repo);
+    }
 
-   @Override
-   public Repository createRepository() {
-      return createRepository(null);
-   }
+    @Override
+    public Repository createRepository() {
+        RedmineRepository repo = new RedmineRepository();
+        return createRepository(repo);
+    }
 
-   @Override
-   public IssueFinder getIssueFinder() {
-      return SimpleIssueFinder.getInstance();
-   }
-
+    private Repository createRepository(RedmineRepository repo) {
+        return Redmine.getInstance().getSupport().createRepository(
+                repo,
+                null, // Status provider needs a persistent cache
+                null, // Schedule provider needs a persistent cache
+                Redmine.getInstance().getIssuePriorityProvider(),
+                null);
+    }
 }

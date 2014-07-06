@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="helper" default="default" basedir=".">
+    <!--
+    Loads entries from a manifest file.
+    
+    @jar     The jar from where to read
+    @file    A manifest file to read
+    @prefix  A prefix to prepend
+    @section The name of the manifest section to load
+    -->
+    <scriptdef name="loadmf" language="javascript">
+        <attribute name="jar" />
+        <attribute name="file" />
+        <attribute name="prefix" />
+        <attribute name="section" />
+            <![CDATA[
+                var jarname = attributes.get("jar");
+                var filename = attributes.get("file");
+                if (jarname != null && filename != null) {
+                    self.fail("Only one of jar or file is required");
+                }
+                var prefix = attributes.get("prefix");
+                if (prefix == null) {
+                    prefix = "";
+                }
+                var section = attributes.get("section");
+
+                var manifest;
+                if (jarname != null) {
+                    var jarfile = new java.util.jar.JarFile(new java.io.File(jarname));
+                    manifest = jarfile.getManifest();
+                } else if (filename != null) {
+                    manifest = new java.util.jar.Manifest(new java.io.FileInputStream(filename));
+                } else {
+                    self.fail("One of jar or file is required");
+                }
+
+                if (manifest == null) {
+                    self.log("No manifest in " + jar);
+                } else {
+                    var attributes = (section == null) ? manifest.getMainAttributes() : manifest.getAttributes(section);
+                    if (attributes != null) {
+                        var iter = attributes.entrySet().iterator();
+                        while (iter.hasNext()) {
+                            var entry = iter.next();
+                            self.log(prefix + entry.getKey() + " => " + entry.getValue());
+                            project.setProperty(prefix + entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+            ]]>
+    </scriptdef>
+    <!--
+    Append additional string value to a Manifest entry
+    
+    @file    A manifest file to read
+    @entry   Entry to append to
+    @text The name of the manifest section to load
+    -->
+    <scriptdef name="appendManifest" language="javascript">
+        <attribute name="file" />
+        <attribute name="entry" />
+        <attribute name="text" />
+            <![CDATA[
+                var filename = attributes.get("file");
+                var entry = attributes.get("entry");
+                var text = attributes.get("text");
+                if (! entry) {
+                    self.fail("Entry needs to be nonempty");
+                }
+                
+                var manifest;
+                if (filename != null) {
+                    manifest = new java.util.jar.Manifest(new java.io.FileInputStream(filename));
+                } else {
+                    self.fail("One of jar or file is required");
+                }
+
+                if (manifest == null) {
+                    self.log("No manifest found");
+                } else {
+                    var attributes = manifest.getMainAttributes();
+                    var value = attributes.getValue(entry);
+                    if(! value) {
+                        value = "";
+                    }
+                    self.log("Entry: " + entry);
+                    self.log("Old value: " + attributes.getValue(entry));
+                    if(! value.trim().isEmpty()) {
+                        value += ", " + text;
+                    } else {
+                        value = text;
+                    }
+                    attributes.putValue(entry, value);
+                    self.log("New value: " + attributes.getValue(entry));
+                    manifest.write(new java.io.FileOutputStream(filename));
+                }
+            ]]>
+    </scriptdef>
+    <!-- Append dependency information to potentially existing value -->
+    <target name="addDependencyToManifest">
+        <appendManifest file="${basedir}/target/classes/META-INF/MANIFEST.MF"
+                        entry="OpenIDE-Module-Module-Dependencies"
+                        text="${dependency}" />
+    </target>
+</project>

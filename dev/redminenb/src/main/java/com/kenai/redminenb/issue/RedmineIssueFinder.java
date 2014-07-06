@@ -13,7 +13,7 @@ import org.openide.util.lookup.ServiceProvider;
  * @author Anchialas <anchialas@gmail.com>
  */
 @ServiceProvider(service = IssueFinder.class)
-public class RedmineIssueFinder extends IssueFinder {
+public class RedmineIssueFinder implements IssueFinder {
 
    private static final int[] EMPTY_INT_ARR = new int[0];
 

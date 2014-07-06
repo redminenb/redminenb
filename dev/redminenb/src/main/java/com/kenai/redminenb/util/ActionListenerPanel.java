@@ -2,7 +2,6 @@ package com.kenai.redminenb.util;
 
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JPanel;
 import org.openide.DialogDescriptor;
 

@@ -13,7 +13,7 @@
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
-    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="true"/>
     <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
@@ -53,16 +53,16 @@
                           <Group type="102" attributes="0">
                               <Group type="103" groupAlignment="1" attributes="0">
                                   <Component id="projectComboBox" max="32767" attributes="0"/>
-                                  <Component id="userField" pref="146" max="32767" attributes="1"/>
+                                  <Component id="userField" pref="140" max="32767" attributes="1"/>
                               </Group>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Group type="102" attributes="0">
-                                      <Component id="createNewProjectButton" min="-2" pref="18" max="-2" attributes="0"/>
+                                      <Component id="createNewProjectButton" min="-2" pref="25" max="-2" attributes="0"/>
                                       <EmptySpace max="32767" attributes="0"/>
                                       <Component id="connectButton" min="-2" max="-2" attributes="0"/>
                                   </Group>
-                                  <Component id="pwdField" pref="146" max="32767" attributes="1"/>
+                                  <Component id="pwdField" pref="152" max="32767" attributes="1"/>
                               </Group>
                           </Group>
                       </Group>
@@ -97,13 +97,11 @@
                   <Component id="userField" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="projectLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="connectButton" alignment="3" min="-2" max="-2" attributes="1"/>
-                      <Component id="projectComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Component id="createNewProjectButton" max="32767" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="projectLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="connectButton" alignment="3" min="-2" max="-2" attributes="1"/>
+                  <Component id="projectComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="createNewProjectButton" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
@@ -256,22 +254,22 @@
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
       </AuxValues>
     </Component>
-    <Component class="org.netbeans.modules.bugtracking.util.LinkButton" name="createNewProjectButton">
+    <Component class="javax.swing.JComboBox" name="projectComboBox">
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+      </AuxValues>
+    </Component>
+    <Component class="com.kenai.redminenb.util.LinkButton" name="createNewProjectButton">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/com/kenai/redminenb/resources/add.png"/>
         </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="com/kenai/redminenb/repository/Bundle.properties" key="RedmineRepositoryPanel.createNewProjectButton.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="com/kenai/redminenb/repository/Bundle.properties" key="RedmineRepositoryPanel.createNewProjectButton.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="16"/>
-      </AuxValues>
-    </Component>
-    <Component class="javax.swing.JComboBox" name="projectComboBox">
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="4"/>
       </AuxValues>
     </Component>
   </SubComponents>

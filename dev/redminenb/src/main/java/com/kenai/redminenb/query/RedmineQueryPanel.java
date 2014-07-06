@@ -43,6 +43,8 @@
 package com.kenai.redminenb.query;
 
 import com.kenai.redminenb.ui.Defaults;
+import com.kenai.redminenb.util.ExpandablePanel;
+import java.awt.BorderLayout;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -50,28 +52,39 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
+import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
+import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTree;
+import javax.swing.JTextField;
+import javax.swing.LayoutStyle;
 import javax.swing.ListCellRenderer;
-import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.plaf.basic.BasicTreeUI;
-import org.netbeans.modules.bugtracking.issuetable.Filter;
+import javax.swing.UIManager;
+import com.kenai.redminenb.util.LinkButton;
+import java.awt.FlowLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.Box;
+import org.openide.awt.Mnemonics;
+import org.openide.util.NbBundle;
 
 /**
  * Redmine Query Panel.
@@ -85,8 +98,35 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
    final ExpandablePanel byText;
    final ExpandablePanel byDetails;
    //
-   private Color defaultTextColor;
+   private final Color defaultTextColor;
+   
+   private final ActionListener clearActionListener = new ActionListener() {
 
+       @Override
+       public void actionPerformed(ActionEvent e) {
+           switch (e.getActionCommand()) {
+               case "tracker":
+                   trackerList.clearSelection();
+                   break;
+               case "category":
+                   categoryList.clearSelection();
+                   break;
+               case "version":
+                   versionList.clearSelection();
+                   break;
+               case "status":
+                   statusList.clearSelection();
+                   break;
+               case "priority":
+                   priorityList.clearSelection();
+                   break;
+               case "assignee":
+                   assigneeList.clearSelection();
+                   break;
+           }
+       }
+   };
+   
    public RedmineQueryPanel(JComponent tableComponent, RedmineQueryController controller) {
       super();
       initComponents();
@@ -98,47 +138,43 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       tablePanel.add(tableComponent);
 
-      BasicTreeUI tvui = (BasicTreeUI)new JTree().getUI();
-      Icon ei = tvui.getExpandedIcon();
-      Icon ci = tvui.getCollapsedIcon();
-
       byTextContainer.add(byTextPanel);
       byDetailsContainer.add(byDetailsPanel);
 
-      byText = new ExpandablePanel(byTextLabel, byTextContainer, ei, ci);
-      byDetails = new ExpandablePanel(byDetailsLabel, byDetailsContainer, ei, ci);
+      byText = new ExpandablePanel(byTextLabel, byTextContainer);
+      byDetails = new ExpandablePanel(byDetailsLabel, byDetailsContainer);
 
       byText.expand();
       byDetails.expand();
 
-      queryHeaderPanel.setVisible(false);
       tableFieldsPanel.setVisible(false);
       saveChangesButton.setVisible(false);
       cancelChangesButton.setVisible(false);
-      filterComboBox.setVisible(false);
-      filterLabel.setVisible(false);
       refreshCheckBox.setVisible(false);
       noContentPanel.setVisible(false);
 
       refreshCheckBox.setOpaque(false);
 
       ListCellRenderer parameterValueLCR = new Defaults.ParameterValueLCR();
+      
       trackerList.setCellRenderer(parameterValueLCR);
+      trackerClear.setActionCommand("tracker");
+      trackerClear.addActionListener(clearActionListener);
       categoryList.setCellRenderer(parameterValueLCR);
+      categoryClear.setActionCommand("category");
+      categoryClear.addActionListener(clearActionListener);
       versionList.setCellRenderer(parameterValueLCR);
+      versionClear.setActionCommand("version");
+      versionClear.addActionListener(clearActionListener);
       statusList.setCellRenderer(parameterValueLCR);
+      statusClear.setActionCommand("status");
+      statusClear.addActionListener(clearActionListener);
       priorityList.setCellRenderer(new Defaults.PriorityLCR());
-
+      priorityClear.setActionCommand("priority");
+      priorityClear.addActionListener(clearActionListener);
       assigneeList.setCellRenderer(new Defaults.RepositoryUserLCR());
-
-      //resolutionList.setCellRenderer(parameterValueLCR);
-      //severityList.setCellRenderer(parameterValueLCR);
-      resolutionLabel.setVisible(false);
-      resolutionList.getParent().getParent().setVisible(false);
-      severityLabel.setVisible(false);
-      severityList.getParent().getParent().setVisible(false);
-
-      filterComboBox.setRenderer(new FilterCellRenderer());
+      assigneeClear.setActionCommand("assignee");
+      assigneeClear.addActionListener(clearActionListener);
 
       setFocusListener(this);
 
@@ -151,8 +187,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       categoryList.addFocusListener(f);
       priorityList.addFocusListener(f);
-      resolutionList.addFocusListener(f);
-      severityList.addFocusListener(f);
       trackerList.addFocusListener(f);
       statusList.addFocusListener(f);
       versionList.addFocusListener(f);
@@ -160,7 +194,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       gotoIssueButton.addFocusListener(f);
       modifyButton.addFocusListener(f);
-      seenButton.addFocusListener(f);
       refreshCheckBox.addFocusListener(f);
       removeButton.addFocusListener(f);
       saveButton.addFocusListener(f);
@@ -169,7 +202,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       refreshButton.addFocusListener(f);
       webButton.addFocusListener(f);
 
-      filterComboBox.addFocusListener(f);
       issueIdTextField.addFocusListener(f);
       queryTextField.addFocusListener(f);
       tablePanel.addFocusListener(f);
@@ -180,17 +212,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
    void setQueryRunning(boolean running) {
       modifyButton.setEnabled(!running);
-      seenButton.setEnabled(!running);
       removeButton.setEnabled(!running);
       refreshButton.setEnabled(!running);
-      filterLabel.setEnabled(!running);
-      filterComboBox.setEnabled(!running);
-   }
-
-   void setGoToIssueInfo(String iconName, String text) {
-      //gotoIssueInfo.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/" + iconName))); // NOI18N
-      gotoIssueInfo.setIcon(iconName == null ? null : Defaults.getIcon(iconName));
-      gotoIssueInfo.setText(text == null ? null : text);
    }
 
    /**
@@ -199,724 +222,703 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     * regenerated by the Form Editor.
     */
    @SuppressWarnings("unchecked")
-   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-   private void initComponents() {
-
-      byTextPanel = new javax.swing.JPanel();
-      qSubjectCheckBox = new javax.swing.JCheckBox();
-      qDescriptionCheckBox = new javax.swing.JCheckBox();
-      qCommentsCheckBox = new javax.swing.JCheckBox();
-      tableFieldsPanel = new javax.swing.JPanel();
-      tableHeaderPanel = new javax.swing.JPanel();
-      filterLabel = new javax.swing.JLabel();
-      criteriaPanel = new javax.swing.JPanel();
-      issueIdTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
-      separatorLabel2 = new javax.swing.JLabel();
-      separatorLabel1 = new javax.swing.JLabel();
-      queryHeaderPanel = new javax.swing.JPanel();
-      lastRefreshLabel = new javax.swing.JLabel();
-      jLabel4 = new javax.swing.JLabel();
-      jLabel5 = new javax.swing.JLabel();
-      jLabel6 = new javax.swing.JLabel();
-      jLabel7 = new javax.swing.JLabel();
-      jLabel8 = new javax.swing.JLabel();
-      noContentPanel = new javax.swing.JPanel();
-      noContentLabel = new javax.swing.JLabel();
-
-      byDetailsPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("TextArea.background"));
-
-      versionLabel.setFont(versionLabel.getFont().deriveFont(versionLabel.getFont().getStyle() | java.awt.Font.BOLD, versionLabel.getFont().getSize()-2));
-      versionLabel.setLabelFor(versionList);
-      org.openide.awt.Mnemonics.setLocalizedText(versionLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionLabel.text")); // NOI18N
-
-      jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      versionList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      versionList.setMinimumSize(new java.awt.Dimension(100, 2));
-      versionList.setVisibleRowCount(6);
-      jScrollPane2.setViewportView(versionList);
-      versionList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionList.AccessibleContext.accessibleDescription")); // NOI18N
-
-      statusLabel.setFont(statusLabel.getFont().deriveFont(statusLabel.getFont().getStyle() | java.awt.Font.BOLD, statusLabel.getFont().getSize()-2));
-      statusLabel.setLabelFor(statusList);
-      org.openide.awt.Mnemonics.setLocalizedText(statusLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusLabel.text")); // NOI18N
-
-      jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      statusList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      statusList.setMinimumSize(new java.awt.Dimension(100, 2));
-      statusList.setVisibleRowCount(6);
-      jScrollPane3.setViewportView(statusList);
-      statusList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusList.AccessibleContext.accessibleDescription")); // NOI18N
-
-      priorityLabel.setFont(priorityLabel.getFont().deriveFont(priorityLabel.getFont().getStyle() | java.awt.Font.BOLD, priorityLabel.getFont().getSize()-2));
-      priorityLabel.setLabelFor(priorityList);
-      org.openide.awt.Mnemonics.setLocalizedText(priorityLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityLabel.text")); // NOI18N
-
-      jScrollPane4.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      priorityList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      priorityList.setMinimumSize(new java.awt.Dimension(100, 2));
-      priorityList.setVisibleRowCount(6);
-      jScrollPane4.setViewportView(priorityList);
-      priorityList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityList.AccessibleContext.accessibleDescription")); // NOI18N
-
-      resolutionLabel.setFont(resolutionLabel.getFont().deriveFont(resolutionLabel.getFont().getStyle() | java.awt.Font.BOLD, resolutionLabel.getFont().getSize()-2));
-      resolutionLabel.setLabelFor(resolutionList);
-      org.openide.awt.Mnemonics.setLocalizedText(resolutionLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.resolutionLabel.text")); // NOI18N
-
-      jScrollPane5.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      resolutionList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      resolutionList.setMinimumSize(new java.awt.Dimension(100, 2));
-      resolutionList.setVisibleRowCount(6);
-      jScrollPane5.setViewportView(resolutionList);
-      resolutionList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.resolutionList.AccessibleContext.accessibleDescription")); // NOI18N
-
-      categoryLabel.setFont(categoryLabel.getFont().deriveFont(categoryLabel.getFont().getStyle() | java.awt.Font.BOLD, categoryLabel.getFont().getSize()-2));
-      categoryLabel.setLabelFor(categoryList);
-      org.openide.awt.Mnemonics.setLocalizedText(categoryLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryLabel.text")); // NOI18N
-
-      jScrollPane6.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      categoryList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      categoryList.setMinimumSize(new java.awt.Dimension(100, 2));
-      categoryList.setVisibleRowCount(6);
-      jScrollPane6.setViewportView(categoryList);
-      categoryList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.componentList.AccessibleContext.accessibleDescription")); // NOI18N
-
-      severityLabel.setFont(severityLabel.getFont().deriveFont(severityLabel.getFont().getStyle() | java.awt.Font.BOLD, severityLabel.getFont().getSize()-2));
-      severityLabel.setLabelFor(severityList);
-      org.openide.awt.Mnemonics.setLocalizedText(severityLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.severityLabel.text")); // NOI18N
-
-      severityScrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      severityList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      severityList.setMinimumSize(new java.awt.Dimension(100, 2));
-      severityList.setVisibleRowCount(6);
-      severityScrollPane.setViewportView(severityList);
-      severityList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.severityList.AccessibleContext.accessibleDescription")); // NOI18N
-
-      trackerLabel.setFont(trackerLabel.getFont().deriveFont(trackerLabel.getFont().getStyle() | java.awt.Font.BOLD, trackerLabel.getFont().getSize()-2));
-      trackerLabel.setLabelFor(trackerList);
-      org.openide.awt.Mnemonics.setLocalizedText(trackerLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerLabel.text")); // NOI18N
-
-      issueTypeScrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      trackerList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      trackerList.setMinimumSize(new java.awt.Dimension(100, 2));
-      trackerList.setVisibleRowCount(6);
-      issueTypeScrollPane.setViewportView(trackerList);
-
-      assigneeLabel.setFont(assigneeLabel.getFont().deriveFont(assigneeLabel.getFont().getStyle() | java.awt.Font.BOLD, assigneeLabel.getFont().getSize()-2));
-      assigneeLabel.setLabelFor(assigneeList);
-      org.openide.awt.Mnemonics.setLocalizedText(assigneeLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.assigneeLabel.text")); // NOI18N
-
-      assigneeScrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-      assigneeList.setModel(new javax.swing.AbstractListModel() {
-         String[] strings = { "" };
-         public int getSize() { return strings.length; }
-         public Object getElementAt(int i) { return strings[i]; }
-      });
-      assigneeList.setMinimumSize(new java.awt.Dimension(100, 2));
-      assigneeList.setVisibleRowCount(6);
-      assigneeScrollPane.setViewportView(assigneeList);
-
-      javax.swing.GroupLayout byDetailsPanelLayout = new javax.swing.GroupLayout(byDetailsPanel);
-      byDetailsPanel.setLayout(byDetailsPanelLayout);
-      byDetailsPanelLayout.setHorizontalGroup(
-         byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(byDetailsPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(trackerLabel)
-               .addComponent(issueTypeScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(statusLabel)
-               .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(priorityLabel)
-               .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(assigneeLabel)
-               .addComponent(assigneeScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(categoryLabel)
-               .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(versionLabel)
-               .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(resolutionLabel)
-               .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(severityLabel)
-               .addComponent(severityScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-      );
-      byDetailsPanelLayout.setVerticalGroup(
-         byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(byDetailsPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                  .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                     .addComponent(statusLabel)
-                     .addComponent(resolutionLabel)
-                     .addComponent(priorityLabel)
-                     .addComponent(severityLabel)
-                     .addComponent(assigneeLabel))
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                     .addComponent(jScrollPane4)
-                     .addComponent(jScrollPane3)
-                     .addComponent(jScrollPane5)
-                     .addComponent(severityScrollPane)
-                     .addComponent(assigneeScrollPane)))
-               .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                  .addComponent(trackerLabel)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(issueTypeScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE))
-               .addGroup(byDetailsPanelLayout.createSequentialGroup()
-                  .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                     .addComponent(categoryLabel)
-                     .addComponent(versionLabel))
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addGroup(byDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                     .addComponent(jScrollPane6)
-                     .addComponent(jScrollPane2))))
-            .addContainerGap())
-      );
-
-      byTextPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("TextArea.background"));
-
-      queryLabel.setFont(queryLabel.getFont().deriveFont(queryLabel.getFont().getStyle() | java.awt.Font.BOLD, queryLabel.getFont().getSize()-2));
-      queryLabel.setLabelFor(queryTextField);
-      org.openide.awt.Mnemonics.setLocalizedText(queryLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.queryLabel.text")); // NOI18N
-
-      queryTextField.setColumns(30);
-
-      qSubjectCheckBox.setSelected(true);
-      org.openide.awt.Mnemonics.setLocalizedText(qSubjectCheckBox, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qSubjectCheckBox.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(qDescriptionCheckBox, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qDescriptionCheckBox.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(qCommentsCheckBox, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qCommentsCheckBox.text")); // NOI18N
-      qCommentsCheckBox.setEnabled(false);
-
-      javax.swing.GroupLayout byTextPanelLayout = new javax.swing.GroupLayout(byTextPanel);
-      byTextPanel.setLayout(byTextPanelLayout);
-      byTextPanelLayout.setHorizontalGroup(
-         byTextPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(byTextPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(queryLabel)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(queryTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(qSubjectCheckBox)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(qDescriptionCheckBox)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(qCommentsCheckBox)
-            .addContainerGap())
-      );
-      byTextPanelLayout.setVerticalGroup(
-         byTextPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(byTextPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(byTextPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-               .addComponent(queryLabel)
-               .addComponent(queryTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(qSubjectCheckBox)
-               .addComponent(qDescriptionCheckBox)
-               .addComponent(qCommentsCheckBox))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-      );
-
-      queryTextField.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleName")); // NOI18N
-      queryTextField.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleDescription")); // NOI18N
-
-      setBackground(javax.swing.UIManager.getDefaults().getColor("TextArea.background"));
-      setOpaque(false);
-
-      tableFieldsPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("EditorPane.background"));
-      tableFieldsPanel.setOpaque(false);
-
-      tableHeaderPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("EditorPane.background"));
-      tableHeaderPanel.setOpaque(false);
-
-      filterLabel.setLabelFor(filterComboBox);
-      org.openide.awt.Mnemonics.setLocalizedText(filterLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.filterLabel.text")); // NOI18N
-
-      tableSummaryLabel.setFont(tableSummaryLabel.getFont().deriveFont(tableSummaryLabel.getFont().getStyle() | java.awt.Font.BOLD, tableSummaryLabel.getFont().getSize()-2));
-      tableSummaryLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/redmine.png"))); // NOI18N
-      org.openide.awt.Mnemonics.setLocalizedText(tableSummaryLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.tableSummaryLabel.text")); // NOI18N
-
-      javax.swing.GroupLayout tableHeaderPanelLayout = new javax.swing.GroupLayout(tableHeaderPanel);
-      tableHeaderPanel.setLayout(tableHeaderPanelLayout);
-      tableHeaderPanelLayout.setHorizontalGroup(
-         tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(tableHeaderPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(tableSummaryLabel)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(filterLabel)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE))
-      );
-      tableHeaderPanelLayout.setVerticalGroup(
-         tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(tableHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-            .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addComponent(filterLabel)
-            .addComponent(tableSummaryLabel))
-      );
-
-      filterComboBox.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.filterComboBox.AccessibleContext.accessibleDescription")); // NOI18N
-
-      tablePanel.setBackground(new java.awt.Color(224, 224, 224));
-      tablePanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-      tablePanel.setMinimumSize(new java.awt.Dimension(100, 350));
-      tablePanel.setLayout(new java.awt.BorderLayout());
-
-      javax.swing.GroupLayout tableFieldsPanelLayout = new javax.swing.GroupLayout(tableFieldsPanel);
-      tableFieldsPanel.setLayout(tableFieldsPanelLayout);
-      tableFieldsPanelLayout.setHorizontalGroup(
-         tableFieldsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(tableFieldsPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(tableFieldsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(tablePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-               .addComponent(tableHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addContainerGap())
-      );
-      tableFieldsPanelLayout.setVerticalGroup(
-         tableFieldsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(tableFieldsPanelLayout.createSequentialGroup()
-            .addComponent(tableHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(tablePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 162, Short.MAX_VALUE)
-            .addContainerGap())
-      );
-
-      searchPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("EditorPane.background"));
-      searchPanel.setOpaque(false);
-
-      criteriaPanel.setBackground(new java.awt.Color(224, 224, 224));
-      criteriaPanel.setBorder(javax.swing.BorderFactory.createLineBorder(javax.swing.UIManager.getDefaults().getColor("Button.shadow")));
-
-      byTextLabel.setFont(byTextLabel.getFont().deriveFont(byTextLabel.getFont().getStyle() | java.awt.Font.BOLD));
-      org.openide.awt.Mnemonics.setLocalizedText(byTextLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.byTextLabel.text")); // NOI18N
-
-      byTextContainer.setLayout(new java.awt.BorderLayout());
-
-      byDetailsLabel.setFont(byDetailsLabel.getFont().deriveFont(byDetailsLabel.getFont().getStyle() | java.awt.Font.BOLD));
-      org.openide.awt.Mnemonics.setLocalizedText(byDetailsLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.byDetailsLabel.text")); // NOI18N
-
-      byDetailsContainer.setLayout(new java.awt.BorderLayout());
-
-      javax.swing.GroupLayout criteriaPanelLayout = new javax.swing.GroupLayout(criteriaPanel);
-      criteriaPanel.setLayout(criteriaPanelLayout);
-      criteriaPanelLayout.setHorizontalGroup(
-         criteriaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addComponent(byTextContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-         .addComponent(byDetailsContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-         .addGroup(criteriaPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(criteriaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(byTextLabel)
-               .addComponent(byDetailsLabel)))
-      );
-      criteriaPanelLayout.setVerticalGroup(
-         criteriaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(criteriaPanelLayout.createSequentialGroup()
-            .addComponent(byTextLabel)
-            .addGap(0, 0, 0)
-            .addComponent(byTextContainer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGap(0, 0, 0)
-            .addComponent(byDetailsLabel)
-            .addGap(0, 0, 0)
-            .addComponent(byDetailsContainer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-      );
-
-      byTextLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.byTextLabel.AccessibleContext.accessibleName")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(cancelChangesButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(saveChangesButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveChangesButton.text")); // NOI18N
-      saveChangesButton.setSelected(true);
-
-      gotoPanel.setBackground(new java.awt.Color(224, 224, 224));
-      gotoPanel.setOpaque(false);
-
-      org.openide.awt.Mnemonics.setLocalizedText(gotoIssueButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.gotoIssueButton.text")); // NOI18N
-
-      issueIdTextField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-
-      org.openide.awt.Mnemonics.setLocalizedText(searchButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.searchButton.text")); // NOI18N
-      searchButton.setSelected(true);
-
-      org.openide.awt.Mnemonics.setLocalizedText(separatorLabel2, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.separatorLabel2.text")); // NOI18N
-      separatorLabel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-      org.openide.awt.Mnemonics.setLocalizedText(separatorLabel1, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.separatorLabel1.text")); // NOI18N
-      separatorLabel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-      org.openide.awt.Mnemonics.setLocalizedText(saveButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveButton.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(webButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.text")); // NOI18N
-      webButton.setActionCommand(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.actionCommand")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(refreshConfigurationButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshConfigurationButton.text")); // NOI18N
-
-      javax.swing.GroupLayout gotoPanelLayout = new javax.swing.GroupLayout(gotoPanel);
-      gotoPanel.setLayout(gotoPanelLayout);
-      gotoPanelLayout.setHorizontalGroup(
-         gotoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(gotoPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(searchButton)
-            .addGap(11, 11, 11)
-            .addComponent(gotoIssueButton)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(issueIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(gotoIssueInfo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(separatorLabel1)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(webButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(separatorLabel2)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(refreshConfigurationButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addContainerGap())
-      );
-      gotoPanelLayout.setVerticalGroup(
-         gotoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(gotoPanelLayout.createSequentialGroup()
-            .addGroup(gotoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-               .addComponent(gotoIssueButton)
-               .addComponent(issueIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(searchButton))
-            .addGap(0, 0, Short.MAX_VALUE))
-         .addGroup(gotoPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(gotoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, gotoPanelLayout.createSequentialGroup()
-                  .addGap(0, 0, Short.MAX_VALUE)
-                  .addGroup(gotoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                     .addGroup(gotoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(separatorLabel1)
-                        .addComponent(separatorLabel2))
-                     .addComponent(webButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                     .addComponent(refreshConfigurationButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-               .addComponent(saveButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-               .addComponent(gotoIssueInfo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addContainerGap())
-      );
-
-      gotoPanelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {separatorLabel1, separatorLabel2, webButton});
-
-      gotoIssueButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.gotoIssueButton.AccessibleContext.accessibleDescription")); // NOI18N
-      searchButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.searchButton.AccessibleContext.accessibleDescription")); // NOI18N
-      saveButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveButton.AccessibleContext.accessibleDescription")); // NOI18N
-      webButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.AccessibleContext.accessibleDescription")); // NOI18N
-      refreshConfigurationButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshConfigurationButton.AccessibleContext.accessibleDescription")); // NOI18N
-
-      javax.swing.GroupLayout searchPanelLayout = new javax.swing.GroupLayout(searchPanel);
-      searchPanel.setLayout(searchPanelLayout);
-      searchPanelLayout.setHorizontalGroup(
-         searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addComponent(gotoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-         .addGroup(searchPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addGroup(searchPanelLayout.createSequentialGroup()
-                  .addComponent(saveChangesButton)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(cancelChangesButton)
-                  .addGap(0, 0, Short.MAX_VALUE))
-               .addComponent(criteriaPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addContainerGap())
-      );
-      searchPanelLayout.setVerticalGroup(
-         searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(searchPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(gotoPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(criteriaPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGap(8, 8, 8)
-            .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-               .addComponent(saveChangesButton)
-               .addComponent(cancelChangesButton))
-            .addContainerGap())
-      );
-
-      cancelChangesButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
-      saveChangesButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
-
-      queryHeaderPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("EditorPane.background"));
-      queryHeaderPanel.setOpaque(false);
-
-      org.openide.awt.Mnemonics.setLocalizedText(seenButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.seenButton.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(lastRefreshLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshLabel.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(removeButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(lastRefreshDateLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshDateLabel.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(refreshButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshButton.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(nameLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.nameLabel.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(modifyButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel4.text")); // NOI18N
-      jLabel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-      org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel5.text")); // NOI18N
-      jLabel5.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-      org.openide.awt.Mnemonics.setLocalizedText(jLabel6, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel6.text")); // NOI18N
-      jLabel6.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-      org.openide.awt.Mnemonics.setLocalizedText(refreshCheckBox, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(jLabel7, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel7.text")); // NOI18N
-      jLabel7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-      org.openide.awt.Mnemonics.setLocalizedText(findIssuesButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.findIssuesButton.text")); // NOI18N
-
-      org.openide.awt.Mnemonics.setLocalizedText(jLabel8, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel8.text")); // NOI18N
-      jLabel8.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-      org.openide.awt.Mnemonics.setLocalizedText(cloneQueryButton, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cloneQueryButton.text")); // NOI18N
-
-      javax.swing.GroupLayout queryHeaderPanelLayout = new javax.swing.GroupLayout(queryHeaderPanel);
-      queryHeaderPanel.setLayout(queryHeaderPanelLayout);
-      queryHeaderPanelLayout.setHorizontalGroup(
-         queryHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(queryHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                  .addComponent(nameLabel)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                  .addComponent(refreshCheckBox)
-                  .addGap(18, 18, 18)
-                  .addComponent(lastRefreshLabel)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(lastRefreshDateLabel))
-               .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                  .addComponent(seenButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                  .addComponent(modifyButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addGap(7, 7, 7)
-                  .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addGap(5, 5, 5)
-                  .addComponent(jLabel6)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(removeButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(jLabel7)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(findIssuesButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                  .addGap(6, 6, 6)
-                  .addComponent(jLabel8)
-                  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                  .addComponent(cloneQueryButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-            .addContainerGap())
-      );
-      queryHeaderPanelLayout.setVerticalGroup(
-         queryHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-            .addGroup(queryHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                  .addGap(11, 11, 11)
-                  .addComponent(nameLabel))
-               .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                  .addContainerGap()
-                  .addGroup(queryHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                     .addComponent(lastRefreshDateLabel)
-                     .addComponent(lastRefreshLabel)
-                     .addComponent(refreshCheckBox))))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
-            .addGroup(queryHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-               .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(jLabel6)
-               .addComponent(modifyButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(removeButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(seenButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(jLabel7)
-               .addComponent(findIssuesButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(cloneQueryButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addContainerGap())
-      );
-
-      queryHeaderPanelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jLabel4, jLabel5, jLabel6, jLabel7, modifyButton, refreshButton, removeButton});
-
-      seenButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshButton.AccessibleContext.accessibleDescription")); // NOI18N
-      removeButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.AccessibleContext.accessibleDescription")); // NOI18N
-      refreshButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.seenButton.AccessibleContext.accessibleDescription")); // NOI18N
-      modifyButton.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.AccessibleContext.accessibleDescription")); // NOI18N
-      refreshCheckBox.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.AccessibleContext.accessibleDescription")); // NOI18N
-
-      noContentPanel.setBackground(javax.swing.UIManager.getDefaults().getColor("EditorPane.background"));
-      noContentPanel.setOpaque(false);
-      noContentPanel.setLayout(new java.awt.GridBagLayout());
-
-      org.openide.awt.Mnemonics.setLocalizedText(noContentLabel, org.openide.util.NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.noContentLabel.text")); // NOI18N
-      noContentPanel.add(noContentLabel, new java.awt.GridBagConstraints());
-
-      javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-      this.setLayout(layout);
-      layout.setHorizontalGroup(
-         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addComponent(queryHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-         .addComponent(searchPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-         .addGroup(layout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(noContentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addContainerGap())
-         .addComponent(tableFieldsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-      );
-      layout.setVerticalGroup(
-         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-            .addComponent(queryHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(searchPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(tableFieldsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(noContentPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addContainerGap())
-      );
-   }// </editor-fold>//GEN-END:initComponents
-   // Variables declaration - do not modify//GEN-BEGIN:variables
-   final javax.swing.JLabel assigneeLabel = new javax.swing.JLabel();
-   final javax.swing.JList assigneeList = new javax.swing.JList();
-   final javax.swing.JScrollPane assigneeScrollPane = new HackedScrollPane();
-   final javax.swing.JPanel byDetailsContainer = new javax.swing.JPanel();
-   final javax.swing.JLabel byDetailsLabel = new javax.swing.JLabel();
-   final javax.swing.JPanel byDetailsPanel = new javax.swing.JPanel();
-   final javax.swing.JPanel byTextContainer = new javax.swing.JPanel();
-   final javax.swing.JLabel byTextLabel = new javax.swing.JLabel();
-   private javax.swing.JPanel byTextPanel;
-   final javax.swing.JButton cancelChangesButton = new javax.swing.JButton();
-   final javax.swing.JLabel categoryLabel = new javax.swing.JLabel();
-   final javax.swing.JList categoryList = new javax.swing.JList();
-   public final org.netbeans.modules.bugtracking.util.LinkButton cloneQueryButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   private javax.swing.JPanel criteriaPanel;
-   final javax.swing.JComboBox filterComboBox = new javax.swing.JComboBox();
-   private javax.swing.JLabel filterLabel;
-   public final org.netbeans.modules.bugtracking.util.LinkButton findIssuesButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   final javax.swing.JButton gotoIssueButton = new javax.swing.JButton();
-   private final javax.swing.JLabel gotoIssueInfo = new javax.swing.JLabel();
-   final javax.swing.JPanel gotoPanel = new javax.swing.JPanel();
-   javax.swing.JFormattedTextField issueIdTextField;
-   final javax.swing.JScrollPane issueTypeScrollPane = new HackedScrollPane();
-   private javax.swing.JLabel jLabel4;
-   private javax.swing.JLabel jLabel5;
-   private javax.swing.JLabel jLabel6;
-   private javax.swing.JLabel jLabel7;
-   private javax.swing.JLabel jLabel8;
-   final javax.swing.JScrollPane jScrollPane2 = new HackedScrollPane();
-   final javax.swing.JScrollPane jScrollPane3 = new HackedScrollPane();
-   final javax.swing.JScrollPane jScrollPane4 = new HackedScrollPane();
-   final javax.swing.JScrollPane jScrollPane5 = new HackedScrollPane();
-   final javax.swing.JScrollPane jScrollPane6 = new HackedScrollPane();
-   final javax.swing.JLabel lastRefreshDateLabel = new javax.swing.JLabel();
-   private javax.swing.JLabel lastRefreshLabel;
-   public final org.netbeans.modules.bugtracking.util.LinkButton modifyButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   final javax.swing.JLabel nameLabel = new javax.swing.JLabel();
-   private javax.swing.JLabel noContentLabel;
-   private javax.swing.JPanel noContentPanel;
-   final javax.swing.JLabel priorityLabel = new javax.swing.JLabel();
-   final javax.swing.JList priorityList = new javax.swing.JList();
-   javax.swing.JCheckBox qCommentsCheckBox;
-   javax.swing.JCheckBox qDescriptionCheckBox;
-   javax.swing.JCheckBox qSubjectCheckBox;
-   private javax.swing.JPanel queryHeaderPanel;
-   final javax.swing.JLabel queryLabel = new javax.swing.JLabel();
-   final javax.swing.JTextField queryTextField = new javax.swing.JTextField();
-   final org.netbeans.modules.bugtracking.util.LinkButton refreshButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   final javax.swing.JCheckBox refreshCheckBox = new javax.swing.JCheckBox();
-   final org.netbeans.modules.bugtracking.util.LinkButton refreshConfigurationButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   public final org.netbeans.modules.bugtracking.util.LinkButton removeButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   final javax.swing.JLabel resolutionLabel = new javax.swing.JLabel();
-   final javax.swing.JList resolutionList = new javax.swing.JList();
-   final org.netbeans.modules.bugtracking.util.LinkButton saveButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   final javax.swing.JButton saveChangesButton = new javax.swing.JButton();
-   final javax.swing.JButton searchButton = new javax.swing.JButton();
-   final javax.swing.JPanel searchPanel = new javax.swing.JPanel();
-   final org.netbeans.modules.bugtracking.util.LinkButton seenButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   private javax.swing.JLabel separatorLabel1;
-   private javax.swing.JLabel separatorLabel2;
-   final javax.swing.JLabel severityLabel = new javax.swing.JLabel();
-   final javax.swing.JList severityList = new javax.swing.JList();
-   final javax.swing.JScrollPane severityScrollPane = new HackedScrollPane();
-   final javax.swing.JLabel statusLabel = new javax.swing.JLabel();
-   final javax.swing.JList statusList = new javax.swing.JList();
-   private javax.swing.JPanel tableFieldsPanel;
-   private javax.swing.JPanel tableHeaderPanel;
-   final javax.swing.JPanel tablePanel = new javax.swing.JPanel();
-   final javax.swing.JLabel tableSummaryLabel = new javax.swing.JLabel();
-   final javax.swing.JLabel trackerLabel = new javax.swing.JLabel();
-   final javax.swing.JList trackerList = new javax.swing.JList();
-   final javax.swing.JLabel versionLabel = new javax.swing.JLabel();
-   final javax.swing.JList versionList = new javax.swing.JList();
-   final org.netbeans.modules.bugtracking.util.LinkButton webButton = new org.netbeans.modules.bugtracking.util.LinkButton();
-   // End of variables declaration//GEN-END:variables
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+        GridBagConstraints gridBagConstraints;
+
+        trackerClear = new LinkButton();
+        statusClear = new LinkButton();
+        priorityClear = new LinkButton();
+        assigneeClear = new LinkButton();
+        categoryClear = new LinkButton();
+        versionClear = new LinkButton();
+        filler1 = new Box.Filler(new Dimension(0, 0), new Dimension(0, 0), new Dimension(0, 0));
+        byTextPanel = new JPanel();
+        qSubjectCheckBox = new JCheckBox();
+        qDescriptionCheckBox = new JCheckBox();
+        qCommentsCheckBox = new JCheckBox();
+        tableFieldsPanel = new JPanel();
+        tableHeaderPanel = new JPanel();
+        criteriaPanel = new JPanel();
+        issueIdTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
+        separatorLabel2 = new JLabel();
+        separatorLabel1 = new JLabel();
+        topButtonPanel = new JPanel();
+        jLabel5 = new JLabel();
+        jLabel6 = new JLabel();
+        queryHeaderPanel = new JPanel();
+        lastRefreshLabel = new JLabel();
+        noContentPanel = new JPanel();
+        noContentLabel = new JLabel();
+
+        byDetailsPanel.setBackground(UIManager.getDefaults().getColor("TextArea.background"));
+        byDetailsPanel.setLayout(new GridBagLayout());
+
+        versionLabel.setFont(versionLabel.getFont().deriveFont(versionLabel.getFont().getStyle() | Font.BOLD, versionLabel.getFont().getSize()-2));
+        versionLabel.setLabelFor(versionList);
+        Mnemonics.setLocalizedText(versionLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(versionLabel, gridBagConstraints);
+
+        jScrollPane2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane2.setMinimumSize(new Dimension(100, 120));
+        jScrollPane2.setPreferredSize(new Dimension(100, 120));
+
+        versionList.setModel(new AbstractListModel() {
+            String[] strings = { "" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        versionList.setVisibleRowCount(6);
+        jScrollPane2.setViewportView(versionList);
+        versionList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionList.AccessibleContext.accessibleDescription")); // NOI18N
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane2, gridBagConstraints);
+
+        statusLabel.setFont(statusLabel.getFont().deriveFont(statusLabel.getFont().getStyle() | Font.BOLD, statusLabel.getFont().getSize()-2));
+        statusLabel.setLabelFor(statusList);
+        Mnemonics.setLocalizedText(statusLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(statusLabel, gridBagConstraints);
+
+        jScrollPane3.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane3.setMinimumSize(new Dimension(100, 120));
+        jScrollPane3.setPreferredSize(new Dimension(100, 120));
+
+        statusList.setModel(new AbstractListModel() {
+            String[] strings = { "" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        statusList.setVisibleRowCount(6);
+        jScrollPane3.setViewportView(statusList);
+        statusList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusList.AccessibleContext.accessibleDescription")); // NOI18N
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane3, gridBagConstraints);
+
+        priorityLabel.setFont(priorityLabel.getFont().deriveFont(priorityLabel.getFont().getStyle() | Font.BOLD, priorityLabel.getFont().getSize()-2));
+        priorityLabel.setLabelFor(priorityList);
+        Mnemonics.setLocalizedText(priorityLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(priorityLabel, gridBagConstraints);
+
+        jScrollPane4.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane4.setMinimumSize(new Dimension(100, 120));
+        jScrollPane4.setPreferredSize(new Dimension(100, 120));
+
+        priorityList.setModel(new AbstractListModel() {
+            String[] strings = { "" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        priorityList.setVisibleRowCount(6);
+        jScrollPane4.setViewportView(priorityList);
+        priorityList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityList.AccessibleContext.accessibleDescription")); // NOI18N
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane4, gridBagConstraints);
+
+        categoryLabel.setFont(categoryLabel.getFont().deriveFont(categoryLabel.getFont().getStyle() | Font.BOLD, categoryLabel.getFont().getSize()-2));
+        categoryLabel.setLabelFor(categoryList);
+        Mnemonics.setLocalizedText(categoryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(categoryLabel, gridBagConstraints);
+
+        jScrollPane6.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane6.setMinimumSize(new Dimension(100, 120));
+        jScrollPane6.setPreferredSize(new Dimension(100, 120));
+
+        categoryList.setModel(new AbstractListModel() {
+            String[] strings = { "" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        categoryList.setVisibleRowCount(6);
+        jScrollPane6.setViewportView(categoryList);
+        categoryList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.componentList.AccessibleContext.accessibleDescription")); // NOI18N
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane6, gridBagConstraints);
+
+        trackerLabel.setFont(trackerLabel.getFont().deriveFont(trackerLabel.getFont().getStyle() | Font.BOLD, trackerLabel.getFont().getSize()-2));
+        trackerLabel.setLabelFor(trackerList);
+        Mnemonics.setLocalizedText(trackerLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(trackerLabel, gridBagConstraints);
+
+        issueTypeScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        issueTypeScrollPane.setMinimumSize(new Dimension(100, 120));
+        issueTypeScrollPane.setName(""); // NOI18N
+        issueTypeScrollPane.setPreferredSize(new Dimension(100, 120));
+
+        trackerList.setModel(new AbstractListModel() {
+            String[] strings = { "" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        trackerList.setVisibleRowCount(6);
+        issueTypeScrollPane.setViewportView(trackerList);
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(issueTypeScrollPane, gridBagConstraints);
+
+        assigneeLabel.setFont(assigneeLabel.getFont().deriveFont(assigneeLabel.getFont().getStyle() | Font.BOLD, assigneeLabel.getFont().getSize()-2));
+        assigneeLabel.setLabelFor(assigneeList);
+        Mnemonics.setLocalizedText(assigneeLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.assigneeLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(assigneeLabel, gridBagConstraints);
+
+        assigneeScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        assigneeScrollPane.setMinimumSize(new Dimension(100, 120));
+        assigneeScrollPane.setPreferredSize(new Dimension(100, 120));
+
+        assigneeList.setModel(new AbstractListModel() {
+            String[] strings = { "" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        assigneeList.setVisibleRowCount(6);
+        assigneeScrollPane.setViewportView(assigneeList);
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(assigneeScrollPane, gridBagConstraints);
+
+        trackerClear.setBorder(null);
+        Mnemonics.setLocalizedText(trackerClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerClear.text")); // NOI18N
+        trackerClear.setFont(trackerClear.getFont().deriveFont(trackerClear.getFont().getStyle() & ~Font.BOLD, trackerClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(trackerClear, gridBagConstraints);
+
+        statusClear.setBorder(null);
+        Mnemonics.setLocalizedText(statusClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusClear.text")); // NOI18N
+        statusClear.setFont(statusClear.getFont().deriveFont(statusClear.getFont().getStyle() & ~Font.BOLD, statusClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(statusClear, gridBagConstraints);
+
+        priorityClear.setBorder(null);
+        Mnemonics.setLocalizedText(priorityClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityClear.text")); // NOI18N
+        priorityClear.setFont(priorityClear.getFont().deriveFont(priorityClear.getFont().getStyle() & ~Font.BOLD, priorityClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(priorityClear, gridBagConstraints);
+
+        assigneeClear.setBorder(null);
+        Mnemonics.setLocalizedText(assigneeClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.assigneeClear.text")); // NOI18N
+        assigneeClear.setFont(assigneeClear.getFont().deriveFont(assigneeClear.getFont().getStyle() & ~Font.BOLD, assigneeClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(assigneeClear, gridBagConstraints);
+
+        categoryClear.setBorder(null);
+        Mnemonics.setLocalizedText(categoryClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryClear.text")); // NOI18N
+        categoryClear.setFont(categoryClear.getFont().deriveFont(categoryClear.getFont().getStyle() & ~Font.BOLD, categoryClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(categoryClear, gridBagConstraints);
+
+        versionClear.setBorder(null);
+        Mnemonics.setLocalizedText(versionClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionClear.text")); // NOI18N
+        versionClear.setFont(versionClear.getFont().deriveFont(versionClear.getFont().getStyle() & ~Font.BOLD, versionClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(versionClear, gridBagConstraints);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.weightx = 1.0;
+        byDetailsPanel.add(filler1, gridBagConstraints);
+
+        byTextPanel.setBackground(UIManager.getDefaults().getColor("TextArea.background"));
+
+        queryLabel.setFont(queryLabel.getFont().deriveFont(queryLabel.getFont().getStyle() | Font.BOLD, queryLabel.getFont().getSize()-2));
+        queryLabel.setLabelFor(queryTextField);
+        Mnemonics.setLocalizedText(queryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.queryLabel.text")); // NOI18N
+
+        queryTextField.setColumns(30);
+
+        qSubjectCheckBox.setSelected(true);
+        Mnemonics.setLocalizedText(qSubjectCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qSubjectCheckBox.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(qDescriptionCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qDescriptionCheckBox.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(qCommentsCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qCommentsCheckBox.text")); // NOI18N
+        qCommentsCheckBox.setEnabled(false);
+
+        GroupLayout byTextPanelLayout = new GroupLayout(byTextPanel);
+        byTextPanel.setLayout(byTextPanelLayout);
+        byTextPanelLayout.setHorizontalGroup(
+            byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(byTextPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(queryLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(queryTextField, GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(qSubjectCheckBox)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(qDescriptionCheckBox)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(qCommentsCheckBox)
+                .addContainerGap())
+        );
+        byTextPanelLayout.setVerticalGroup(
+            byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(byTextPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(queryLabel)
+                    .addComponent(queryTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(qSubjectCheckBox)
+                    .addComponent(qDescriptionCheckBox)
+                    .addComponent(qCommentsCheckBox))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        queryTextField.getAccessibleContext().setAccessibleName(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleName")); // NOI18N
+        queryTextField.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleDescription")); // NOI18N
+
+        setBackground(UIManager.getDefaults().getColor("TextArea.background"));
+        setOpaque(false);
+
+        tableFieldsPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        tableFieldsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+        tableFieldsPanel.setOpaque(false);
+        tableFieldsPanel.setLayout(new BorderLayout());
+
+        tableHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        tableHeaderPanel.setOpaque(false);
+        tableHeaderPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+
+        tableSummaryLabel.setFont(tableSummaryLabel.getFont().deriveFont(tableSummaryLabel.getFont().getStyle() | Font.BOLD, tableSummaryLabel.getFont().getSize()-2));
+        tableSummaryLabel.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/redmine.png"))); // NOI18N
+        Mnemonics.setLocalizedText(tableSummaryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.tableSummaryLabel.text")); // NOI18N
+        tableHeaderPanel.add(tableSummaryLabel);
+
+        tableFieldsPanel.add(tableHeaderPanel, BorderLayout.NORTH);
+
+        tablePanel.setBackground(new Color(224, 224, 224));
+        tablePanel.setBorder(BorderFactory.createEtchedBorder());
+        tablePanel.setMinimumSize(new Dimension(100, 350));
+        tablePanel.setLayout(new BorderLayout());
+        tableFieldsPanel.add(tablePanel, BorderLayout.CENTER);
+
+        searchPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        searchPanel.setOpaque(false);
+
+        criteriaPanel.setBackground(new Color(224, 224, 224));
+        criteriaPanel.setBorder(BorderFactory.createLineBorder(UIManager.getDefaults().getColor("Button.shadow")));
+
+        byTextLabel.setFont(byTextLabel.getFont().deriveFont(byTextLabel.getFont().getStyle() | Font.BOLD));
+        Mnemonics.setLocalizedText(byTextLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.byTextLabel.text")); // NOI18N
+
+        byTextContainer.setLayout(new BorderLayout());
+
+        byDetailsLabel.setFont(byDetailsLabel.getFont().deriveFont(byDetailsLabel.getFont().getStyle() | Font.BOLD));
+        Mnemonics.setLocalizedText(byDetailsLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.byDetailsLabel.text")); // NOI18N
+
+        byDetailsContainer.setLayout(new BorderLayout());
+
+        GroupLayout criteriaPanelLayout = new GroupLayout(criteriaPanel);
+        criteriaPanel.setLayout(criteriaPanelLayout);
+        criteriaPanelLayout.setHorizontalGroup(
+            criteriaPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(byTextContainer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(byDetailsContainer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(criteriaPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(criteriaPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(byTextLabel)
+                    .addComponent(byDetailsLabel)))
+        );
+        criteriaPanelLayout.setVerticalGroup(
+            criteriaPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(criteriaPanelLayout.createSequentialGroup()
+                .addComponent(byTextLabel)
+                .addGap(0, 0, 0)
+                .addComponent(byTextContainer, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(byDetailsLabel)
+                .addGap(0, 0, 0)
+                .addComponent(byDetailsContainer, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        );
+
+        byTextLabel.getAccessibleContext().setAccessibleName(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.byTextLabel.AccessibleContext.accessibleName")); // NOI18N
+
+        Mnemonics.setLocalizedText(cancelChangesButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(saveChangesButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveChangesButton.text")); // NOI18N
+        saveChangesButton.setSelected(true);
+
+        gotoPanel.setBackground(new Color(224, 224, 224));
+        gotoPanel.setOpaque(false);
+        gotoPanel.setLayout(new GridBagLayout());
+
+        Mnemonics.setLocalizedText(gotoIssueButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.gotoIssueButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        gotoPanel.add(gotoIssueButton, gridBagConstraints);
+        gotoIssueButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.gotoIssueButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        issueIdTextField.setHorizontalAlignment(JTextField.CENTER);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.ipadx = 64;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        gotoPanel.add(issueIdTextField, gridBagConstraints);
+
+        Mnemonics.setLocalizedText(searchButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.searchButton.text")); // NOI18N
+        searchButton.setSelected(true);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        gotoPanel.add(searchButton, gridBagConstraints);
+        searchButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.searchButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        Mnemonics.setLocalizedText(separatorLabel2, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.separatorLabel2.text")); // NOI18N
+        separatorLabel2.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 7;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.ipady = 20;
+        gotoPanel.add(separatorLabel2, gridBagConstraints);
+
+        Mnemonics.setLocalizedText(separatorLabel1, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.separatorLabel1.text")); // NOI18N
+        separatorLabel1.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.ipady = 20;
+        gotoPanel.add(separatorLabel1, gridBagConstraints);
+
+        Mnemonics.setLocalizedText(saveButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gotoPanel.add(saveButton, gridBagConstraints);
+        saveButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        Mnemonics.setLocalizedText(webButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.text")); // NOI18N
+        webButton.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.actionCommand")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 0;
+        gotoPanel.add(webButton, gridBagConstraints);
+        webButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        Mnemonics.setLocalizedText(refreshConfigurationButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshConfigurationButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridy = 0;
+        gotoPanel.add(refreshConfigurationButton, gridBagConstraints);
+        refreshConfigurationButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshConfigurationButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        GroupLayout searchPanelLayout = new GroupLayout(searchPanel);
+        searchPanel.setLayout(searchPanelLayout);
+        searchPanelLayout.setHorizontalGroup(
+            searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 778, Short.MAX_VALUE)
+            .addGroup(searchPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(searchPanelLayout.createSequentialGroup()
+                        .addComponent(saveChangesButton)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cancelChangesButton)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        searchPanelLayout.setVerticalGroup(
+            searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(searchPanelLayout.createSequentialGroup()
+                .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(saveChangesButton)
+                    .addComponent(cancelChangesButton))
+                .addContainerGap())
+        );
+
+        cancelChangesButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
+        saveChangesButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        topButtonPanel.setOpaque(false);
+        topButtonPanel.setLayout(new GridBagLayout());
+
+        Mnemonics.setLocalizedText(modifyButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        topButtonPanel.add(modifyButton, gridBagConstraints);
+        modifyButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        Mnemonics.setLocalizedText(removeButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        topButtonPanel.add(removeButton, gridBagConstraints);
+        removeButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        Mnemonics.setLocalizedText(jLabel5, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel5.text")); // NOI18N
+        jLabel5.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.ipady = 20;
+        topButtonPanel.add(jLabel5, gridBagConstraints);
+
+        Mnemonics.setLocalizedText(refreshButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        topButtonPanel.add(refreshButton, gridBagConstraints);
+        refreshButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.seenButton.AccessibleContext.accessibleDescription")); // NOI18N
+
+        Mnemonics.setLocalizedText(jLabel6, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.jLabel6.text")); // NOI18N
+        jLabel6.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.ipady = 20;
+        topButtonPanel.add(jLabel6, gridBagConstraints);
+
+        queryHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        queryHeaderPanel.setOpaque(false);
+
+        Mnemonics.setLocalizedText(lastRefreshLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshLabel.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(lastRefreshDateLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshDateLabel.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(nameLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.nameLabel.text")); // NOI18N
+
+        Mnemonics.setLocalizedText(refreshCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.text")); // NOI18N
+        refreshCheckBox.setOpaque(false);
+
+        GroupLayout queryHeaderPanelLayout = new GroupLayout(queryHeaderPanel);
+        queryHeaderPanel.setLayout(queryHeaderPanelLayout);
+        queryHeaderPanelLayout.setHorizontalGroup(
+            queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(queryHeaderPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(nameLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 372, Short.MAX_VALUE)
+                .addComponent(refreshCheckBox)
+                .addGap(18, 18, 18)
+                .addComponent(lastRefreshLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lastRefreshDateLabel)
+                .addContainerGap())
+        );
+        queryHeaderPanelLayout.setVerticalGroup(
+            queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(queryHeaderPanelLayout.createSequentialGroup()
+                .addGap(11, 11, 11)
+                .addComponent(nameLabel))
+            .addGroup(queryHeaderPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(lastRefreshDateLabel)
+                    .addComponent(lastRefreshLabel)
+                    .addComponent(refreshCheckBox)))
+        );
+
+        refreshCheckBox.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.AccessibleContext.accessibleDescription")); // NOI18N
+
+        noContentPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        noContentPanel.setOpaque(false);
+        noContentPanel.setLayout(new GridBagLayout());
+
+        Mnemonics.setLocalizedText(noContentLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.noContentLabel.text")); // NOI18N
+        noContentPanel.add(noContentLabel, new GridBagConstraints());
+
+        GroupLayout layout = new GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(queryHeaderPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(searchPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(noContentPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(queryHeaderPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(searchPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(noContentPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    LinkButton assigneeClear;
+    final JLabel assigneeLabel = new JLabel();
+    final JList assigneeList = new JList();
+    final JScrollPane assigneeScrollPane = new HackedScrollPane();
+    final JPanel byDetailsContainer = new JPanel();
+    final JLabel byDetailsLabel = new JLabel();
+    final JPanel byDetailsPanel = new JPanel();
+    final JPanel byTextContainer = new JPanel();
+    final JLabel byTextLabel = new JLabel();
+    JPanel byTextPanel;
+    final JButton cancelChangesButton = new JButton();
+    LinkButton categoryClear;
+    final JLabel categoryLabel = new JLabel();
+    final JList categoryList = new JList();
+    JPanel criteriaPanel;
+    Box.Filler filler1;
+    final JButton gotoIssueButton = new JButton();
+    final JPanel gotoPanel = new JPanel();
+    JFormattedTextField issueIdTextField;
+    final JScrollPane issueTypeScrollPane = new HackedScrollPane();
+    JLabel jLabel5;
+    JLabel jLabel6;
+    final JScrollPane jScrollPane2 = new HackedScrollPane();
+    final JScrollPane jScrollPane3 = new HackedScrollPane();
+    final JScrollPane jScrollPane4 = new HackedScrollPane();
+    final JScrollPane jScrollPane6 = new HackedScrollPane();
+    final JLabel lastRefreshDateLabel = new JLabel();
+    JLabel lastRefreshLabel;
+    public final LinkButton modifyButton = new LinkButton();
+    final JLabel nameLabel = new JLabel();
+    JLabel noContentLabel;
+    JPanel noContentPanel;
+    LinkButton priorityClear;
+    final JLabel priorityLabel = new JLabel();
+    final JList priorityList = new JList();
+    JCheckBox qCommentsCheckBox;
+    JCheckBox qDescriptionCheckBox;
+    JCheckBox qSubjectCheckBox;
+    JPanel queryHeaderPanel;
+    final JLabel queryLabel = new JLabel();
+    final JTextField queryTextField = new JTextField();
+    final LinkButton refreshButton = new LinkButton();
+    final JCheckBox refreshCheckBox = new JCheckBox();
+    final LinkButton refreshConfigurationButton = new LinkButton();
+    public final LinkButton removeButton = new LinkButton();
+    final LinkButton saveButton = new LinkButton();
+    final JButton saveChangesButton = new JButton();
+    final JButton searchButton = new JButton();
+    final JPanel searchPanel = new JPanel();
+    JLabel separatorLabel1;
+    JLabel separatorLabel2;
+    LinkButton statusClear;
+    final JLabel statusLabel = new JLabel();
+    final JList statusList = new JList();
+    JPanel tableFieldsPanel;
+    JPanel tableHeaderPanel;
+    final JPanel tablePanel = new JPanel();
+    final JLabel tableSummaryLabel = new JLabel();
+    JPanel topButtonPanel;
+    LinkButton trackerClear;
+    final JLabel trackerLabel = new JLabel();
+    final JList trackerList = new JList();
+    LinkButton versionClear;
+    final JLabel versionLabel = new JLabel();
+    final JList versionList = new JList();
+    final LinkButton webButton = new LinkButton();
+    // End of variables declaration//GEN-END:variables
 
    /**
     * enables/disables all but the parameter fields
@@ -929,8 +931,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       categoryLabel.setEnabled(enable);
       versionLabel.setEnabled(enable);
       statusLabel.setEnabled(enable);
-      severityLabel.setEnabled(enable);
-      resolutionLabel.setEnabled(enable);
       priorityLabel.setEnabled(enable);
       trackerLabel.setEnabled(enable);
 
@@ -990,8 +990,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       cancelChangesButton.setVisible(b);
       saveChangesButton.setVisible(b);
 
-      tableFieldsPanel.setVisible(!b);
-      searchButton.setVisible(!b);
+      topButtonPanel.setVisible(!b);
       saveButton.setVisible(!b);
       webButton.setVisible(!b);
 
@@ -999,14 +998,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       separatorLabel2.setVisible(!b);
    }
 
-   void setSaved(String name, String lastRefresh) {
-      searchPanel.setVisible(false);
-      queryHeaderPanel.setVisible(true);
-      filterComboBox.setVisible(true); // XXX move to bugtracking IssueTable component
-      filterLabel.setVisible(true);
-      tableHeaderPanel.setVisible(true);
-      nameLabel.setText(name);
-      setLastRefresh(lastRefresh);
+   void setTitle(String name) {
+       nameLabel.setText(name);
    }
 
    void setLastRefresh(String lastRefresh) {
@@ -1033,65 +1026,9 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       // do nothing
    }
 
-
-
    @Override
    protected void paintComponent(Graphics g) {
       super.paintComponent(Defaults.paintGradient((Graphics2D)g, getWidth(), getHeight()));
-   }
-
-   class ExpandablePanel {
-
-      private final JPanel panel;
-      private final JLabel label;
-      private final Icon ei;
-      private final Icon ci;
-      private boolean expaned = true;
-
-      public ExpandablePanel(JLabel l, JPanel p, final Icon ei, final Icon ci) {
-         this.panel = p;
-         this.label = l;
-         this.ci = ci;
-         this.ei = ei;
-         this.label.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-               if (panel.isVisible()) {
-                  colapse();
-               } else {
-                  expand();
-               }
-            }
-         });
-      }
-
-      public void expand() {
-         expaned = true;
-         panel.setVisible(true);
-         label.setIcon(ei);
-      }
-
-      public void colapse() {
-         expaned = false;
-         panel.setVisible(false);
-         label.setIcon(ci);
-      }
-
-      public void setVisible(boolean visible) {
-         label.setVisible(visible);
-         panel.setVisible(visible && expaned);
-      }
-   }
-
-   private static class FilterCellRenderer extends DefaultListCellRenderer {
-
-      @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-         if (value instanceof Filter) {
-            value = ((Filter)value).getDisplayName();
-         }
-         return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      }
    }
 
    static class HackedScrollPane extends JScrollPane {

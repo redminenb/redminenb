@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Run module suite</actionName>
+            <displayName>Run module suite</displayName>
+            <goals>
+                <goal>package</goal>
+                <goal>nbm:cluster</goal>
+                <goal>nbm:run-ide</goal>
+            </goals>
+        </action>
+        <action>
+            <actionName>CUSTOM-Debug module suite</actionName>
+            <displayName>Debug module suite</displayName>
+            <goals>
+                <goal>package</goal>
+                <goal>nbm:cluster</goal>
+                <goal>nbm:run-ide</goal>
+            </goals>
+            <properties>
+                <jpda.listen>true</jpda.listen>
+                <netbeans.run.params.debug>-J-Xrunjdwp:transport=dt_socket,server=n,address=localhost:${jpda.address}</netbeans.run.params.debug>
+            </properties>
+        </action>
+        <action>
+            <actionName>CUSTOM-Rebuild module suite</actionName>
+            <displayName>Rebuild module suite</displayName>
+            <goals>
+                <goal>package</goal>
+                <goal>nbm:cluster</goal>
+                <goal>nbm:autoupdate</goal>
+            </goals>
+        </action>
+        <action>
+            <actionName>CUSTOM-Clean and rebuild module suite</actionName>
+            <displayName>Clean and rebuild module suite</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>package</goal>
+                <goal>nbm:cluster</goal>
+                <goal>nbm:autoupdate</goal>
+            </goals>      
+        </action>
+    </actions>

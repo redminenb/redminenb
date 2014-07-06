@@ -15,7 +15,6 @@
  */
 package com.kenai.redminenb.api;
 
-
 /**
  * Authentication modes against the Redmine REST interface.
  *
@@ -23,15 +22,15 @@ package com.kenai.redminenb.api;
  */
 public enum AuthMode {
 
-   AccessKey,
-   Credentials;
+    AccessKey,
+    Credentials;
 
-   public static AuthMode get(String name) {
-      try {
-         return valueOf(name);
-      } catch (Exception ex) {
-         return null;
-      }
-   }
+    public static AuthMode get(String name) {
+        try {
+            return valueOf(name);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
 
 }

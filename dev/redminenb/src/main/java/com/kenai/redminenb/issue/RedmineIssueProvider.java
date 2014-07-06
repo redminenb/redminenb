@@ -17,80 +17,80 @@ package com.kenai.redminenb.issue;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import org.netbeans.modules.bugtracking.spi.BugtrackingController;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueProvider;
-
 
 /**
  * RedmineNB {@link IssueProvider}.
  *
  * @author Anchialas <anchialas@gmail.com>
  */
-public final class RedmineIssueProvider extends IssueProvider<RedmineIssue> {
+public final class RedmineIssueProvider implements IssueProvider<RedmineIssue> {
 
-   @Override
-   public String getDisplayName(RedmineIssue data) {
-      return data.getDisplayName();
-   }
+    @Override
+    public String getDisplayName(RedmineIssue data) {
+        return data.getDisplayName();
+    }
 
-   @Override
-   public String getTooltip(RedmineIssue data) {
-      return data.getTooltip();
-   }
+    @Override
+    public String getTooltip(RedmineIssue data) {
+        return data.getTooltip();
+    }
 
-   @Override
-   public String getID(RedmineIssue data) {
-      return data.getID();
-   }
+    @Override
+    public String getID(RedmineIssue data) {
+        return data.getID();
+    }
 
-   @Override
-   public String[] getSubtasks(RedmineIssue data) {
-      return new String[0];
-   }
+    @Override
+    public Collection<String> getSubtasks(RedmineIssue data) {
+        return new ArrayList<>();
+    }
 
-   @Override
-   public String getSummary(RedmineIssue data) {
-      return data.getSummary();
-   }
+    @Override
+    public String getSummary(RedmineIssue data) {
+        return data.getSummary();
+    }
 
-   @Override
-   public boolean isNew(RedmineIssue data) {
-      return data.isNew();
-   }
+    @Override
+    public boolean isNew(RedmineIssue data) {
+        return data.isNew();
+    }
 
-   @Override
-   public boolean isFinished(RedmineIssue data) {
-      return data.isFinished();
-   }
+    @Override
+    public boolean isFinished(RedmineIssue data) {
+        return data.isFinished();
+    }
 
-   @Override
-   public boolean refresh(RedmineIssue data) {
-      return data.refresh();
-   }
+    @Override
+    public boolean refresh(RedmineIssue data) {
+        return data.refresh();
+    }
 
-   @Override
-   public void addComment(RedmineIssue data, String comment, boolean closeAsFixed) {
-      data.addComment(comment, closeAsFixed);
-   }
+    @Override
+    public void addComment(RedmineIssue data, String comment, boolean closeAsFixed) {
+        data.addComment(comment, closeAsFixed);
+    }
 
-   @Override
-   public void attachPatch(RedmineIssue data, File file, String description) {
-      data.attachPatch(file, description);
-   }
+    @Override
+    public void attachFile(RedmineIssue data, File file, String description, boolean patch) {
+        data.attachFile(file, description, null, patch);
+    }
 
-   @Override
-   public BugtrackingController getController(RedmineIssue data) {
-      return data.getController();
-   }
+    @Override
+    public IssueController getController(RedmineIssue data) {
+        return data.getController();
+    }
 
-   @Override
-   public void addPropertyChangeListener(RedmineIssue data, PropertyChangeListener listener) {
-      data.addPropertyChangeListener(listener);
-   }
+    @Override
+    public void addPropertyChangeListener(RedmineIssue data, PropertyChangeListener listener) {
+        data.addPropertyChangeListener(listener);
+    }
 
-   @Override
-   public void removePropertyChangeListener(RedmineIssue data, PropertyChangeListener listener) {
-      data.removePropertyChangeListener(listener);
-   }
-
+    @Override
+    public void removePropertyChangeListener(RedmineIssue data, PropertyChangeListener listener) {
+        data.removePropertyChangeListener(listener);
+    }
 }

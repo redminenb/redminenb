@@ -19,10 +19,10 @@ import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.repository.RedmineRepository;
-
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.bean.Issue;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -33,14 +33,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
-import org.netbeans.modules.bugtracking.api.Issue;
-import org.netbeans.modules.bugtracking.cache.IssueCache;
+import org.netbeans.modules.bugtracking.spi.QueryController;
 import org.netbeans.modules.bugtracking.spi.QueryProvider;
-import org.netbeans.modules.bugtracking.util.LogUtils;
 import org.openide.util.Exceptions;
 
 /**
@@ -49,414 +49,380 @@ import org.openide.util.Exceptions;
  * @author Anchialas <anchialas@gmail.com>
  */
 public final class RedmineQuery {
+    private static final Logger LOG = Logger.getLogger(RedmineQuery.class.getName());
 
-   private String name;
-   private final RedmineRepository repository;
-   private final Set<String> issues;
-   //
-   //private String urlParameters;
-   private boolean initialUrlDef;
-   private boolean firstRun = true;
-   private boolean saved;
-   protected long lastRefresh;
-   private final PropertyChangeSupport support;
-   //
-   private RedmineQueryController queryController;
+    private String name;
+    private final RedmineRepository repository;
+    private final Set<RedmineIssue> issues = new HashSet<>();
+    //
+    private boolean firstRun = true;
+    private boolean saved;
+    protected long lastRefresh;
+    private final PropertyChangeSupport support = new PropertyChangeSupport(this);
+    //
+    private Map<String, ParameterValue[]> parameters = Collections.EMPTY_MAP;
+    private RedmineQueryController queryController;
+    
+    public synchronized RedmineQueryController getController() {
+        if (queryController == null) {
+            queryController = new RedmineQueryController(repository, this);
+        }
+        return queryController;
+    }
+    
+    public RedmineQuery(RedmineRepository repository) {
+        this.repository = repository;
+    }
 
-   public RedmineQuery(RedmineRepository repository) {
-      this(null, repository, null, false, false, true);
-   }
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        support.addPropertyChangeListener(listener);
+    }
 
-   public RedmineQuery(String name, RedmineRepository repository, String urlParameters,
-                       boolean saved, boolean urlDef, boolean initControler) {
-      this.name = name;
-      this.repository = repository;
-      this.saved = saved;
-      //this.urlParameters = urlParameters;
-      this.initialUrlDef = urlDef;
-      this.lastRefresh = repository.getIssueCache().getQueryTimestamp(getStoredQueryName());
-      this.issues = new HashSet<String>();
-      this.support = new PropertyChangeSupport(this);
-   }
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        support.removePropertyChangeListener(listener);
+    }
 
-   public void addPropertyChangeListener(PropertyChangeListener listener) {
-      support.addPropertyChangeListener(listener);
-   }
+    private void firePropertyChanged() {
+        support.firePropertyChange(QueryController.PROP_CHANGED, null, null);
+    }
 
-   public void removePropertyChangeListener(PropertyChangeListener listener) {
-      support.removePropertyChangeListener(listener);
-   }
+    public Map<String, ParameterValue[]> getParameters() {
+        return parameters;
+    }
 
-   private void fireQuerySaved() {
-      support.firePropertyChange(QueryProvider.EVENT_QUERY_SAVED, null, null);
-   }
+    public void setParameters(Map<String, ParameterValue[]> parameters) {
+        if(parameters == null) {
+            parameters = Collections.EMPTY_MAP;
+        }
+        boolean changed = ! parameters.equals(this.parameters);
+        this.parameters = parameters;
+        if (changed) {
+            firePropertyChanged();
+            setSaved(false);
+        }
+    }
 
-   private void fireQueryRemoved() {
-      support.firePropertyChange(QueryProvider.EVENT_QUERY_REMOVED, null, null);
-   }
+    private QueryProvider.IssueContainer<RedmineIssue> delegateContainer;
 
-   private void fireQueryIssuesChanged() {
-      support.firePropertyChange(QueryProvider.EVENT_QUERY_ISSUES_CHANGED, null, null);
-   }
+    void setIssueContainer(QueryProvider.IssueContainer<RedmineIssue> ic) {
+        delegateContainer = ic;
+    }
 
-   public String getDisplayName() {
-      return name;
-   }
+    public String getDisplayName() {
+        return name;
+    }
 
-   public String getTooltip() {
-      return name + " - " + repository.getDisplayName(); // NOI18N
-   }
+    public String getTooltip() {
+        return name + " - " + repository.getDisplayName(); // NOI18N
+    }
 
-   public synchronized RedmineQueryController getController() {
-      if (queryController == null) {
-         queryController = new RedmineQueryController(repository, this);
-      }
-      return queryController;
-   }
+    public RedmineRepository getRepository() {
+        return repository;
+    }
 
-   public RedmineRepository getRepository() {
-      return repository;
-   }
+    void refresh(boolean autoReresh) {
+        doRefresh(autoReresh);
+    }
 
-   void refresh(boolean autoReresh) {
-      doRefresh(autoReresh);
-   }
+    public void refresh() {
+        // @todo what if already running! - cancel task
+        doRefresh(false);
+    }
 
-   public void refresh() { // XXX what if already running! - cancel task
-      doRefresh(false);
-   }
+    private boolean doRefresh(final boolean autoRefresh) {
+        // XXX what if already running! - cancel task
+        assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
 
-   private boolean doRefresh(final boolean autoRefresh) {
-      // XXX what if already running! - cancel task
-      assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
+        final boolean ret[] = new boolean[1];
+        executeQuery(new Runnable() {
+            @Override
+            public void run() {
+                Redmine.LOG.log(Level.FINE, "refresh start - {0}", name); // NOI18N
+                try {
+                    if (delegateContainer != null) {
+                        delegateContainer.refreshingStarted();
+                    }
 
-      final boolean ret[] = new boolean[1];
-      executeQuery(new Runnable() {
-         @Override
-         public void run() {
-            Redmine.LOG.log(Level.FINE, "refresh start - {0}", name); // NOI18N
-            try {
+                    delegateContainer.clear();
+                    issues.clear();
 
-               // keeps all issues we will retrieve from the server
-               // - those matching the query criteria
-               // - and the obsolete ones
-               Set<String> queryIssues = new HashSet<String>();
+                    firstRun = false;
+                    try {
+                        List<Issue> issueArr = doSearch();
+                        for (Issue issue : issueArr) {
+                            RedmineIssue redmineIssue = new RedmineIssue(repository, issue);
+                            issues.add(redmineIssue);
+                            if (delegateContainer != null) {
+                                delegateContainer.add(redmineIssue);
+                            }
+                            fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
+                        }
 
-               issues.clear();
-//                    archivedIssues.clear();
-               if (isSaved()) {
-                  // read the stored state ...
-                  queryIssues.addAll(repository.getIssueCache().readQueryIssues(getStoredQueryName()));
-                  queryIssues.addAll(repository.getIssueCache().readArchivedQueryIssues(getStoredQueryName()));
-                  // ... and they might be rendered obsolete if not returned by the query
-//                        archivedIssues.addAll(queryIssues);
-               }
-               firstRun = false;
-               try {
-                  List<com.taskadapter.redmineapi.bean.Issue> issueArr = doSearch(queryController.getSearchParameters());
-                  for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
-                     getController().addProgressUnit(RedmineIssue.getDisplayName(issue));
-                     RedmineIssue redmineIssue = new RedmineIssue(repository, issue);
-                     issues.add(redmineIssue.getID());
+                    } catch (Exception e) {
+                        Exceptions.printStackTrace(e);
+                    }
 
-                     fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
-                  }
-
-               } catch (Exception e) {
-                  Exceptions.printStackTrace(e);
-               }
-
-               // only issues not returned by the query are obsolete
-               //archivedIssues.removeAll(issues);
-               if (isSaved()) {
-                  // ... and store all issues you got
-                  repository.getIssueCache().storeQueryIssues(getStoredQueryName(), issues.toArray(new String[issues.size()]));
-                  //repository.getIssueCache().storeArchivedQueryIssues(getStoredQueryName(), archivedIssues.toArray(new String[0]));
-               }
-
-               // now get the task data for
-               // - all issue returned by the query
-               // - and issues which were returned by some previous run and are archived now
-               queryIssues.addAll(issues);
-
-               getController().switchToDeterminateProgress(queryIssues.size());
-
-            } finally {
-               logQueryEvent(issues.size(), autoRefresh);
-               Redmine.LOG.log(Level.FINE, "refresh finish - {0}", name); // NOI18N
+                    if (delegateContainer != null) {
+                        delegateContainer.refreshingFinished();
+                    }
+                } finally {
+                    logQueryEvent(issues.size(), autoRefresh);
+                    Redmine.LOG.log(Level.FINE, "refresh finish - {0}", name); // NOI18N
+                }
             }
-         }
-      });
+        });
 
-      return ret[0];
-   }
+        return ret[0];
+    }
 
-   public final String getStoredQueryName() {
-      return getDisplayName();
-   }
+    protected void logQueryEvent(int count, boolean autoRefresh) {
+        LOG.fine(String.format("Query '%s-%s', Count: %d, Autorefresh: %b",
+                RedmineConnector.NAME,
+                name,
+                count,
+                autoRefresh
+                ));
+    }
 
-   protected void logQueryEvent(int count, boolean autoRefresh) {
-      LogUtils.logQueryEvent(RedmineConnector.getConnectorName(),
-                             name,
-                             count,
-                             false,
-                             autoRefresh);
-   }
+    /**
+     * Performs the issue search with the attributes and values provided by the
+     * map.
+     * <p>
+     * Note: The Redmine REST API does not support full search support for all
+     * fields. So the issues are post filtered here.
+     *
+     * @see http://www.redmine.org/projects/redmine/wiki/Rest_Issues
+     * @see RedmineQueryController#RedmineQueryController
+     * @param searchParameters
+     */
+    private List<Issue> doSearch()
+            throws IOException, AuthenticationException, NotFoundException, RedmineException {
 
-   /**
-    * Performs the issue search with the attributes and values provided by the map.
-    * <p>
-    * Note: The Redmine REST API does not support full search support for all
-    * fields. So the issues are post filtered here.
-    *
-    * @see http://www.redmine.org/projects/redmine/wiki/Rest_Issues
-    * @see RedmineQueryController#RedmineQueryController
-    * @param searchParameters
-    */
-   private List<com.taskadapter.redmineapi.bean.Issue> doSearch(Map<String, RedmineQueryParameter> searchParameters)
-           throws IOException, AuthenticationException, NotFoundException, RedmineException {
+        boolean searchSubject = false;
+        boolean searchDescription = false;
+        boolean searchComments = false;
+        ParameterValue[] queryStringParameter = parameters.get("query");
+        Map<String,ParameterValue[]> multiValueParameters = new HashMap<>();
 
-      boolean searchSubject = false;
-      boolean searchDescription = false;
-      boolean searchComments = false;
-      RedmineQueryParameter queryStringParameter = searchParameters.remove("query");
-      Set<RedmineQueryParameter> multiValueParameters = new HashSet<RedmineQueryParameter>();
+        Map<String, String> m = new HashMap<>();
+        m.put("project_id", String.valueOf(repository.getProject().getId()));
 
-      Map<String, String> m = new HashMap<String, String>();
-      m.put("project_id", String.valueOf(repository.getProject().getId()));
-
-      for (RedmineQueryParameter p : searchParameters.values()) {
-         if (StringUtils.isNotBlank(p.getValueString())) {
-            ParameterValue[] paramValues = p.getValues();
-            if (paramValues.length == 1) {
-               if ("is_subject".equals(p.getParameter())) {
-                  searchSubject = "1".equals(paramValues[0].getValue());
-               } else if ("is_description".equals(p.getParameter())) {
-                  searchDescription = "1".equals(paramValues[0].getValue());
-               } else if ("is_comments".equals(p.getParameter())) {
-                  searchComments = "1".equals(paramValues[0].getValue());
-               } else {
-                  m.put(p.getParameter(), paramValues[0].getValue());
-               }
-            } else if (paramValues.length > 1) {
-               multiValueParameters.add(p);
+        for (Entry<String,ParameterValue[]> p : parameters.entrySet()) {
+            String parameter = p.getKey();
+            // Query parameter is handled seperatedly
+            if("query".equals(parameter)) {
+                continue;
             }
-         }
-      }
-
-      // Perform search
-      List<com.taskadapter.redmineapi.bean.Issue> issueArr = repository.getManager().getIssues(m);
-
-      // Post filtering: Query string
-      if (queryStringParameter != null && !queryStringParameter.isEmpty()
-              && (searchSubject || searchDescription || searchComments)) {
-         String queryStr = queryStringParameter.getValueString();
-
-         List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>(issueArr.size());
-         for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
-            if ((searchSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
-                    || (searchDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) /*
-                     || (searchComments && StringUtils.containsIgnoreCase(..., queryStr))
-                     */) {
-               newArr.add(issue);
+            ParameterValue[] paramValues = p.getValue();
+            if (StringUtils.isNotBlank(ParameterValue.flattenList(paramValues))) {
+                if (paramValues.length == 1) {
+                    if ("is_subject".equals(parameter)) {
+                        searchSubject = "1".equals(paramValues[0].getValue());
+                    } else if ("is_description".equals(parameter)) {
+                        searchDescription = "1".equals(paramValues[0].getValue());
+                    } else if ("is_comments".equals(parameter)) {
+                        searchComments = "1".equals(paramValues[0].getValue());
+                    } else {
+                        m.put(parameter, paramValues[0].getValue());
+                    }
+                } else if (paramValues.length > 1) {
+                    multiValueParameters.put(parameter, paramValues);
+                }
             }
-         }
-         issueArr = newArr;
-      }
+        }
 
-      // Post filtering: Multi-value parameters
-      if (!multiValueParameters.isEmpty()) {
-         List<com.taskadapter.redmineapi.bean.Issue> newArr = new ArrayList<com.taskadapter.redmineapi.bean.Issue>(issueArr.size());
-         for (com.taskadapter.redmineapi.bean.Issue issue : issueArr) {
-            for (RedmineQueryParameter p : multiValueParameters) {
-               // RedmineIssue.getFieldValue(RedmineIssue.FIELD_xxx)
-               // TODO: map FIELD_xxx property to query parameter
-               String paramName = p.getParameter();
-               if ("tracker_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if (String.valueOf(issue.getTracker().getId()).equals(pv.getValue())) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
-               } else if ("status_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if (String.valueOf(issue.getStatusId()).equals(pv.getValue())) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
-               } else if ("priority_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if (String.valueOf(issue.getPriorityId()).equals(pv.getValue())) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
-               } else if ("assigned_to_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if ((pv == ParameterValue.NONE_PARAMETERVALUE && issue.getAssignee() == null)
-                             || (issue.getAssignee() != null && String.valueOf(issue.getAssignee().getId()).equals(pv.getValue()))) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
-               } else if ("category_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if ((pv == ParameterValue.NONE_PARAMETERVALUE && issue.getCategory() == null)
-                             || (issue.getCategory() != null && String.valueOf(issue.getCategory().getId()).equals(pv.getValue()))) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
-               } else if ("fixed_version_id".equals(paramName)) {
-                  for (ParameterValue pv : p.getValues()) {
-                     if ((pv == ParameterValue.NONE_PARAMETERVALUE && issue.getTargetVersion() == null)
-                             || (issue.getTargetVersion() != null && String.valueOf(issue.getTargetVersion().getId()).equals(pv.getValue()))) {
-                        newArr.add(issue);
-                        break;
-                     }
-                  }
-               } else {
-                  Redmine.LOG.log(Level.WARNING, "Unsupported multi-value parameter ''{0}''", paramName);
-               }
+        // Perform search
+        List<Issue> issueArr = repository.getManager().getIssues(m);
 
+        // Post filtering: Query string
+        if (queryStringParameter != null && queryStringParameter.length != 0
+                && (searchSubject || searchDescription || searchComments)) {
+            String queryStr = ParameterValue.flattenList(queryStringParameter);
+
+            List<Issue> newArr = new ArrayList<>(issueArr.size());
+            for (Issue issue : issueArr) {
+                if ((searchSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
+                        || (searchDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr))
+                   ) {
+                    newArr.add(issue);
+                }
             }
-         }
-         issueArr = newArr;
-      }
+            issueArr = newArr;
+        }
 
-      return issueArr;
-   }
+        // Post filtering: Multi-value parameters
+        if (!multiValueParameters.isEmpty()) {
+            List<Issue> newArr = new ArrayList<>(issueArr.size());
+            for (Issue issue : issueArr) {
+                for (Entry<String,ParameterValue[]> p : multiValueParameters.entrySet()) {
+                    // TODO: map FIELD_xxx property to query parameter
+                    String paramName = p.getKey();
+                    ParameterValue[] parameterValues = p.getValue();
+                    if ("tracker_id".equals(paramName)) {
+                        for (ParameterValue pv : parameterValues) {
+                            if (String.valueOf(issue.getTracker().getId()).equals(pv.getValue())) {
+                                newArr.add(issue);
+                                break;
+                            }
+                        }
+                    } else if ("status_id".equals(paramName)) {
+                        for (ParameterValue pv : parameterValues) {
+                            if (String.valueOf(issue.getStatusId()).equals(pv.getValue())) {
+                                newArr.add(issue);
+                                break;
+                            }
+                        }
+                    } else if ("priority_id".equals(paramName)) {
+                        for (ParameterValue pv : parameterValues) {
+                            if (String.valueOf(issue.getPriorityId()).equals(pv.getValue())) {
+                                newArr.add(issue);
+                                break;
+                            }
+                        }
+                    } else if ("assigned_to_id".equals(paramName)) {
+                        for (ParameterValue pv : parameterValues) {
+                            if ((pv.equals(ParameterValue.NONE_PARAMETERVALUE) && issue.getAssignee() == null)
+                                    || (issue.getAssignee() != null && String.valueOf(issue.getAssignee().getId()).equals(pv.getValue()))) {
+                                newArr.add(issue);
+                                break;
+                            }
+                        }
+                    } else if ("category_id".equals(paramName)) {
+                        for (ParameterValue pv : parameterValues) {
+                            if ((pv.equals(ParameterValue.NONE_PARAMETERVALUE) && issue.getCategory() == null)
+                                    || (issue.getCategory() != null && String.valueOf(issue.getCategory().getId()).equals(pv.getValue()))) {
+                                newArr.add(issue);
+                                break;
+                            }
+                        }
+                    } else if ("fixed_version_id".equals(paramName)) {
+                        for (ParameterValue pv : parameterValues) {
+                            if ((pv.equals(ParameterValue.NONE_PARAMETERVALUE) && issue.getTargetVersion() == null)
+                                    || (issue.getTargetVersion() != null && String.valueOf(issue.getTargetVersion().getId()).equals(pv.getValue()))) {
+                                newArr.add(issue);
+                                break;
+                            }
+                        }
+                    } else {
+                        Redmine.LOG.log(Level.WARNING, "Unsupported multi-value parameter ''{0}''", paramName);
+                    }
 
-   public void remove() {
-      repository.removeQuery(this);
-      fireQueryRemoved();
-   }
+                }
+            }
+            issueArr = newArr;
+        }
 
-   public boolean contains(String id) {
-      return issues.contains(id);
-   }
+        return issueArr;
+    }
 
-   boolean wasRun() {
-      return !firstRun;
-   }
+    public void remove() {
+        repository.removeQuery(this.getDisplayName());
+        firePropertyChanged();
+    }
 
-   long getLastRefresh() {
-      return lastRefresh;
-   }
-   //
-//   public String getUrlParameters() {
-//      return urlParameters;
-//   }
-//
+    boolean wasRun() {
+        return !firstRun;
+    }
 
-   public void setName(String name) {
-      this.name = name;
-   }
+    long getLastRefresh() {
+        return lastRefresh;
+    }
 
-   public void setSaved(boolean saved) {
-      this.saved = saved;
-      fireQuerySaved();
-   }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-   public boolean isSaved() {
-      return saved;
-   }
+    public void setSaved(boolean saved) {
+        this.saved = saved;
+        firePropertyChanged();
+    }
 
-   public Collection<RedmineIssue> getIssues() {
-      if (issues == null) {
-         return Collections.<RedmineIssue>emptyList();
-      }
-      List<String> ids = new ArrayList<String>();
-      synchronized (issues) {
-         ids.addAll(issues);
-      }
-      IssueCache<RedmineIssue> cache = repository.getIssueCache();
-      List<RedmineIssue> ret = new ArrayList<RedmineIssue>();
-      for (String id : ids) {
-         ret.add(cache.getIssue(id));
-      }
-      return ret;
-   }
+    public boolean isSaved() {
+        return saved;
+    }
 
-   public boolean contains(Issue issue) {
-      return issues.contains(issue.getID());
-   }
+    public Collection<RedmineIssue> getIssues() {
+        return Collections.unmodifiableSet(issues);
+    }
 
-   public IssueCache.Status getIssueStatus(Issue issue) {
-      return getIssueStatus(issue.getID());
-   }
+    public boolean contains(RedmineIssue issue) {
+        return issues.contains(issue);
+    }
 
-   public IssueCache.Status getIssueStatus(String id) {
-      return repository.getIssueCache().getStatus(id);
-   }
+    public void addNotifyListener(QueryNotifyListener l) {
+        List<QueryNotifyListener> list = getNotifyListeners();
+        synchronized (list) {
+            list.add(l);
+        }
+    }
 
-   public void addNotifyListener(QueryNotifyListener l) {
-      List<QueryNotifyListener> list = getNotifyListeners();
-      synchronized (list) {
-         list.add(l);
-      }
-   }
+    public void removeNotifyListener(QueryNotifyListener l) {
+        List<QueryNotifyListener> list = getNotifyListeners();
+        synchronized (list) {
+            list.remove(l);
+        }
+    }
 
-   public void removeNotifyListener(QueryNotifyListener l) {
-      List<QueryNotifyListener> list = getNotifyListeners();
-      synchronized (list) {
-         list.remove(l);
-      }
-   }
+    protected void fireNotifyData(RedmineIssue issue) {
+        QueryNotifyListener[] listeners = getListeners();
+        for (QueryNotifyListener l : listeners) {
+            l.notifyData(issue);
+        }
+    }
 
-   protected void fireNotifyData(RedmineIssue issue) {
-      QueryNotifyListener[] listeners = getListeners();
-      for (QueryNotifyListener l : listeners) {
-         l.notifyData(issue);
-      }
-   }
+    protected void fireStarted() {
+        QueryNotifyListener[] listeners = getListeners();
+        for (QueryNotifyListener l : listeners) {
+            l.started();
+        }
+    }
 
-   protected void fireStarted() {
-      QueryNotifyListener[] listeners = getListeners();
-      for (QueryNotifyListener l : listeners) {
-         l.started();
-      }
-   }
+    protected void fireFinished() {
+        QueryNotifyListener[] listeners = getListeners();
+        for (QueryNotifyListener l : listeners) {
+            l.finished();
+        }
+    }
 
-   protected void fireFinished() {
-      QueryNotifyListener[] listeners = getListeners();
-      for (QueryNotifyListener l : listeners) {
-         l.finished();
-      }
-   }
+    // XXX move to API
+    protected void executeQuery(Runnable r) {
+        fireStarted();
+        try {
+            r.run();
+        } finally {
+            lastRefresh = System.currentTimeMillis();
+            fireFinished();
+            firePropertyChanged();
+        }
+    }
 
-   // XXX move to API
-   protected void executeQuery(Runnable r) {
-      fireStarted();
-      try {
-         r.run();
-      } finally {
-         fireFinished();
-         fireQueryIssuesChanged();
-         lastRefresh = System.currentTimeMillis();
-      }
-   }
+    private QueryNotifyListener[] getListeners() {
+        List<QueryNotifyListener> list = getNotifyListeners();
+        QueryNotifyListener[] listeners;
+        synchronized (list) {
+            listeners = list.toArray(new QueryNotifyListener[list.size()]);
+        }
+        return listeners;
+    }
+    private List<QueryNotifyListener> notifyListeners;
 
-   private QueryNotifyListener[] getListeners() {
-      List<QueryNotifyListener> list = getNotifyListeners();
-      QueryNotifyListener[] listeners;
-      synchronized (list) {
-         listeners = list.toArray(new QueryNotifyListener[list.size()]);
-      }
-      return listeners;
-   }
-   private List<QueryNotifyListener> notifyListeners;
+    private List<QueryNotifyListener> getNotifyListeners() {
+        if (notifyListeners == null) {
+            notifyListeners = new ArrayList<>();
+        }
+        return notifyListeners;
+    }
 
-   private List<QueryNotifyListener> getNotifyListeners() {
-      if (notifyListeners == null) {
-         notifyListeners = new ArrayList<QueryNotifyListener>();
-      }
-      return notifyListeners;
-   }
+    void rename(String newName) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
-   public String getUrlParameters() {
-      throw new UnsupportedOperationException("Not yet implemented");
-   }
+    boolean canRename() {
+        return false;
+    }
+
+    boolean canRemove() {
+        return true;
+    }
+
 }

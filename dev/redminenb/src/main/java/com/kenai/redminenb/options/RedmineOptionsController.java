@@ -28,7 +28,7 @@ import org.openide.util.NbBundle;
 
 /**
  * RedmineOptionsController
- * 
+ *
  * @author Anchialas <anchialas@gmail.com>
  */
 @NbBundle.Messages({
@@ -38,7 +38,7 @@ import org.openide.util.NbBundle;
 public final class RedmineOptionsController extends OptionsPanelController implements DocumentListener {
 
     private final RedmineOptionsPanel panel;
-    private PropertyChangeSupport support = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport support = new PropertyChangeSupport(this);
     private boolean valid = false;
 
     public RedmineOptionsController() {

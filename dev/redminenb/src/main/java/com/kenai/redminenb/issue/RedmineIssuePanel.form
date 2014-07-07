@@ -364,7 +364,11 @@
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="estimateTimeLabel1" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
+                                      <Group type="102" attributes="0">
+                                          <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="spentHoursLabel" min="-2" max="-2" attributes="0"/>
+                                      </Group>
                                       <Component id="startDateChooser" alignment="0" pref="138" max="32767" attributes="0"/>
                                       <Component id="dueDateChooser" alignment="0" max="32767" attributes="0"/>
                                       <Component id="parentTaskTextField" min="-2" pref="74" max="-2" attributes="0"/>
@@ -451,6 +455,7 @@
                               <Component id="targetVersionComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="doneLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="doneComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="spentHoursLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
@@ -1077,6 +1082,13 @@
             </Component>
           </SubComponents>
         </Container>
+        <Component class="javax.swing.JLabel" name="spentHoursLabel">
+          <Properties>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.spentHoursLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
+        </Component>
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPanel" name="journalOuterPane">

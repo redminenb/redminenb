@@ -75,6 +75,7 @@ import org.openide.awt.DropDownButtonFactory;
 import org.openide.awt.HtmlBrowser;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
+import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
 /**
@@ -380,6 +381,9 @@ public class RedmineIssuePanel extends JPanel {
          commentPanel.setVisible(true);
          logtimePanel.setVisible(true);
          descriptionPanel.setSelectedIndex(1);
+         spentHoursLabel.setText(NbBundle.getMessage(getClass(), 
+                 "RedmineIssuePanel.spentHoursReplacementLabel.text",
+                 issue.getSpentHours()));
       } else {
          // new issue
          setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
@@ -401,6 +405,7 @@ public class RedmineIssuePanel extends JPanel {
          commentPanel.setVisible(false);
          logtimePanel.setVisible(false);
          descriptionPanel.setSelectedIndex(0);
+         spentHoursLabel = new javax.swing.JLabel();
       }
       setInfoMessage(null);
       updateTextileOutput();
@@ -695,6 +700,7 @@ public class RedmineIssuePanel extends JPanel {
         logtimeActivityComboBox = new javax.swing.JComboBox();
         logtimeSaveButton = new javax.swing.JButton();
         logtimeHoursLabel = new javax.swing.JLabel();
+        spentHoursLabel = new javax.swing.JLabel();
         journalOuterPane = new javax.swing.JPanel();
         journalPane = new javax.swing.JPanel();
         updateCommentOuterPanel = new javax.swing.JPanel();
@@ -1025,6 +1031,8 @@ public class RedmineIssuePanel extends JPanel {
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 12);
         logtimeInputPanel.add(logtimeHoursLabel, gridBagConstraints);
 
+        spentHoursLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.spentHoursLabel.text")); // NOI18N
+
         javax.swing.GroupLayout issuePaneLayout = new javax.swing.GroupLayout(issuePane);
         issuePane.setLayout(issuePaneLayout);
         issuePaneLayout.setHorizontalGroup(
@@ -1097,7 +1105,10 @@ public class RedmineIssuePanel extends JPanel {
                                         .addComponent(estimateTimeTextField)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(estimateTimeLabel1))
-                                    .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(issuePaneLayout.createSequentialGroup()
+                                        .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spentHoursLabel))
                                     .addComponent(startDateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
                                     .addComponent(dueDateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(parentTaskTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1165,7 +1176,8 @@ public class RedmineIssuePanel extends JPanel {
                             .addComponent(targetVersionLabel)
                             .addComponent(targetVersionComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(doneLabel)
-                            .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(spentHoursLabel))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1409,6 +1421,7 @@ public class RedmineIssuePanel extends JPanel {
     javax.swing.JLabel priorityLabel;
     javax.swing.JCheckBox privateCheckBox;
     final com.kenai.redminenb.util.LinkButton projectNameButton = new com.kenai.redminenb.util.LinkButton();
+    javax.swing.JLabel spentHoursLabel;
     com.toedter.calendar.JDateChooser startDateChooser;
     javax.swing.JLabel startDateLabel;
     javax.swing.JComboBox statusComboBox;

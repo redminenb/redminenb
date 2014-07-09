@@ -84,7 +84,7 @@ public class RedmineRepository {
     static final String PROPERTY_AUTH_MODE = "authMode";        // NOI18N  
     static final String PROPERTY_ACCESS_KEY = "accessKey";      // NOI18N  
     static final String PROPERTY_PROJECT_ID = "projectId";      // NOI18N  
-    // 
+
     private RepositoryInfo info;
     private transient RepositoryController controller;
     private Map<String, RedmineQuery> queries = Collections.synchronizedMap(new HashMap<String, RedmineQuery>());
@@ -94,16 +94,14 @@ public class RedmineRepository {
     private transient Project project;
     private transient Lookup lookup;
     private final transient InstanceContent ic;
-//   private transient RedmineIssueCache cache;
-    //
+
     private final Set<String> issuesToRefresh = new HashSet<>(5);
     private final Set<RedmineQuery> queriesToRefresh = new HashSet<>(3);
     private RequestProcessor.Task refreshIssuesTask;
     private RequestProcessor.Task refreshQueryTask;
     private RequestProcessor refreshProcessor;
-    //
-    private final Object QUERIES_LOCK = new Object();
-    private final Object CACHE_LOCK = new Object();
+
+    private final IssueCache issueCache = new IssueCache(this);
 
     private final Set<RedmineIssue> newIssues = Collections.synchronizedSet(new HashSet<RedmineIssue>());
     private final Map<String, RedmineIssue> issues = Collections.synchronizedMap(new HashMap<String, RedmineIssue>());
@@ -115,8 +113,7 @@ public class RedmineRepository {
         this.ic = new InstanceContent();
     }
 
-    public RedmineRepository(RepositoryInfo info) {
-        //this.ic = new InstanceContent();    
+    public RedmineRepository(RepositoryInfo info) { 
         this();
         this.info = info;
         try {
@@ -127,27 +124,12 @@ public class RedmineRepository {
         } catch (RedmineException ex) {
             Exceptions.printStackTrace(ex);
         }
-
     }
-//   public static RedmineRepository create(RepositoryInfo info) {
-//      RedmineRepository rr = new RedmineRepository();
-//      if (info != null) {
-//         rr.info = info;
-//         try {
-//            String projectId = info.getValue(PROPERTY_PROJECT_ID);
-//            if (projectId != null) {
-//               rr.setProject(rr.getManager().getProjectByKey(projectId));
-//            }
-//         } catch (RedmineException ex) {
-//            Exceptions.printStackTrace(ex);
-//         }
-//      }
-///*
-//      RedmineTaskListProvider.getInstance().notifyRepositoryCreated(rr);
-//*/
-//      return rr;
-//   }
 
+    public IssueCache getIssueCache() {
+        return issueCache;
+    }
+ 
     public Image getIcon() {
         return Redmine.getIconImage();
     }
@@ -251,16 +233,15 @@ public class RedmineRepository {
     public RedmineIssue getIssue(String issueId) {
         RedmineIssue redmineIssue = null;
         if (issueId != null) {
-            synchronized (CACHE_LOCK) {
-                if (redmineIssue == null) {
-                    try {
-                        Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
-                        redmineIssue = new RedmineIssue(this, issue);
-                    } catch (NotFoundException ex) {
-                        // do nothing
-                    } catch (Exception ex) {
-                        Redmine.LOG.log(Level.SEVERE, null, ex);
-                    }
+            redmineIssue = issueCache.get(issueId);
+            if (redmineIssue == null) {
+                try {
+                    Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
+                    redmineIssue = issueCache.cachedRedmineIssue(issue);
+                } catch (NotFoundException ex) {
+                    // do nothing
+                } catch (Exception ex) {
+                    Redmine.LOG.log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -305,7 +286,7 @@ public class RedmineRepository {
         newIssues.add(issue);
         return issue;
     }
-
+    
     boolean canAttachFiles() {
         return true;
     }
@@ -495,19 +476,24 @@ public class RedmineRepository {
      }*/
     public Collection<RedmineIssue> simpleSearch(String string) {
         try {
-            List<com.taskadapter.redmineapi.bean.Issue> issuesByID
-                    = new LinkedList<>();
+            List<Issue> resultIssues = new LinkedList<>();
 
             try {
-                issuesByID.add(getManager().getIssueById(Integer.parseInt(string)));
+                resultIssues.add(getManager().getIssueById(Integer.parseInt(string)));
             } catch (NumberFormatException ex) {
             } catch (NotFoundException ex) {
             }
 
-            return RedmineIssue.getIssues(this,
-                    issuesByID,
-                    getManager().getIssuesBySummary(project.getIdentifier(), "*" + string + "*"));
+            resultIssues.addAll(getManager().getIssuesBySummary(
+                    project.getIdentifier(),
+                    "*" + string + "*"));
 
+            List<RedmineIssue> redmineIssues = new LinkedList<>();
+            for (Issue issue : resultIssues) {
+                RedmineIssue redmineIssue = issueCache.cachedRedmineIssue(issue);
+                redmineIssues.add(redmineIssue);
+            }
+            return redmineIssues;
         } catch (NotFoundException ex) {
             // TODO Notify user that the issue no longer exists
             Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);

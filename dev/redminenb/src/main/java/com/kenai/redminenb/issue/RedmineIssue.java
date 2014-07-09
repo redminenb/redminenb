@@ -17,23 +17,18 @@ package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.repository.RedmineRepository;
-import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager.INCLUDE;
 import com.taskadapter.redmineapi.bean.Attachment;
-import com.taskadapter.redmineapi.bean.TimeEntry;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;
@@ -293,21 +288,6 @@ public final class RedmineIssue {
         this.issue = issue;    
     }
 
-    public static Collection<RedmineIssue> getIssues(RedmineRepository repository,
-            List<com.taskadapter.redmineapi.bean.Issue>... issueList) {
-        List<RedmineIssue> convertedIssues = new LinkedList<>();
-
-        for (List<com.taskadapter.redmineapi.bean.Issue> issues : issueList) {
-            if (issues != null) {
-                for (com.taskadapter.redmineapi.bean.Issue issue : issues) {
-                    convertedIssues.add(new RedmineIssue(repository, issue));
-                }
-            }
-        }
-
-        return convertedIssues;
-    }
-
     public RedmineRepository getRepository() {
         return repository;
     }
@@ -391,11 +371,11 @@ public final class RedmineIssue {
 
     IssueScheduleInfo getSchedule() {
         return scheduleInfo;
-    }
+        }
 
     void setSchedule(IssueScheduleInfo scheduleInfo) {
         this.scheduleInfo = scheduleInfo;
-    }
+        }
 
     void discardOutgoing() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

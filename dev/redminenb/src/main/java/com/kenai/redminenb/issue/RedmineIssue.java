@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import org.apache.commons.lang.StringUtils;
@@ -80,6 +81,7 @@ import org.openide.util.NbBundle.Messages;
     "CTL_Issue_TargetVersion_Desc=Issue Target Version"
 })
 public final class RedmineIssue {
+    private static final Logger LOG = Logger.getLogger(RedmineIssue.class.getName());
 
     static final String FIELD_ID = "id";                           // NOI18N
     static final String FIELD_PROJECT = "project";                 // NOI18N
@@ -362,20 +364,26 @@ public final class RedmineIssue {
         return IssueStatusProvider.Status.SEEN;
     }
 
-    private IssueScheduleInfo scheduleInfo;
-    private Date dueDate;
-
     Date getDueDate() {
-        return dueDate;
+        return issue.getDueDate();
     }
 
     IssueScheduleInfo getSchedule() {
-        return scheduleInfo;
+        if(issue.getStartDate() != null) {
+            return new IssueScheduleInfo(issue.getStartDate());
+        } else {
+            return null;
         }
+    }
 
     void setSchedule(IssueScheduleInfo scheduleInfo) {
-        this.scheduleInfo = scheduleInfo;
+        issue.setStartDate(scheduleInfo.getDate());
+        try {
+            getRepository().getManager().update(issue);
+        } catch (RedmineException ex) {
+            LOG.log(Level.WARNING, "Failed to update start date for issue", ex);
         }
+    }
 
     void discardOutgoing() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

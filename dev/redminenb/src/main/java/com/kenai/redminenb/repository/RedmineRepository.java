@@ -36,6 +36,7 @@ import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Membership;
 import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.awt.Image;
@@ -44,6 +45,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,6 +86,21 @@ public class RedmineRepository {
     static final String PROPERTY_AUTH_MODE = "authMode";        // NOI18N  
     static final String PROPERTY_ACCESS_KEY = "accessKey";      // NOI18N  
     static final String PROPERTY_PROJECT_ID = "projectId";      // NOI18N  
+    
+    private static final List<TimeEntryActivity> fallbackTimeActivityEntries;
+    
+    static {
+        TimeEntryActivity design = new TimeEntryActivity();
+        design.setDefault(false);
+        design.setId(8);
+        design.setName("Design");
+        TimeEntryActivity development = new TimeEntryActivity();
+        development.setDefault(false);
+        development.setId(9);
+        development.setName("Development");
+        fallbackTimeActivityEntries = Arrays.asList(design, development);
+    }
+        
     // 
     private RepositoryInfo info;
     private transient RepositoryController controller;
@@ -107,7 +124,7 @@ public class RedmineRepository {
 
     private final Set<RedmineIssue> newIssues = Collections.synchronizedSet(new HashSet<RedmineIssue>());
     private final Map<String, RedmineIssue> issues = Collections.synchronizedMap(new HashMap<String, RedmineIssue>());
-
+    
     /**
      * Default constructor required for deserializing.
      */
@@ -384,6 +401,17 @@ public class RedmineRepository {
             Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
         }
         return Collections.<Tracker>emptyList();
+    }
+    
+    public List<TimeEntryActivity> getTimeEntryActivities() {
+        // @todo: Check if caching is sensible
+        try {
+            return getManager().getTimeEntryActivities();
+        } catch (RedmineException ex) {
+            // TODO Notify user that Redmine internal error has happened
+            Redmine.LOG.log(Level.INFO, "Failed to Redmine Time Entry Activities (either API is missing or no permission)", ex);
+        }
+        return fallbackTimeActivityEntries;
     }
 
     public IssueStatus getStatus(int id) {

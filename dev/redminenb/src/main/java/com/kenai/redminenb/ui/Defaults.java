@@ -28,6 +28,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -54,6 +55,10 @@ public class Defaults {
 
     public static Icon getIcon(String iconBaseName) {
         return ImageUtilities.loadImageIcon("com/kenai/redminenb/resources/" + iconBaseName, false);
+    }
+    
+    public static Image getImage(String iconBaseName) {
+        return ImageUtilities.loadImage("com/kenai/redminenb/resources/" + iconBaseName, false);
     }
 
     public static void setBoldFont(JLabel label) {

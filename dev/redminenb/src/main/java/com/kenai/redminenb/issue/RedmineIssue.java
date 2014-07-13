@@ -287,7 +287,7 @@ public final class RedmineIssue {
     }
 
     public void setIssue(com.taskadapter.redmineapi.bean.Issue issue) {
-        this.issue = issue;    
+        this.issue = issue;
     }
 
     public RedmineRepository getRepository() {
@@ -365,11 +365,15 @@ public final class RedmineIssue {
     }
 
     Date getDueDate() {
-        return issue.getDueDate();
+        if(issue != null) {
+            return issue.getDueDate();
+        } else {
+            return null;
+        }
     }
 
     IssueScheduleInfo getSchedule() {
-        if(issue.getStartDate() != null) {
+        if(issue != null && issue.getStartDate() != null) {
             return new IssueScheduleInfo(issue.getStartDate());
         } else {
             return null;
@@ -377,6 +381,9 @@ public final class RedmineIssue {
     }
 
     void setSchedule(IssueScheduleInfo scheduleInfo) {
+        if(issue == null) {
+            return; // Silently igonre setSchedule on not yet saved issues
+        }
         issue.setStartDate(scheduleInfo.getDate());
         try {
             getRepository().getManager().update(issue);

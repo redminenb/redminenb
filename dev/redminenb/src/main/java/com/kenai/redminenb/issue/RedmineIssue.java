@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import org.apache.commons.lang.StringUtils;
+import org.netbeans.modules.bugtracking.api.Issue;
 import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
@@ -288,6 +289,7 @@ public final class RedmineIssue {
 
     public void setIssue(com.taskadapter.redmineapi.bean.Issue issue) {
         this.issue = issue;
+        support.firePropertyChange(Issue.EVENT_ISSUE_DATA_CHANGED, null, null);
     }
 
     public RedmineRepository getRepository() {

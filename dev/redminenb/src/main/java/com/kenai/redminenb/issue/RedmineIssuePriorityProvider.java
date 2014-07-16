@@ -5,6 +5,7 @@
  */
 package com.kenai.redminenb.issue;
 
+import com.kenai.redminenb.RedmineConfig;
 import com.kenai.redminenb.api.Helper;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import java.util.ArrayList;
@@ -29,7 +30,11 @@ public class RedmineIssuePriorityProvider implements IssuePriorityProvider<Redmi
         List<IssuePriority> li = Helper.getDefaultIssuePriorities();
         List<IssuePriorityInfo> lipi = new ArrayList<>();
         for (IssuePriority ip : li) {
-            IssuePriorityInfo ipi = new IssuePriorityInfo(ip.getId().toString(), ip.getName());
+            IssuePriorityInfo ipi = new IssuePriorityInfo(
+                    ip.getId().toString(), 
+                    ip.getName(),
+                    RedmineConfig.getInstance().getPriorityImage(ip.getName())
+            );
             lipi.add(ipi);
         }
         return lipi.toArray(

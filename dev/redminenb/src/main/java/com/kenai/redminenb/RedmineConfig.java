@@ -4,15 +4,14 @@ import com.kenai.redminenb.query.RedmineQuery;
 import com.kenai.redminenb.query.serialization.RedmineQueryXml;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.ui.Defaults;
+import java.awt.Image;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StringReader;
@@ -75,6 +74,7 @@ public class RedmineConfig {
     }
     //
     private Map<String, Icon> priorityIcons;
+    private Map<String, Image> priorityImages;
 
     public static RedmineConfig getInstance() {
         return LazyHolder.INSTANCE;
@@ -227,6 +227,18 @@ public class RedmineConfig {
         return priorityIcons.get(priorityName);
     }
 
+    public Image getPriorityImage(String priorityName) {
+        if (priorityImages == null) {
+            priorityImages = new HashMap<>();
+            priorityImages.put("Immediate", Defaults.getImage("blocker.png")); // NOI18N
+            priorityImages.put("Urgent", Defaults.getImage("critical.png")); // NOI18N
+            priorityImages.put("High", Defaults.getImage("major.png")); // NOI18N
+            priorityImages.put("Normal", Defaults.getImage("arrow_right.png")); // NOI18N
+            priorityImages.put("Low", Defaults.getImage("minor.png")); // NOI18N
+        }
+        return priorityImages.get(priorityName);
+    }
+    
     /**
      * Saves issue ActionItem's permanently.
      *

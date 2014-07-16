@@ -18,6 +18,7 @@ package com.kenai.redminenb.query;
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
+import com.kenai.redminenb.repository.IssueCache;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
@@ -149,8 +150,9 @@ public final class RedmineQuery {
                     firstRun = false;
                     try {
                         List<Issue> issueArr = doSearch();
+                        IssueCache issueCache = repository.getIssueCache();
                         for (Issue issue : issueArr) {
-                            RedmineIssue redmineIssue = new RedmineIssue(repository, issue);
+                            RedmineIssue redmineIssue = issueCache.cachedRedmineIssue(issue);
                             issues.add(redmineIssue);
                             if (delegateContainer != null) {
                                 delegateContainer.add(redmineIssue);

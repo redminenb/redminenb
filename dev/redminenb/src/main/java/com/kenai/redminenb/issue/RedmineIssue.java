@@ -17,28 +17,25 @@ package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.repository.RedmineRepository;
-import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager.INCLUDE;
 import com.taskadapter.redmineapi.bean.Attachment;
-import com.taskadapter.redmineapi.bean.TimeEntry;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import org.apache.commons.lang.StringUtils;
+import org.netbeans.modules.bugtracking.api.Issue;
 import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
@@ -85,6 +82,7 @@ import org.openide.util.NbBundle.Messages;
     "CTL_Issue_TargetVersion_Desc=Issue Target Version"
 })
 public final class RedmineIssue {
+    private static final Logger LOG = Logger.getLogger(RedmineIssue.class.getName());
 
     static final String FIELD_ID = "id";                           // NOI18N
     static final String FIELD_PROJECT = "project";                 // NOI18N
@@ -290,22 +288,8 @@ public final class RedmineIssue {
     }
 
     public void setIssue(com.taskadapter.redmineapi.bean.Issue issue) {
-        this.issue = issue;    
-    }
-
-    public static Collection<RedmineIssue> getIssues(RedmineRepository repository,
-            List<com.taskadapter.redmineapi.bean.Issue>... issueList) {
-        List<RedmineIssue> convertedIssues = new LinkedList<>();
-
-        for (List<com.taskadapter.redmineapi.bean.Issue> issues : issueList) {
-            if (issues != null) {
-                for (com.taskadapter.redmineapi.bean.Issue issue : issues) {
-                    convertedIssues.add(new RedmineIssue(repository, issue));
-                }
-            }
-        }
-
-        return convertedIssues;
+        this.issue = issue;
+        support.firePropertyChange(Issue.EVENT_ISSUE_DATA_CHANGED, null, null);
     }
 
     public RedmineRepository getRepository() {
@@ -382,19 +366,32 @@ public final class RedmineIssue {
         return IssueStatusProvider.Status.SEEN;
     }
 
-    private IssueScheduleInfo scheduleInfo;
-    private Date dueDate;
-
     Date getDueDate() {
-        return dueDate;
+        if(issue != null) {
+            return issue.getDueDate();
+        } else {
+            return null;
+        }
     }
 
     IssueScheduleInfo getSchedule() {
-        return scheduleInfo;
+        if(issue != null && issue.getStartDate() != null) {
+            return new IssueScheduleInfo(issue.getStartDate());
+        } else {
+            return null;
+        }
     }
 
     void setSchedule(IssueScheduleInfo scheduleInfo) {
-        this.scheduleInfo = scheduleInfo;
+        if(issue == null) {
+            return; // Silently igonre setSchedule on not yet saved issues
+        }
+        issue.setStartDate(scheduleInfo.getDate());
+        try {
+            getRepository().getManager().update(issue);
+        } catch (RedmineException ex) {
+            LOG.log(Level.WARNING, "Failed to update start date for issue", ex);
+        }
     }
 
     void discardOutgoing() {

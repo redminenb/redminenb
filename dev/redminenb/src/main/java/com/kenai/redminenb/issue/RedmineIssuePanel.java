@@ -488,7 +488,6 @@ public class RedmineIssuePanel extends JPanel {
 
         if (issue == null) {
             issue = new Issue();
-            this.redmineIssue.setIssue(issue);
         }
         
         setIssueData(issue);
@@ -503,6 +502,7 @@ public class RedmineIssuePanel extends JPanel {
                String projektId = rr.getProject().getIdentifier();
                Issue issue =  rr.getManager().createIssue(projektId, inputIssue);
                redmineIssue.setIssue(issue);
+               redmineIssue.getRepository().getIssueCache().put(redmineIssue);
                return null;
            }
 

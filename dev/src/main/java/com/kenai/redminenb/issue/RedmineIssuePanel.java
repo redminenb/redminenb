@@ -910,6 +910,9 @@ public class RedmineIssuePanel extends JPanel {
 
         descriptionPanel.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
 
+        descScrollPane.setMinimumSize(new java.awt.Dimension(22, 120));
+        descScrollPane.setPreferredSize(new java.awt.Dimension(223, 120));
+
         descTextArea.setColumns(20);
         descScrollPane.setViewportView(descTextArea);
 
@@ -927,7 +930,7 @@ public class RedmineIssuePanel extends JPanel {
         updateCommentTabPanel.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
 
         updateCommentScrollPane1.setMinimumSize(new java.awt.Dimension(22, 80));
-        updateCommentScrollPane1.setPreferredSize(new java.awt.Dimension(228, 120));
+        updateCommentScrollPane1.setPreferredSize(new java.awt.Dimension(228, 80));
 
         updateCommentTextArea.setColumns(20);
         updateCommentScrollPane1.setViewportView(updateCommentTextArea);
@@ -1137,7 +1140,7 @@ public class RedmineIssuePanel extends JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(wikiSyntaxButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(descriptionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 47, Short.MAX_VALUE))
+                    .addComponent(descriptionPanel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)

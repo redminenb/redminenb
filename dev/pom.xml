@@ -18,7 +18,6 @@
     </repositories>
 
     <modules>
-        <module>redmine-java</module>
         <module>redminenb</module>
     </modules>
 

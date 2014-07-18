@@ -81,17 +81,6 @@
             <version>${netbeans.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.kenai.redminenb.external</groupId>
-            <artifactId>redmine-java-api</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-logging</artifactId>
-                    <groupId>commons-logging</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.toedter</groupId>
             <artifactId>jcalendar</artifactId>
             <version>1.4</version>
@@ -100,16 +89,34 @@
             <groupId>org.netbeans.external</groupId>
             <artifactId>org-apache-commons-lang</artifactId>
             <version>${netbeans.version}</version>
+            <scope>provided</scope>
+            <!-- Runtime dependency is added by an explizit dependency defined in the module descriptor below -->
         </dependency>
         <dependency>
             <groupId>org.netbeans.external</groupId>
             <artifactId>org-eclipse-mylyn-wikitext-core</artifactId>
             <version>${netbeans.version}</version>
+            <scope>provided</scope>
+            <!-- Runtime dependency is added by an explizit dependency defined in the module descriptor below -->
         </dependency>
         <dependency>
             <groupId>org.netbeans.external</groupId>
             <artifactId>org-eclipse-mylyn-wikitext-textile-core</artifactId>
             <version>${netbeans.version}</version>
+            <scope>provided</scope>
+            <!-- Runtime dependency is added by an explizit dependency defined in the module descriptor below -->
+        </dependency>
+        <dependency>
+            <groupId>com.taskadapter</groupId>
+            <artifactId>redmine-java-api</artifactId>
+            <version>1.23</version>
+            <exclusions>
+                <!-- Runtime dependency is added by an explizit dependency defined in the module descriptor below -->
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -120,20 +127,66 @@
                 <artifactId>nbm-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <useOSGiDependencies>true</useOSGiDependencies>
-                    <moduleDependencies>
-                        <dependency>
-                            <id>org.netbeans.external:org-eclipse-mylyn-wikitext-textile-core</id>
-                            <explicitValue>org.eclipse.mylyn.wikitext.textile.core &gt; 1.9.0</explicitValue>
-                        </dependency>
-                        <dependency>
-                            <id>org.netbeans.external:org-eclipse-mylyn-wikitext-core</id>
-                            <explicitValue>org.eclipse.mylyn.wikitext.core &gt; 1.9.0</explicitValue>
-                        </dependency>
-                    </moduleDependencies>
+                    <useOSGiDependencies>false</useOSGiDependencies>
                     <licenseName>Apache License 2.0</licenseName>
                     <licenseFile>apache-license20.txt</licenseFile>
                 </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>com.alexecollins.maven.plugin</groupId>
+                <artifactId>script-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <language>javascript</language>
+                    <script>
+                    <!-- Add dependencies of OSGI bundles to module by directly
+                        modifying the MANIFEST.MF file -->
+                    <![CDATA[
+                    var dependencies = [
+                        "org.eclipse.mylyn.wikitext.textile.core > 1.9.0",
+                        "org.eclipse.mylyn.wikitext.core > 1.9.0",
+                        "org.apache.commons.logging > 1.1.1",
+                        "org.apache.commons.lang > 1.6"
+                    ];
+                    
+                    var filename = project.getBasedir() + "/target/classes/META-INF/MANIFEST.MF";
+                    var manifest = new java.util.jar.Manifest(new java.io.FileInputStream(filename));
+                    var attributes = manifest.getMainAttributes();
+                    var entry = "OpenIDE-Module-Module-Dependencies";
+                    var value = attributes.getValue(entry);
+                    if(! value) {
+                        value = "";
+                    } else {
+                        value = value.trim() + "";
+                    }
+                    for(var i = 0; i < dependencies.length; i++) {
+                        if(value != "") {
+                            value += ", ";
+                        }
+                        value += dependencies[i];
+                    }
+                    attributes.putValue(entry, value);
+                    manifest.write(new java.io.FileOutputStream(filename));
+                    ]]>
+                    </script>
+                    <passProjectAsProperty>true</passProjectAsProperty>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>rhino</groupId>
+                        <artifactId>js</artifactId>
+                        <version>1.6R3</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

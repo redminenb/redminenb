@@ -12,7 +12,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
 import java.util.Map;
-import static javafx.scene.text.Font.font;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.plaf.ComponentUI;

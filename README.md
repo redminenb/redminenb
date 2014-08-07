@@ -19,15 +19,21 @@ mvn install
 
 The resulting module can then be found in the target-directory: `redminenb/dev/target/redminenb-<VERSION>.nbm`
 
+Of course the netbeans git facilities can also be used to clone the repository, in this case the project can directly be opened for editing.
+
 To build a signed version of the plugin the following properties need to be defined:
 
 * keystore
 * keystorealias
 * keystorepass
 
-and a developer certificate has to be created. The properties can be set in settings.xml
-for global use or while doing a build:
+and a developer certificate has to be created. The properties can be set in `settings.xml` for global use or while doing a build:
 
 ```
 mvn -Dkeystore=<path_to_certificate> -Dkeystorealias=<key_to_use> -Dkeystorepass=<password_for_keystore> install
 ```
+
+Development
+-----------
+
+The plugin is developed as a maven project. The plugin project can directly be opened in netbeans. Just open the `redminenb/dev` directory in netbeans via "Open Project" and you are good to go. You can modify and build it directly from within the IDE.

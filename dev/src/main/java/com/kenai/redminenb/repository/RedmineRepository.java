@@ -100,11 +100,10 @@ public class RedmineRepository {
         development.setName("Development");
         fallbackTimeActivityEntries = Arrays.asList(design, development);
     }
-        
-    // 
+ 
     private RepositoryInfo info;
     private transient RepositoryController controller;
-    private Map<String, RedmineQuery> queries = Collections.synchronizedMap(new HashMap<String, RedmineQuery>());
+    private Map<String, RedmineQuery> queries = null;
     // TODO Create manager wrapping class to handle Redmine related errors
     private transient RedmineManager manager;
     private transient RedmineUser currentUser;
@@ -312,9 +311,25 @@ public class RedmineRepository {
         return new RedmineQuery(this);
     }
 
+    private synchronized Map<String, RedmineQuery> getQueryMap() {
+        if (queries == null) {
+            queries = Collections.synchronizedMap(new HashMap<String, RedmineQuery>());
+            String[] qs = RedmineConfig.getInstance().getQueries(getID());
+            for (String queryName : qs) {
+                RedmineQuery q = RedmineConfig.getInstance().getQuery(this, queryName);
+                if (q != null) {
+                    queries.put(queryName, q);
+                } else {
+                    Redmine.LOG.log(Level.WARNING, "Couldn''t find query with stored name {0}", queryName); // NOI18N
+                }
+            }
+        }
+        return queries;
+    }
+
     public void removeQuery(String displayName) {
         RedmineConfig.getInstance().removeQuery(this, displayName);
-        queries.remove(displayName);
+        getQueryMap().remove(displayName);
         fireQueryListChanged();
 
     }
@@ -322,8 +337,7 @@ public class RedmineRepository {
     public void saveQuery(RedmineQuery query) {
         assert info != null;
         RedmineConfig.getInstance().putQuery(this, query);
-        //doGetQueries().add(query);
-        queries.put(query.getDisplayName(), query);
+        getQueryMap().put(query.getDisplayName(), query);
         fireQueryListChanged();
     }
 
@@ -332,22 +346,8 @@ public class RedmineRepository {
         propertyChangeSupport.firePropertyChange(RepositoryProvider.EVENT_QUERY_LIST_CHANGED, null, null);
     }
 
-    private void doGetQueries() {
-        queries.clear();// = new HashSet<>(10);
-        String[] qs = RedmineConfig.getInstance().getQueries(getID());
-        for (String queryName : qs) {
-            RedmineQuery q = RedmineConfig.getInstance().getQuery(this, queryName);
-            if (q != null) {
-                queries.put(queryName, q);
-            } else {
-                Redmine.LOG.log(Level.WARNING, "Couldn''t find query with stored name {0}", queryName); // NOI18N
-            }
-        }
-    }
-
     public Collection<RedmineQuery> getQueries() {
-        doGetQueries();
-        return queries.values();
+        return getQueryMap().values();
     }
 
     /**

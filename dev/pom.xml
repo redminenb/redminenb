@@ -139,6 +139,7 @@
                 <version>3.13.2</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <author>Anchialas, Tom Kunicki, Eric Barboni, Matthias Bläsing</author>
                     <brandingToken>${brandingToken}</brandingToken>
                     <cluster>${brandingToken}</cluster>
                     <useOSGiDependencies>false</useOSGiDependencies>

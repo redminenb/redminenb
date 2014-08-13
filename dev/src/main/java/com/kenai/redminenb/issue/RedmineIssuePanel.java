@@ -47,7 +47,6 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
 import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import com.kenai.redminenb.util.LinkButton;
-import com.kenai.redminenb.util.ListCellRendererTimeEntryActivity;
 import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Journal;
@@ -579,7 +578,7 @@ public class RedmineIssuePanel extends JPanel {
       priorityComboBox.setModel(new DefaultComboBoxModel(redmineIssue.getRepository().getIssuePriorities().toArray()));
 
       assigneeComboBox.setRenderer(new Defaults.RepositoryUserLCR());
-      ListComboBoxModel<RedmineUser> model = new ListComboBoxModel<RedmineUser>();
+      ListComboBoxModel<RedmineUser> model = new ListComboBoxModel<>();
       model.add(null);
       model.addAll(redmineIssue.getRepository().getUsers());
       assigneeComboBox.setModel(model);
@@ -592,7 +591,7 @@ public class RedmineIssuePanel extends JPanel {
       targetVersionComboBox.setModel(new DefaultComboBoxModel(redmineIssue.getRepository().getVersions().toArray()));
       ((DefaultComboBoxModel)targetVersionComboBox.getModel()).insertElementAt(null, 0);
       
-      logtimeActivityComboBox.setRenderer(new ListCellRendererTimeEntryActivity());
+      logtimeActivityComboBox.setRenderer(new Defaults.TimeEntryActivityLCR());
       DefaultComboBoxModel timeEntryActivityModel = new DefaultComboBoxModel(
               redmineIssue.getRepository().getTimeEntryActivities().toArray()
       );

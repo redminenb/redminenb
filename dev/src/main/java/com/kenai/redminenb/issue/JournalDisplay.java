@@ -21,7 +21,6 @@ import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.JournalDetail;
 import java.awt.Dimension;
 import java.io.StringWriter;
-import java.text.MessageFormat;
 import java.util.MissingResourceException;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;

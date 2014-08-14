@@ -2,9 +2,6 @@ package com.kenai.redminenb.user;
 
 import com.kenai.redminenb.util.Is;
 import com.taskadapter.redmineapi.bean.User;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * A Redmine {@link RepositoryUser repository user}.

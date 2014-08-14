@@ -64,7 +64,7 @@ public final class Helper {
     }
 
     public static Collection<IssuePriority> storeIssuePriorities(Collection<IssuePriority> data) {
-        issuePrioMap = new HashMap<Integer, IssuePriority>(data.size());
+        issuePrioMap = new HashMap<>(data.size());
         for (IssuePriority issuePriority : data) {
             issuePrioMap.put(issuePriority.getId(), issuePriority);
         }

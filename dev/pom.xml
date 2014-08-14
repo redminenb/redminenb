@@ -17,6 +17,12 @@
         </repository>
     </repositories>
 
+    <scm>
+        <connection>scm:git:https://github.com/redminenb/redminenb.git</connection>
+        <developerConnection>scm:git:git@github.com:redminenb/redminenb.git</developerConnection>
+        <url>https://github.com/redminenb/redminenb</url>
+    </scm>
+
     <properties>
         <netbeans.version>RELEASE80</netbeans.version>
         <brandingToken>redminenb</brandingToken>

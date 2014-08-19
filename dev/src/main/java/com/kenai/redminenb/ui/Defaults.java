@@ -21,6 +21,7 @@ import com.kenai.redminenb.user.RedmineUser;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.awt.Color;
@@ -176,6 +177,21 @@ public class Defaults {
                 value = ((ParameterValue) value).getDisplayName();
                 if (value == null) {
                     return new JSeparator();
+                }
+            }
+            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        }
+    }
+
+    public static class TimeEntryActivityLCR extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            if (value instanceof TimeEntryActivity) {
+                value = ((TimeEntryActivity) value).getName();
+            } else {
+                if (value == null) {
+                    value = " ";
                 }
             }
             return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);

@@ -18,7 +18,6 @@ package com.kenai.redminenb.query;
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.RedmineConfig;
 import com.kenai.redminenb.RedmineConnector;
-import com.kenai.redminenb.RedmineException;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.query.RedmineQueryParameter.CheckBoxParameter;
 import com.kenai.redminenb.query.RedmineQueryParameter.ListParameter;
@@ -49,7 +48,6 @@ import java.beans.PropertyChangeSupport;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -126,8 +124,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
     private ListParameter statusParameter;
     private ListParameter categoryParameter;
     private ListParameter priorityParameter;
-    //private final ListParameter resolutionParameter;
-    //private final ListParameter severityParameter;
     private ListParameter assigneeParameter;
     private Map<String, RedmineQueryParameter> parameters;
     //
@@ -155,10 +151,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
         queryPanel.queryTextField.addActionListener(this);
     }
 
-    /*   @Override
-     public JComponent getComponent() {
-     return queryPanel;
-     }*/
     @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
@@ -185,48 +177,44 @@ public class RedmineQueryController implements QueryController, ActionListener {
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        try {
-            if (e.getSource() == queryPanel.searchButton) {
-                guiToModel();
-                refresh();
-            } else if (e.getSource() == queryPanel.gotoIssueButton) {
+        if (e.getSource() == queryPanel.searchButton) {
+            guiToModel();
+            refresh();
+        } else if (e.getSource() == queryPanel.gotoIssueButton) {
+            onGotoIssue();
+        } else if (e.getSource() == queryPanel.saveChangesButton) {
+            guiToModel();
+            onSave(true); // refresh
+        } else if (e.getSource() == queryPanel.cancelChangesButton) {
+            discardUnsavedChanges();
+        } else if (e.getSource() == queryPanel.webButton) {
+            onWeb();
+        } else if (e.getSource() == queryPanel.saveButton) {
+            guiToModel();
+            onSave(false); // do not refresh
+        } else if (e.getSource() == queryPanel.refreshButton) {
+            refresh();
+        } else if (e.getSource() == queryPanel.modifyButton) {
+            onModify();
+        } else if (e.getSource() == queryPanel.removeButton) {
+            onRemove();
+        } else if (e.getSource() == queryPanel.refreshCheckBox) {
+            onAutoRefresh();
+        } else if (e.getSource() == queryPanel.refreshConfigurationButton) {
+            refreshConfiguration();
+        } else if (e.getSource() == queryPanel.issueIdTextField) {
+            if (!queryPanel.issueIdTextField.getText().trim().equals("")) {                // NOI18N
                 onGotoIssue();
-            } else if (e.getSource() == queryPanel.saveChangesButton) {
-                guiToModel();
-                onSave(true); // refresh
-            } else if (e.getSource() == queryPanel.cancelChangesButton) {
-                discardUnsavedChanges();
-            } else if (e.getSource() == queryPanel.webButton) {
-                onWeb();
-            } else if (e.getSource() == queryPanel.saveButton) {
-                guiToModel();
-                onSave(false); // do not refresh
-            } else if (e.getSource() == queryPanel.refreshButton) {
-                refresh();
-            } else if (e.getSource() == queryPanel.modifyButton) {
-                onModify();
-            } else if (e.getSource() == queryPanel.removeButton) {
-                onRemove();
-            } else if (e.getSource() == queryPanel.refreshCheckBox) {
-                onAutoRefresh();
-            } else if (e.getSource() == queryPanel.refreshConfigurationButton) {
-                refreshConfiguration();
-            } else if (e.getSource() == queryPanel.issueIdTextField) {
-                if (!queryPanel.issueIdTextField.getText().trim().equals("")) {                // NOI18N
-                    onGotoIssue();
-                }
-            } else if (e.getSource() == queryPanel.issueIdTextField
-                    || e.getSource() == queryPanel.queryTextField) {
-                refresh();
             }
-        } catch (RedmineException ex) {
-            Exceptions.printStackTrace(ex);
+        } else if (e.getSource() == queryPanel.issueIdTextField
+                || e.getSource() == queryPanel.queryTextField) {
+            refresh();
         }
     }
 
     /////////////////////////////////////////////////////////////////////////////
 
-    private void onSave(final boolean refresh) throws RedmineException {
+    private void onSave(final boolean refresh) {
         Redmine.getInstance().getRequestProcessor().post(new Runnable() {
             @Override
             public void run() {
@@ -273,7 +261,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 : Bundle.LBL_Never();
     }
 
-    private void onGotoIssue() throws RedmineException {
+    private void onGotoIssue() {
         final Long issueId = (Long) queryPanel.issueIdTextField.getValue();
         if (issueId == null) {
             return;
@@ -312,7 +300,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
         }
     }
 
-    private void onWeb() throws RedmineException {
+    private void onWeb() {
         String params = null; //query.getUrlParameters();
         String repoURL = repository.getUrl();
         final String urlString = repoURL + (StringUtils.isNotBlank(params) ? params : ""); // NOI18N
@@ -373,7 +361,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
         queryPanel.setModifyVisible(true);
     }
 
-    private void onRemove() throws RedmineException {
+    private void onRemove() {
         NotifyDescriptor nd = new NotifyDescriptor.Confirmation(Bundle.MSG_RemoveQuery(query.getDisplayName()),
                 Bundle.CTL_RemoveQuery(),
                 NotifyDescriptor.OK_CANCEL_OPTION);
@@ -402,7 +390,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     private void refreshConfiguration() {
-//      postPopulate(query.getUrlParameters(), true);
         postPopulate();
     }
 
@@ -652,8 +639,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
             versionParameter = registerQueryParameter(ListParameter.class, queryPanel.versionList, "fixed_version_id");
             statusParameter = registerQueryParameter(ListParameter.class, queryPanel.statusList, "status_id");
             priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
-            //resolutionParameter = 
-            //severityParameter = ...
             assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
 
             registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");

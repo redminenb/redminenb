@@ -25,23 +25,17 @@ public final class Redmine {
     public static final Logger LOG = Logger.getLogger(Redmine.class.getName());
     public static final String IMAGE_PATH = "com/kenai/redminenb/resources/";
     public static final String ICON_IMAGE = "redmine.png";
-    //
-//   private Set<RedmineRepository> repositories;
-    //private RedmineConnector connector;
-    private RequestProcessor rp;
-    //
-    private RedmineIssueProvider rip;
-    private RedmineQueryProvider rqp;
-    private BugtrackingSupport<RedmineRepository, RedmineQuery, RedmineIssue> support;
 
     private static RedmineIssueStatusProvider isp;
     private static RedmineIssuePriorityProvider ipp;
     private static RedmineIssueScheduleProvider issp;
 
+    private RequestProcessor rp;
+    private RedmineIssueProvider rip;
+    private RedmineQueryProvider rqp;
     private RedmineRepositoryProvider rrp;
-    private static Redmine instance;
-
-    @SuppressWarnings("unchecked")
+    private BugtrackingSupport<RedmineRepository, RedmineQuery, RedmineIssue> support;
+    
     private Redmine() {
         // omitted
     }
@@ -54,11 +48,10 @@ public final class Redmine {
     }
 
     private static class Holder {
-
         private static final Redmine SINGLETON = new Redmine();
     }
 
-    public static synchronized Redmine getInstance() {
+    public static Redmine getInstance() {
         return Holder.SINGLETON;
     }
 
@@ -74,12 +67,6 @@ public final class Redmine {
         return NbBundle.getMessage(Redmine.class, resName, param);
     }
 
-    /*public RedmineConnector getConnector() {
-     if (connector == null) {
-     connector = Lookup.getDefault().lookup(RedmineConnector.class);
-     }
-     return connector;
-     }*/
     /**
      * Returns the request processor for common tasks in Redmine. Do not use
      * this when accesing a remote repository.

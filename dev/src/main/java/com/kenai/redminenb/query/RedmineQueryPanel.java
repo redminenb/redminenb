@@ -522,8 +522,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         GroupLayout byTextPanelLayout = new GroupLayout(byTextPanel);
         byTextPanel.setLayout(byTextPanelLayout);
-        byTextPanelLayout.setHorizontalGroup(
-            byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        byTextPanelLayout.setHorizontalGroup(byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(byTextPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(queryLabel)
@@ -537,8 +536,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addComponent(qCommentsCheckBox)
                 .addContainerGap())
         );
-        byTextPanelLayout.setVerticalGroup(
-            byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        byTextPanelLayout.setVerticalGroup(byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(byTextPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -552,9 +550,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         queryTextField.getAccessibleContext().setAccessibleName(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleName")); // NOI18N
         queryTextField.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleDescription")); // NOI18N
-
-        setBackground(UIManager.getDefaults().getColor("TextArea.background"));
-        setOpaque(false);
 
         tableFieldsPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         tableFieldsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
@@ -581,7 +576,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         searchPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         searchPanel.setOpaque(false);
 
-        criteriaPanel.setBackground(new Color(224, 224, 224));
         criteriaPanel.setBorder(BorderFactory.createLineBorder(UIManager.getDefaults().getColor("Button.shadow")));
 
         byTextLabel.setFont(byTextLabel.getFont().deriveFont(byTextLabel.getFont().getStyle() | Font.BOLD));
@@ -596,8 +590,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         GroupLayout criteriaPanelLayout = new GroupLayout(criteriaPanel);
         criteriaPanel.setLayout(criteriaPanelLayout);
-        criteriaPanelLayout.setHorizontalGroup(
-            criteriaPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        criteriaPanelLayout.setHorizontalGroup(criteriaPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(byTextContainer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(byDetailsContainer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(criteriaPanelLayout.createSequentialGroup()
@@ -606,8 +599,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                     .addComponent(byTextLabel)
                     .addComponent(byDetailsLabel)))
         );
-        criteriaPanelLayout.setVerticalGroup(
-            criteriaPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        criteriaPanelLayout.setVerticalGroup(criteriaPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(criteriaPanelLayout.createSequentialGroup()
                 .addComponent(byTextLabel)
                 .addGap(0, 0, 0)
@@ -698,9 +690,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         GroupLayout searchPanelLayout = new GroupLayout(searchPanel);
         searchPanel.setLayout(searchPanelLayout);
-        searchPanelLayout.setHorizontalGroup(
-            searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 778, Short.MAX_VALUE)
+        searchPanelLayout.setHorizontalGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)
             .addGroup(searchPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -712,8 +703,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                     .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
-        searchPanelLayout.setVerticalGroup(
-            searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        searchPanelLayout.setVerticalGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(searchPanelLayout.createSequentialGroup()
                 .addComponent(gotoPanel, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -785,8 +775,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         GroupLayout queryHeaderPanelLayout = new GroupLayout(queryHeaderPanel);
         queryHeaderPanel.setLayout(queryHeaderPanelLayout);
-        queryHeaderPanelLayout.setHorizontalGroup(
-            queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        queryHeaderPanelLayout.setHorizontalGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(nameLabel)
@@ -798,8 +787,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addComponent(lastRefreshDateLabel)
                 .addContainerGap())
         );
-        queryHeaderPanelLayout.setVerticalGroup(
-            queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        queryHeaderPanelLayout.setVerticalGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
                 .addGap(11, 11, 11)
                 .addComponent(nameLabel))
@@ -822,8 +810,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(queryHeaderPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(searchPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -835,8 +822,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addComponent(noContentPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(queryHeaderPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)

@@ -16,40 +16,24 @@
 package com.kenai.redminenb.util;
 
 import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.JButton;
+import org.jdesktop.swingx.JXHyperlink;
 
 /**
  * @author Matthias Bläsing
  */
-public class LinkButton extends JButton {
+public class LinkButton extends JXHyperlink {
 
     public LinkButton() {
-        init();
-    }
-
-    public LinkButton(Icon icon) {
-        super(icon);
-        init();
+        super();
     }
 
     public LinkButton(String text) {
-        super(text);
-        init();
+        super();
+        setText(text);
     }
 
     public LinkButton(Action a) {
         super(a);
-        init();
-        
     }
 
-    public LinkButton(String text, Icon icon) {
-        super(text, icon);
-        init();
-    }
-    
-    private void init() {
-        setUI(LinkButtonUI.createUI(this));
-    }
 }

@@ -44,8 +44,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
 import javax.swing.LayoutStyle;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
-import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import com.kenai.redminenb.util.LinkButton;
 import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.Issue;
@@ -133,17 +131,7 @@ public class RedmineIssuePanel extends JPanel {
    private static void updateTextileRendering(JTextComponent input, JLabel output) {
       String text = input.getText();
       if (StringUtils.isNotBlank(text)) {
-         StringWriter writer = new StringWriter();
-
-         HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer);
-         // avoid the <html> and <body> tags
-         builder.setEmitAsDocument(false);
-
-         MarkupParser parser = TextileUtil.getTextileMarkupParser();
-         parser.setBuilder(builder);
-         parser.parse(text);
-         parser.setBuilder(null);
-         text = "<html>" + writer.toString() + "</html>";
+         text = "<html>" + TextileUtil.convertToHTML(text) + "</html>";
       }
       output.setText(text);
    }

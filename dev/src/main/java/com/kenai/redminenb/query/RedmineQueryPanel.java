@@ -574,6 +574,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         tableFieldsPanel.add(tablePanel, BorderLayout.CENTER);
 
         searchPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         searchPanel.setOpaque(false);
 
         criteriaPanel.setBorder(BorderFactory.createLineBorder(UIManager.getDefaults().getColor("Button.shadow")));
@@ -646,7 +647,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        gridBagConstraints.insets = new Insets(5, 0, 5, 5);
         gotoPanel.add(searchButton, gridBagConstraints);
         searchButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.searchButton.AccessibleContext.accessibleDescription")); // NOI18N
 
@@ -691,9 +692,9 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         GroupLayout searchPanelLayout = new GroupLayout(searchPanel);
         searchPanel.setLayout(searchPanelLayout);
         searchPanelLayout.setHorizontalGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)
+            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, 768, Short.MAX_VALUE)
             .addGroup(searchPanelLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(0, 0, 0)
                 .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addGroup(searchPanelLayout.createSequentialGroup()
                         .addComponent(saveChangesButton)
@@ -701,7 +702,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                         .addComponent(cancelChangesButton)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                .addGap(0, 0, 0))
         );
         searchPanelLayout.setVerticalGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(searchPanelLayout.createSequentialGroup()
@@ -712,12 +713,13 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(saveChangesButton)
                     .addComponent(cancelChangesButton))
-                .addContainerGap())
+                .addGap(0, 0, 0))
         );
 
         cancelChangesButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
         saveChangesButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveChangesButton.AccessibleContext.accessibleDescription")); // NOI18N
 
+        topButtonPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         topButtonPanel.setOpaque(false);
         topButtonPanel.setLayout(new GridBagLayout());
 
@@ -725,7 +727,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         topButtonPanel.add(modifyButton, gridBagConstraints);
         modifyButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.AccessibleContext.accessibleDescription")); // NOI18N
 
@@ -733,7 +734,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         topButtonPanel.add(removeButton, gridBagConstraints);
         removeButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.AccessibleContext.accessibleDescription")); // NOI18N
 
@@ -749,7 +749,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         topButtonPanel.add(refreshButton, gridBagConstraints);
         refreshButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.seenButton.AccessibleContext.accessibleDescription")); // NOI18N
 
@@ -762,6 +761,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         topButtonPanel.add(jLabel6, gridBagConstraints);
 
         queryHeaderPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
+        queryHeaderPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
         queryHeaderPanel.setOpaque(false);
 
         Mnemonics.setLocalizedText(lastRefreshLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.lastRefreshLabel.text")); // NOI18N
@@ -777,22 +777,22 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         queryHeaderPanel.setLayout(queryHeaderPanelLayout);
         queryHeaderPanelLayout.setHorizontalGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(0, 0, 0)
                 .addComponent(nameLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 372, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 386, Short.MAX_VALUE)
                 .addComponent(refreshCheckBox)
                 .addGap(18, 18, 18)
                 .addComponent(lastRefreshLabel)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lastRefreshDateLabel)
-                .addContainerGap())
+                .addGap(0, 0, 0))
         );
         queryHeaderPanelLayout.setVerticalGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                .addGap(11, 11, 11)
+                .addGap(0, 0, 0)
                 .addComponent(nameLabel))
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(0, 0, 0)
                 .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(lastRefreshDateLabel)
                     .addComponent(lastRefreshLabel)
@@ -830,7 +830,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(searchPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE)
+                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 441, Short.MAX_VALUE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(noContentPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())

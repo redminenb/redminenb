@@ -23,8 +23,6 @@ import java.awt.Dimension;
 import java.io.StringWriter;
 import java.util.MissingResourceException;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
-import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import org.openide.util.NbBundle;
 
 /**
@@ -98,14 +96,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         
         if (StringUtils.isNotBlank(noteText)) {
             writer.append("<div style='padding: 5px'>");
-            HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer);
-            // avoid the <html> and <body> tags
-            builder.setEmitAsDocument(false);
-
-            MarkupParser parser = TextileUtil.getTextileMarkupParser();
-            parser.setBuilder(builder);
-            parser.parse(noteText);
-            parser.setBuilder(null);
+            TextileUtil.convertToHTML(noteText, writer);
             writer.append("</div>");
         }
         

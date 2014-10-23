@@ -1,6 +1,7 @@
 Manifest-Version: 1.0
 AutoUpdate-Show-In-Client: true
 OpenIDE-Module: com.kenai.redminenb
+OpenIDE-Module-Install: com/kenai/redminenb/Installer.class
 OpenIDE-Module-Layer: com/kenai/redminenb/layer.xml
 OpenIDE-Module-Localizing-Bundle: com/kenai/redminenb/Bundle.properties
 

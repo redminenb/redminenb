@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <Form version="1.5" maxVersion="1.7" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
-  <Properties>
-    <Property name="opaque" type="boolean" value="false"/>
-  </Properties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
@@ -62,11 +59,6 @@
   </Layout>
   <SubComponents>
     <Container class="javax.swing.JPanel" name="headPane">
-      <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="ff" green="ff" red="ff" type="rgb"/>
-        </Property>
-      </Properties>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -82,17 +74,18 @@
                           <Component id="updatedLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Component id="updatedValueLabel" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="246" max="-2" attributes="0"/>
                       </Group>
                       <Component id="parentHeaderPanel" max="32767" attributes="0"/>
-                      <Component id="headerLabel" alignment="1" max="32767" attributes="0"/>
+                      <Component id="headerLabel" pref="782" max="32767" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" attributes="0">
+              <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="parentHeaderPanel" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
@@ -104,7 +97,7 @@
                       <Component id="createdValueLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="updatedValueLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -125,11 +118,11 @@
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font component="updatedLabel" property="font" relativeSize="true" size="-2"/>
+                <Font bold="false" component="updatedLabel" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="80" green="80" red="80" type="rgb"/>
+              <Color blue="80" green="80" id="textInactiveText" palette="3" red="80" type="palette"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.updatedLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -140,11 +133,11 @@
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font component="createdLabel" property="font" relativeSize="true" size="-2"/>
+                <Font bold="false" component="createdLabel" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="80" green="80" red="80" type="rgb"/>
+              <Color blue="80" green="80" id="textInactiveText" palette="3" red="80" type="palette"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.createdLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -155,11 +148,11 @@
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font component="createdValueLabel" property="font" relativeSize="true" size="-2"/>
+                <Font bold="true" component="createdValueLabel" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="7b" green="4b" red="16" type="rgb"/>
+              <Color blue="80" green="80" id="textInactiveText" palette="3" red="80" type="palette"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.createdValueLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -170,11 +163,11 @@
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font component="updatedValueLabel" property="font" relativeSize="true" size="-2"/>
+                <Font bold="true" component="updatedValueLabel" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="7b" green="4b" red="16" type="rgb"/>
+              <Color blue="80" green="80" id="textInactiveText" palette="3" red="80" type="palette"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.updatedValueLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -273,9 +266,6 @@
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPanel" name="issuePane">
-      <Properties>
-        <Property name="opaque" type="boolean" value="false"/>
-      </Properties>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -358,23 +348,28 @@
                                       <Component id="estimateTimeLabel" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                      <Group type="102" alignment="1" attributes="0">
-                                          <Component id="estimateTimeTextField" max="32767" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="estimateTimeLabel1" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                      <Group type="102" attributes="0">
-                                          <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="spentHoursLabel" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                      <Component id="startDateChooser" alignment="0" pref="138" max="32767" attributes="0"/>
-                                      <Component id="dueDateChooser" alignment="0" max="32767" attributes="0"/>
-                                      <Component id="parentTaskTextField" min="-2" pref="74" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
                                       <Component id="projectNameButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Component id="dueDateChooser" min="-2" max="-2" attributes="0"/>
+                                              <Group type="102" attributes="0">
+                                                  <Component id="doneComboBox" min="-2" max="-2" attributes="0"/>
+                                                  <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
+                                                  <Component id="spentHoursLabel" min="-2" max="-2" attributes="0"/>
+                                              </Group>
+                                              <Component id="startDateChooser" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="parentTaskTextField" alignment="0" min="-2" pref="74" max="-2" attributes="0"/>
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <Component id="estimateTimeTextField" min="-2" pref="85" max="-2" attributes="0"/>
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Component id="estimateTimeLabel1" min="-2" max="-2" attributes="0"/>
+                                              </Group>
+                                          </Group>
+                                      </Group>
                                   </Group>
-                                  <EmptySpace min="0" pref="181" max="32767" attributes="0"/>
+                                  <EmptySpace pref="177" max="32767" attributes="0"/>
                               </Group>
                               <Component id="descriptionPanel" alignment="0" max="32767" attributes="0"/>
                           </Group>
@@ -407,7 +402,7 @@
                           <Component id="wikiSyntaxButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
-                      <Component id="descriptionPanel" max="32767" attributes="0"/>
+                      <Component id="descriptionPanel" pref="165" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -417,27 +412,23 @@
                       <Component id="parentTaskTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="priorityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="priorityComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="startDateLabel" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
-                      </Group>
-                      <Component id="startDateChooser" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="priorityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="priorityComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="startDateLabel" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
+                      <Component id="startDateChooser" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                          <Component id="assigneeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="dueDateLabel" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
-                          <Component id="assignToMeButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="assigneeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Component id="dueDateChooser" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="assigneeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="dueDateLabel" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
+                      <Component id="assignToMeButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="assigneeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="dueDateChooser" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="categoryAddButton" alignment="1" max="32767" attributes="0"/>
+                      <Component id="categoryAddButton" alignment="1" pref="27" max="32767" attributes="0"/>
                       <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                           <Component id="categoryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="categoryComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -448,7 +439,7 @@
                   </Group>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="versionAddButton" alignment="0" max="32767" attributes="0"/>
+                      <Component id="versionAddButton" alignment="0" pref="27" max="32767" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="targetVersionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -463,7 +454,7 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="attachmentLabel" min="-2" max="-2" attributes="0"/>
-                      <Component id="attachmentPanel" max="32767" attributes="0"/>
+                      <Component id="attachmentPanel" pref="18" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="updateCommentLabel" min="-2" max="-2" attributes="0"/>
@@ -540,11 +531,6 @@
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.doneLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
-          </Properties>
-        </Component>
-        <Component class="com.toedter.calendar.JDateChooser" name="dueDateChooser">
-          <Properties>
-            <Property name="opaque" type="boolean" value="false"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JComboBox" name="trackerComboBox">
@@ -724,11 +710,6 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="com.toedter.calendar.JDateChooser" name="startDateChooser">
-          <Properties>
-            <Property name="opaque" type="boolean" value="false"/>
-          </Properties>
-        </Component>
         <Component class="javax.swing.JLabel" name="subjectLabel2">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
@@ -789,9 +770,6 @@
           </Properties>
         </Component>
         <Container class="javax.swing.JTabbedPane" name="descriptionPanel">
-          <Properties>
-            <Property name="tabLayoutPolicy" type="int" value="1"/>
-          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
           <SubComponents>
@@ -832,7 +810,7 @@
             <Component class="javax.swing.JLabel" name="htmlOutputLabel">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                  <Color blue="ff" green="ff" id="EditorPane.background" palette="3" red="ff" type="palette"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
                   <FontInfo relative="true">
@@ -863,9 +841,6 @@
           </Properties>
         </Component>
         <Container class="javax.swing.JTabbedPane" name="updateCommentTabPanel">
-          <Properties>
-            <Property name="tabLayoutPolicy" type="int" value="1"/>
-          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
           <SubComponents>
@@ -927,7 +902,7 @@
                 <Component class="javax.swing.JLabel" name="updateCommentHtmlOutputLabel">
                   <Properties>
                     <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                      <Color blue="ff" green="ff" id="EditorPane.background" palette="3" red="ff" type="palette"/>
                     </Property>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
                       <FontInfo relative="true">
@@ -1096,6 +1071,16 @@
               <ResourceString bundle="com/kenai/redminenb/issue/Bundle.properties" key="RedmineIssuePanel.spentHoursLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
+        </Component>
+        <Component class="org.jdesktop.swingx.JXDatePicker" name="startDateChooser">
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new com.kenai.redminenb.util.DatePicker()"/>
+          </AuxValues>
+        </Component>
+        <Component class="org.jdesktop.swingx.JXDatePicker" name="dueDateChooser">
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new com.kenai.redminenb.util.DatePicker()"/>
+          </AuxValues>
         </Component>
       </SubComponents>
     </Container>

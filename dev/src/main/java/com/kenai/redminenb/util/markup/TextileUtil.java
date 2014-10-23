@@ -15,7 +15,10 @@
  */
 package com.kenai.redminenb.util.markup;
 
+import java.io.StringWriter;
+import java.io.Writer;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
+import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import org.eclipse.mylyn.wikitext.textile.core.TextileLanguage;
 
 /**
@@ -25,22 +28,39 @@ import org.eclipse.mylyn.wikitext.textile.core.TextileLanguage;
  */
 public final class TextileUtil {
 
-   private TextileUtil() {
-      // omitted
-   }
+    private TextileUtil() {
+        // omitted
+    }
 
-   public static MarkupParser getTextileMarkupParser() {
-      return LazyHolder.SINGLETON;
-   }
+    public static MarkupParser getTextileMarkupParser() {
+        return LazyHolder.SINGLETON;
+    }
 
-   private static class LazyHolder {
+    public static String convertToHTML(String textile) {
+        StringWriter writer = new StringWriter();
+        convertToHTML(textile, writer);
+        return writer.toString();
+    }
+    
+    public static void convertToHTML(String textile, Writer writer) {
+        HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer);
+        // avoid the <html> and <body> tags
+        builder.setEmitAsDocument(false);
 
-      private static final MarkupParser SINGLETON = createMarkupParser();
+        MarkupParser parser = TextileUtil.getTextileMarkupParser();
+        parser.setBuilder(builder);
+        parser.parse(textile);
+        parser.setBuilder(null);
+    }
 
-      private static MarkupParser createMarkupParser() {
-         MarkupParser markupParser = new MarkupParser();
-         markupParser.setMarkupLanguage(new TextileLanguage());
-         return markupParser;
-      }
-   }
+    private static class LazyHolder {
+
+        private static final MarkupParser SINGLETON = createMarkupParser();
+
+        private static MarkupParser createMarkupParser() {
+            MarkupParser markupParser = new MarkupParser();
+            markupParser.setMarkupLanguage(new TextileLanguage());
+            return markupParser;
+        }
+    }
 }

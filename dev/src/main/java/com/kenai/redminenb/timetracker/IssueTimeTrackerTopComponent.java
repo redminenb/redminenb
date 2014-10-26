@@ -1,13 +1,24 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.kenai.redminenb.timetracker;
 
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.issue.RedmineIssue;
-import com.kenai.redminenb.ui.Defaults;
+import com.kenai.redminenb.util.TimeUtil;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
@@ -15,11 +26,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -53,8 +59,9 @@ import org.openide.windows.WindowManager;
 @Messages({
     "CTL_IssueTimeTrackerAction=Redmine Issue TimeTracker",
     "CTL_IssueTimeTrackerTopComponent=Redmine Issue TimeTracker",
-    "MSG_Time={0,number,00}:{1,number,00}:{2,number,00} hours",
-    "MSG_Time_Running={0,number,00}:{1,number,00}:{2,number,00} hours (running)",
+    "MSG_Time={0} hours",
+    "MSG_Time_Running={0} hours (running)",
+    "LBL_Hours=hours",
     "MSG_NoIssue=No issue selected",
     "MSG_Issue={0} - {1}",
     "MSG_Change_Running_Issue=Time tracking for ''{0}'' is running!",
@@ -66,6 +73,11 @@ import org.openide.windows.WindowManager;
     "LBL_TimeTrackingComment=Comment",
     "LBL_Repository=Repository",
     "LBL_Issue=Issue",
+    "LBL_Time=Time",
+    "LBL_LogTime=Log time",
+    "LBL_SaveFailed=Saving time entry failed",
+    "BTN_StartTracking=Start",
+    "BTN_StopTracking=Stop",
 })
 public final class IssueTimeTrackerTopComponent extends TopComponent {
     private static final Logger LOG = Logger.getLogger(IssueTimeTrackerTopComponent.class.getName());
@@ -108,14 +120,11 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
     
     private void refreshDisplay() {
         long timeInMS = currentTime();
-        long seconds = timeInMS / 1000 % 60;
-        long minutes = timeInMS / (60 * 1000) % 60;
-        long hours = timeInMS / (60 * 60 * 1000);
         if (issue == null) {
             repositoryOutputLabel.setText(Bundle.MSG_NoIssue());
             issueOutputLabel.setText(Bundle.MSG_NoIssue());
             issueOutputLabel.setEnabled(false);
-            timeOutputLabel.setText(Bundle.MSG_Time(0, 0, 0));
+            timeOutputLabel.setText(Bundle.MSG_Time(TimeUtil.millisecondsToDecimalHours(0l)));
             saveButton.setEnabled(false);
             resetButton.setEnabled(false);
             startButton.setEnabled(false);
@@ -127,10 +136,10 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
             if (running) {
                 resetButton.setEnabled(false);
                 saveButton.setEnabled(false);
-                startButton.setText("Stop");
-                timeOutputLabel.setText(Bundle.MSG_Time_Running(hours, minutes, seconds));
+                startButton.setText(Bundle.BTN_StopTracking());
+                timeOutputLabel.setText(Bundle.MSG_Time_Running(TimeUtil.millisecondsToDecimalHours(timeInMS)));
             } else {
-                startButton.setText("Start");
+                startButton.setText(Bundle.BTN_StartTracking());
                 if (savedTime > 0) {
                     saveButton.setEnabled(true);
                     resetButton.setEnabled(true);
@@ -138,13 +147,13 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
                     saveButton.setEnabled(false);
                     resetButton.setEnabled(false);
                 }
-                timeOutputLabel.setText(Bundle.MSG_Time(hours, minutes, seconds));
+                timeOutputLabel.setText(Bundle.MSG_Time(TimeUtil.millisecondsToDecimalHours(timeInMS)));
             }
         }
     }
     
     public boolean reset() {
-        boolean result = false;
+        boolean result;
         if(! running) {
             savedTime = 0;
             result = true;
@@ -159,90 +168,43 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
         if(running) {
             return;
         }
-        JComboBox<TimeEntryActivity> logtimeActivityComboBox = new JComboBox<>();
-        JTextField comment = new JTextField();
-        comment.setColumns(50);
-        logtimeActivityComboBox.setRenderer(new Defaults.TimeEntryActivityLCR());
-        DefaultComboBoxModel timeEntryActivityModel = new DefaultComboBoxModel(
-                issue.getRepository().getTimeEntryActivities().toArray()
-        );
-        for (int i = 0; i < timeEntryActivityModel.getSize(); i++) {
-            TimeEntryActivity tea = (TimeEntryActivity) timeEntryActivityModel.getElementAt(i);
-            if (tea.isDefault()) {
-                timeEntryActivityModel.setSelectedItem(tea);
-                break;
-            }
-        }
-        logtimeActivityComboBox.setModel(timeEntryActivityModel);
         
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-        gbc.insets = new Insets( 5, 5, 5, 5);
-        gbc.weightx = 0;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(new JLabel(Bundle.LBL_Repository() + ":"), gbc);
-        gbc.weightx = 1;
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        panel.add(new JLabel(issue.getRepository().getDisplayName()), gbc);
-        gbc.weightx = 0;
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(new JLabel(Bundle.LBL_Issue() + ":"), gbc);
-        gbc.weightx = 1;
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        panel.add(new JLabel(Bundle.MSG_Issue(issue.getID(), issue.getSummary())), gbc);
-        gbc.weightx = 0;
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(new JLabel(Bundle.LBL_TimeTrackingActivity() + ":"), gbc);
-        gbc.weightx = 1;
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        panel.add(logtimeActivityComboBox, gbc);
-        gbc.weightx = 0;
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        panel.add(new JLabel(Bundle.LBL_TimeTrackingComment() + ":"), gbc);
-        gbc.weightx = 1;
-        gbc.gridx = 1;
-        gbc.gridy = 3;
-        panel.add(comment, gbc);
+        TimeEntryForm tef = new TimeEntryForm();
+        tef.setIssue(issue);
+        tef.setTime(savedTime);
         
-        DialogDescriptor dd = new DialogDescriptor(panel, "Log time");
+        DialogDescriptor dd = new DialogDescriptor(tef, Bundle.LBL_LogTime());
         Object result = DialogDisplayer.getDefault().notify(dd);
-        System.out.println(result == DialogDescriptor.OK_OPTION);
-        
-        final TimeEntry te = new TimeEntry();
-        TimeEntryActivity tea = (TimeEntryActivity) logtimeActivityComboBox.getSelectedItem();
-        te.setActivityId(tea.getId());
-        te.setComment(comment.getText());
-        te.setHours( ((float) savedTime) / (60 * 60 * 1000));
-        te.setIssueId(getIssue().getIssue().getId());
 
-        new SwingWorker() {
-            @Override
-            protected Object doInBackground() throws Exception {
-                issue.getRepository().getManager().createTimeEntry(te);
-                issue.refresh();
-                return null;
-            }
+        if (result == DialogDescriptor.OK_OPTION) {
+            final TimeEntry te = new TimeEntry();
+            TimeEntryActivity tea = tef.getTimeEntryActivity();
+            te.setActivityId(tea.getId());
+            te.setComment(tef.getComment());
+            te.setHours(((float) tef.getTime()) / (60 * 60 * 1000));
+            te.setIssueId(tef.getIssue().getIssue().getId());
 
-            @Override
-            protected void done() {
-                try {
-                    get();
-                    savedTime = 0;
-                } catch (InterruptedException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Saving time entry failed", ex);
-                } catch (ExecutionException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Saving time entry failed", ex.getCause());
+            new SwingWorker() {
+                @Override
+                protected Object doInBackground() throws Exception {
+                    issue.getRepository().getManager().createTimeEntry(te);
+                    issue.refresh();
+                    return null;
                 }
-            }
-        }.execute();
+
+                @Override
+                protected void done() {
+                    try {
+                        get();
+                        savedTime = 0;
+                    } catch (InterruptedException ex) {
+                        Redmine.LOG.log(Level.SEVERE, Bundle.LBL_SaveFailed(), ex);
+                    } catch (ExecutionException ex) {
+                        Redmine.LOG.log(Level.SEVERE, Bundle.LBL_SaveFailed(), ex.getCause());
+                    }
+                }
+            }.execute();
+        }
     }
     
     public void setRunning(boolean running) {

@@ -11,12 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.kenai.redminenb.timetracker;
 
 import com.kenai.redminenb.Redmine;
+import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
+import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.repository.RedmineRepositoryProvider;
 import com.kenai.redminenb.util.TimeUtil;
+import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import java.awt.event.ActionEvent;
@@ -29,6 +32,8 @@ import java.util.logging.Logger;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import org.netbeans.api.settings.ConvertAsProperties;
+import org.netbeans.modules.bugtracking.api.Repository;
+import org.netbeans.modules.bugtracking.api.RepositoryManager;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.awt.ActionID;
@@ -46,7 +51,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Description(
         preferredID = IssueTimeTrackerTopComponent.PREFERRED_ID,
-        iconBase="/com/kenai/redminenb/resources/redmine.png", 
+        iconBase = "/com/kenai/redminenb/resources/redmine.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "properties", openAtStartup = false)
@@ -77,14 +82,14 @@ import org.openide.windows.WindowManager;
     "LBL_LogTime=Log time",
     "LBL_SaveFailed=Saving time entry failed",
     "BTN_StartTracking=Start",
-    "BTN_StopTracking=Stop",
-})
+    "BTN_StopTracking=Stop",})
 public final class IssueTimeTrackerTopComponent extends TopComponent {
+
     private static final Logger LOG = Logger.getLogger(IssueTimeTrackerTopComponent.class.getName());
     protected static final String PREFERRED_ID = "IssueTimeTrackerTopComponent";
     public static String PROP_ISSUE = "issue";
     public static String PROP_RUNNING = "running";
-    
+
     private final Timer refreshTimer = new Timer(1000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -95,11 +100,11 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
     private Date start;
     private long savedTime;
     private RedmineIssue issue;
-    
+
     public static IssueTimeTrackerTopComponent getInstance() {
         return (IssueTimeTrackerTopComponent) WindowManager.getDefault().findTopComponent(PREFERRED_ID);
     }
-    
+
     protected IssueTimeTrackerTopComponent() {
         initComponents();
         setName(Bundle.CTL_IssueTimeTrackerTopComponent());
@@ -109,15 +114,16 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
     }
 
     private long currentTime() {
-        return savedTime + (start == null ? 0 : (new Date().getTime() - start.getTime()));
+        return savedTime + (start == null ? 0 : (new Date().getTime()
+                - start.getTime()));
     }
-    
+
     private void openIssue() {
         Redmine.getInstance().getSupport().openIssue(
                 issue.getRepository(),
                 issue);
     }
-    
+
     private void refreshDisplay() {
         long timeInMS = currentTime();
         if (issue == null) {
@@ -151,10 +157,10 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
             }
         }
     }
-    
+
     public boolean reset() {
         boolean result;
-        if(! running) {
+        if (!running) {
             savedTime = 0;
             result = true;
         } else {
@@ -163,16 +169,16 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
         refreshDisplay();
         return result;
     }
-    
+
     public void save() {
-        if(running) {
+        if (running) {
             return;
         }
-        
+
         TimeEntryForm tef = new TimeEntryForm();
         tef.setIssue(issue);
         tef.setTime(savedTime);
-        
+
         DialogDescriptor dd = new DialogDescriptor(tef, Bundle.LBL_LogTime());
         Object result = DialogDisplayer.getDefault().notify(dd);
 
@@ -206,15 +212,15 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
             }.execute();
         }
     }
-    
+
     public void setRunning(boolean running) {
         if (issue == null) {
             running = false;
         }
         boolean old = this.running;
-        if(running != old) {
+        if (running != old) {
             this.running = running;
-            if(running) {
+            if (running) {
                 start = new Date();
             } else {
                 savedTime = currentTime();
@@ -228,25 +234,25 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
     public boolean isRunning() {
         return running;
     }
-    
+
     public RedmineIssue getIssue() {
         return issue;
     }
 
     private boolean checkIssueChange(RedmineIssue oldIssue, RedmineIssue newIssue) {
-        if(running || savedTime > 0) {
+        if (running || savedTime > 0) {
             String cancel = Bundle.BTN_Change_Running_Issue_Cancel();
             String save = Bundle.BTN_Change_Running_Issue_Save();
             String reset = Bundle.BTN_Change_Running_Issue_Reset();
             DialogDescriptor dd = new DialogDescriptor(
-                    Bundle.MSG_Change_Running_Issue(oldIssue.getDisplayName()), 
+                    Bundle.MSG_Change_Running_Issue(oldIssue.getDisplayName()),
                     Bundle.TTL_Change_Running_Issue());
-            dd.setOptions(new Object[] {cancel, reset, save});
-            dd.setClosingOptions(new Object[] {cancel, reset, save});
+            dd.setOptions(new Object[]{cancel, reset, save});
+            dd.setClosingOptions(new Object[]{cancel, reset, save});
             Object result = DialogDisplayer.getDefault().notify(dd);
-            if(result == reset || result == save) {
+            if (result == reset || result == save) {
                 setRunning(false);
-                if(result == reset) {
+                if (result == reset) {
                     reset();
                 } else {
                     save();
@@ -258,10 +264,10 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
         }
         return true;
     }
-    
+
     public void setIssue(RedmineIssue issue) {
         RedmineIssue old = this.issue;
-        if(Objects.equals(old, issue)) {
+        if (Objects.equals(old, issue)) {
             return;
         }
         if (checkIssueChange(old, issue)) {
@@ -395,7 +401,7 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
     }// </editor-fold>//GEN-END:initComponents
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
-        this.setRunning(! this.isRunning());
+        this.setRunning(!this.isRunning());
     }//GEN-LAST:event_startButtonActionPerformed
 
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
@@ -424,7 +430,7 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
     private javax.swing.JLabel timeLabel;
     private javax.swing.JLabel timeOutputLabel;
     // End of variables declaration//GEN-END:variables
-    
+
     @Override
     protected void componentHidden() {
         refreshTimer.stop();
@@ -434,16 +440,46 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
     protected void componentShowing() {
         refreshTimer.start();
     }
-    
+
     void writeProperties(java.util.Properties p) {
-        // better to version settings since initial version as advocated at
-        // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
+        if (issue != null) {
+            long currentTime = currentTime();
+            p.setProperty("connector", RedmineConnector.ID);
+            p.setProperty("repository", issue.getRepository().getID());
+            p.setProperty("issue", issue.getID());
+            if (currentTime > 0) {
+                p.setProperty("time", Long.toString(currentTime));
+            }
+        }
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
+        if (!"1.0".equals(version)) {
+            LOG.warning("Unknown version for TopComponent properties");
+        }
+        String connector = p.getProperty("connector");
+        String repository = p.getProperty("repository");
+        String issueId = p.getProperty("issue");
+        if (connector != null && repository != null && issueId != null) {
+            // Make sure repository is initialized via the issue API, no ...
+            // this is a crude hack:
+            // @todo: Find a better way to access "out" implementation
+            RepositoryManager.getInstance().getRepository(connector, repository);
+            RedmineRepository rr = RedmineRepository.getInstanceyById(repository);
+            if (rr != null) {
+                RedmineIssue ri = rr.getIssue(issueId);
+                if (ri != null) {
+                    this.setIssue(ri);
+                }
+                String time = p.getProperty("time", "0");
+                try {
+                    this.savedTime = Long.parseLong(time);
+                } catch (NumberFormatException ex) {
+                }
+            }
+        }
+        refreshDisplay();
     }
 }

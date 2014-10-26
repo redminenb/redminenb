@@ -40,6 +40,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
@@ -372,7 +373,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
             } catch (RedmineException ex) {
                errorMessage = Redmine.getMessage("MSG_REDMINE_ERROR",
-                                                 ex.getLocalizedMessage());
+                                                 Jsoup.parse(ex.getLocalizedMessage()).text());
                Redmine.LOG.log(Level.INFO, errorMessage, ex);
             } catch (Exception ex) {
                errorMessage = Redmine.getMessage("MSG_CONNECTION_ERROR",
@@ -419,7 +420,8 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
          } catch (RedmineException ex) {
             errorMessage = NbBundle.getMessage(Redmine.class,
-                                               "MSG_REDMINE_ERROR", ex.getLocalizedMessage());
+                                               "MSG_REDMINE_ERROR", 
+                                               Jsoup.parse(ex.getLocalizedMessage()).text());
             Redmine.LOG.log(Level.INFO, errorMessage, ex);
          }
       }

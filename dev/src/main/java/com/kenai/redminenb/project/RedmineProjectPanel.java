@@ -21,6 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
+import org.jsoup.Jsoup;
 
 /**
  *
@@ -110,7 +111,8 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
          errorMessage = ex.getLocalizedMessage();
          Redmine.LOG.log(Level.INFO, errorMessage, ex);
       } catch (RedmineException ex) {
-         errorMessage = NbBundle.getMessage(Redmine.class, "MSG_REDMINE_ERROR", ex.getLocalizedMessage());
+         errorMessage = NbBundle.getMessage(Redmine.class, "MSG_REDMINE_ERROR", 
+                 Jsoup.parse(ex.getLocalizedMessage()).text());
          Redmine.LOG.log(Level.INFO, errorMessage, ex);
       }
 

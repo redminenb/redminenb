@@ -43,6 +43,7 @@ import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,11 +51,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
@@ -81,8 +84,7 @@ import org.openide.util.lookup.InstanceContent;
     "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}"
 //   "LBL_RepositoryTooltipNoUser=\"{0} : {1}"
 })
-public class RedmineRepository {
-
+public class RedmineRepository {    
     static final String PROPERTY_AUTH_MODE = "authMode";        // NOI18N  
     static final String PROPERTY_ACCESS_KEY = "accessKey";      // NOI18N  
     static final String PROPERTY_PROJECT_ID = "projectId";      // NOI18N  
@@ -121,6 +123,37 @@ public class RedmineRepository {
 
     private final Set<RedmineIssue> newIssues = Collections.synchronizedSet(new HashSet<RedmineIssue>());
     private final Map<String, RedmineIssue> issues = Collections.synchronizedMap(new HashMap<String, RedmineIssue>());
+    
+    // Make sure we know all instances we created - a crude hack, but API does
+    // not allow ourselfes ....
+    private static final List<WeakReference<RedmineRepository>> repositoryList
+            = Collections.synchronizedList(new LinkedList<WeakReference<RedmineRepository>>());
+
+    {
+        repositoryList.add(new WeakReference<>(this));
+    }
+    
+    public static RedmineRepository getInstanceyById(@NonNull String id) {
+        if( id == null ) {
+            throw new NullPointerException("getInstanceById might not be called with null!");
+        }
+        synchronized(repositoryList) {
+            Iterator<WeakReference<RedmineRepository>> it = repositoryList.iterator();
+            RedmineRepository result = null;
+            while(it.hasNext()) {
+                WeakReference<RedmineRepository> weak = it.next();
+                RedmineRepository hard = weak.get();
+                if(hard == null) {
+                    it.remove();
+                } else {
+                    if(id.equals(hard.getID()) && result == null) {
+                        result = hard;
+                    }
+                }
+            }
+            return result;
+        }
+    }
     
     /**
      * Default constructor required for deserializing.

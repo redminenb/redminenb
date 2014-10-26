@@ -23,6 +23,7 @@ import com.kenai.redminenb.query.RedmineQueryParameter.CheckBoxParameter;
 import com.kenai.redminenb.query.RedmineQueryParameter.ListParameter;
 import com.kenai.redminenb.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.RedmineUtil;
 import com.kenai.redminenb.util.TableCellRendererCategory;
@@ -61,6 +62,8 @@ import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
@@ -104,7 +107,9 @@ import org.openide.util.RequestProcessor;
     "LBL_Never=Never",
     "# {0} - the search hits count",
     "LBL_MatchingIssues=There {0,choice,0#are no issues|1#is one issue|1<are {0,number,integer} issues} matching this query.",
-    "LBL_SelectKeywords=Select or deselect keywords."
+    "LBL_SelectKeywords=Select or deselect keywords.",
+    "MNU_OpenIssue=Open Issue",
+    "MNU_OpenIssueForTimeTracking=Open Timetracker with Issue"
 })
 public class RedmineQueryController implements QueryController, ActionListener {
     private static final Logger LOG = Logger.getLogger(RedmineQueryController.class.getName());
@@ -824,10 +829,13 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     private class IssueTableIssueOpener implements MouseListener, KeyListener {
-
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() == 2) {
+            int mouseRow = issueTable.rowAtPoint(e.getPoint());
+            if((mouseRow != -1) && (! issueTable.isRowSelected(mouseRow))) {
+                issueTable.setRowSelectionInterval(mouseRow, mouseRow);
+            }
+            if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                 int viewRow = issueTable.getSelectedRow();
                 if (viewRow == -1) {
                     return;
@@ -837,6 +845,39 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 Redmine.getInstance().getSupport().openIssue(
                         mi.getRepository(),
                         mi);
+            } else if (e.getButton() == MouseEvent.BUTTON3) {
+                final RedmineIssue issue;
+                int viewRow = issueTable.getSelectedRow();
+                if (viewRow != -1) {
+                    int modelRow = issueTable.convertRowIndexToModel(viewRow);
+                    issue = queryListModel.getIssue(modelRow);
+                } else {
+                    issue = null;
+                }
+                
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem openItem = new JMenuItem(Bundle.MNU_OpenIssue());
+                openItem.setEnabled(issue != null);
+                openItem.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Redmine.getInstance().getSupport().openIssue(
+                                issue.getRepository(),
+                                issue);
+                    }
+                });
+                JMenuItem trackItem = new JMenuItem(Bundle.MNU_OpenIssueForTimeTracking());
+                trackItem.setEnabled(issue != null);
+                trackItem.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        IssueTimeTrackerTopComponent.getInstance().open();
+                        IssueTimeTrackerTopComponent.getInstance().setIssue(issue);
+                    }
+                });
+                menu.add(openItem);
+                menu.add(trackItem);
+                menu.show(e.getComponent(), e.getX(), e.getY());
             }
         }
 

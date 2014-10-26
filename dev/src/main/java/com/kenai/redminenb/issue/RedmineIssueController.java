@@ -1,6 +1,7 @@
 package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.Redmine;
+import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.ui.Defaults;
 import com.kenai.redminenb.util.RedmineUtil;
 
@@ -150,10 +151,20 @@ public class RedmineIssueController implements IssueController {
         "CTL_ShowInBrowserAction=Show in Browser",
         "CTL_CreateSubTaskAction=Create Subtask",
         "CTL_ActionListAction.add=Add to Action Items",
-        "CTL_ActionListAction.remove=Remove from Action Items"
+        "CTL_ActionListAction.remove=Remove from Action Items",
+        "CTL_OpenIssueForTimeTracking=Open Timetracker with Issue"
     })
     private void initActions() {
+        Action timeTrackingAction = new AbstractAction(Bundle.CTL_OpenIssueForTimeTracking(),
+                Defaults.getIcon("appointment-new.png")) {
 
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                IssueTimeTrackerTopComponent.getInstance().open();
+                IssueTimeTrackerTopComponent.getInstance().setIssue(redmineIssue);
+            }
+        };
+        
         Action refreshAction = new AbstractAction(Bundle.CTL_RefreshAction(),
                 Defaults.getIcon("refresh.png")) {
                     @Override
@@ -197,6 +208,7 @@ public class RedmineIssueController implements IssueController {
                         RedmineUtil.openIssue(subTask);
                     }
                 };
+        issuePanel.addToolbarAction(timeTrackingAction, false);
         issuePanel.addToolbarAction(showInBrowserAction, false);
         issuePanel.addToolbarAction(createSubTaskAction, false);
         issuePanel.addToolbarAction(new ActionItemAction(), false);

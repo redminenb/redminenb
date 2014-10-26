@@ -128,6 +128,9 @@
             <groupId>org.swinglabs.swingx</groupId>
             <artifactId>swingx-core</artifactId>
             <version>1.6.5-1</version>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-windows</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
     </dependencies>
 

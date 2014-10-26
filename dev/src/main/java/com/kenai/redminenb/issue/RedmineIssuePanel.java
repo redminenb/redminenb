@@ -166,7 +166,6 @@ public class RedmineIssuePanel extends JPanel {
       if (toolbarPopupButton == null) {
          addToolbarPopupButton();
       }
-      //toolbarPopupButton.setAction(a);
       toolbarPopupButton.addActionListener(a);
    }
 

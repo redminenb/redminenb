@@ -211,7 +211,6 @@ public class RedmineIssueController implements IssueController {
         issuePanel.addToolbarAction(timeTrackingAction, false);
         issuePanel.addToolbarAction(showInBrowserAction, false);
         issuePanel.addToolbarAction(createSubTaskAction, false);
-        issuePanel.addToolbarAction(new ActionItemAction(), false);
         issuePanel.addToolbarAction(refreshAction, false);
     }
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
@@ -250,97 +249,5 @@ public class RedmineIssueController implements IssueController {
     @Override
     public void removePropertyChangeListener(PropertyChangeListener pl) {
         support.removePropertyChangeListener(pl);
-    }
-
-    private class ActionItemAction extends AbstractAction {
-
-        private PropertyChangeListener actionItemListener;
-
-        public ActionItemAction() {
-            super("Action Item", Defaults.getIcon("hint.png"));
-            putValue(Defaults.TOGGLE_BUTTON_KEY, Boolean.TRUE);
-            updateTasklistButton();
-        }
-
-        private void setText(String txt) {
-            putValue(Action.NAME, txt);
-            putValue(Action.SHORT_DESCRIPTION, txt);
-        }
-
-        private void setSelected(boolean b) {
-            putValue(Action.SELECTED_KEY, b);
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            /*
-             setEnabled(false);
-             TaskListProvider
-             RedmineTaskListProvider provider = RedmineTaskListProvider.getInstance();
-             if (provider.isAdded(redmineIssue)) {
-             provider.remove(redmineIssue);
-             } else {
-             attachTasklistListener(provider);
-             provider.add(redmineIssue, true);
-             }
-             updateTasklistButton();
-             */
-        }
-        /*
-         private void attachTasklistListener(RedmineTaskListProvider provider) {
-         if (actionItemListener == null) { // is not attached yet
-         // listens on events comming from the tasklist, like when an issue is removed, etc.
-         // needed to correctly update tasklistButton label and status
-         actionItemListener = new PropertyChangeListener() {
-         @Override
-         public void propertyChange(PropertyChangeEvent evt) {
-         if (RedmineTaskListProvider.PROPERTY_ISSUE_REMOVED.equals(evt.getPropertyName()) && redmineIssue.equals(evt.getOldValue())) {
-         Runnable inAWT = new Runnable() {
-         @Override
-         public void run() {
-         updateTasklistButton();
-         }
-         };
-         if (EventQueue.isDispatchThread()) {
-         inAWT.run();
-         } else {
-         EventQueue.invokeLater(inAWT);
-         }
-         }
-         }
-         };
-         provider.addPropertyChangeListener(org.openide.util.WeakListeners.propertyChange(actionItemListener, provider));
-         }
-         }
-         */
-
-        private void updateTasklistButton() {
-            /*
-             setEnabled(false);
-             RedmineIssuePanel.RP.post(new Runnable() {
-             @Override
-             public void run() {
-             RedmineTaskListProvider provider = RedmineTaskListProvider.getInstance();
-             if (provider == null || redmineIssue.isNew()) { // do not enable button for new issues
-             return;
-             }
-             final boolean isInTasklist = provider.isAdded(redmineIssue);
-             if (isInTasklist) {
-             attachTasklistListener(provider);
-             }
-             EventQueue.invokeLater(new Runnable() {
-             @Override
-             public void run() {
-             ActionItemAction.this.setText(isInTasklist
-             ? Bundle.CTL_ActionListAction_remove()
-             : Bundle.CTL_ActionListAction_add());
-             setSelected(isInTasklist);
-             setEnabled(true);
-             }
-             });
-             }
-             });
-             */
-        }
     }
 }

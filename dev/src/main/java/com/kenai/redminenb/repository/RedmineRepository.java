@@ -19,7 +19,6 @@ import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.RedmineConfig;
 import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
-//import com.kenai.redminenb.issue.RedmineTaskListProvider;
 import com.kenai.redminenb.query.RedmineQuery;
 import com.kenai.redminenb.query.RedmineQueryController;
 import com.kenai.redminenb.user.RedmineUser;

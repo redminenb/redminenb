@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import org.netbeans.api.annotations.common.NonNull;
-import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.spi.RepositoryProvider;
@@ -81,7 +80,6 @@ import org.openide.util.lookup.InstanceContent;
     "# {1} - user name",
     "# {2} - redmine url",
     "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}"
-//   "LBL_RepositoryTooltipNoUser=\"{0} : {1}"
 })
 public class RedmineRepository {    
     static final String PROPERTY_AUTH_MODE = "authMode";        // NOI18N  
@@ -767,48 +765,4 @@ public class RedmineRepository {
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
-
-    //
-    // Inner classes
-    // 
-/*   private class RedmineIssueCache extends IssueCache<RedmineIssue> {
-
-     RedmineIssueCache() {
-     super(RedmineRepository.this.getUrl(), new RedmineIssueAccessor());
-     }
-
-     }
-
-     private class RedmineIssueAccessor implements IssueCache.IssueAccessor<RedmineIssue> {
-
-     //@Override
-     public long getLastModified(RedmineIssue redmineIssue) {
-     assert redmineIssue != null;
-     return redmineIssue.getLastModify();
-     }
-
-     //@Override
-     public long getCreated(RedmineIssue redmineIssue) {
-     assert redmineIssue != null;
-     return redmineIssue.getCreated();
-     }
-
-     //@Override
-     public Map<String, String> getAttributes(RedmineIssue redmineIssue) {
-     assert redmineIssue != null;
-     return redmineIssue.getAttributes();
-     }
-
-     }*/
-    public Collection<RedmineIssue> getUnsubmittedIssues() {
-        List<RedmineIssue> ret = new LinkedList<>();
-        for (RedmineIssue i : issues.values()) {
-            if (i.getStatus() == IssueStatusProvider.Status.OUTGOING_MODIFIED) {
-                ret.add(i);
-            }
-        }
-        ret.addAll(newIssues);
-        return ret;
-    }
-
 }

@@ -4,7 +4,6 @@ import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.issue.RedmineIssuePriorityProvider;
 import com.kenai.redminenb.issue.RedmineIssueProvider;
 import com.kenai.redminenb.issue.RedmineIssueScheduleProvider;
-import com.kenai.redminenb.issue.RedmineIssueStatusProvider;
 import com.kenai.redminenb.query.RedmineQuery;
 import com.kenai.redminenb.query.RedmineQueryProvider;
 import com.kenai.redminenb.repository.RedmineRepository;
@@ -26,7 +25,6 @@ public final class Redmine {
     public static final String IMAGE_PATH = "com/kenai/redminenb/resources/";
     public static final String ICON_IMAGE = "redmine.png";
 
-    private static RedmineIssueStatusProvider isp;
     private static RedmineIssuePriorityProvider ipp;
     private static RedmineIssueScheduleProvider issp;
 
@@ -99,13 +97,6 @@ public final class Redmine {
             ipp = new RedmineIssuePriorityProvider();
         }
         return ipp;
-    }
-
-    public RedmineIssueStatusProvider getIssueStatusProvider() {
-        if (isp == null) {
-            isp = new RedmineIssueStatusProvider();
-        }
-        return isp;
     }
 
     public RedmineIssueScheduleProvider getIssueScheduleProvider() {

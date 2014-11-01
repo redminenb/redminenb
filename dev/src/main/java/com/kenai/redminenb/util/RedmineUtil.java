@@ -116,11 +116,7 @@ public final class RedmineUtil {
      * @return the RedmineIssue or {@code null} if no such issue available.
      */
     public static RedmineIssue getIssue(RedmineRepository redmineRepository, String issueId) {
-        RedmineIssue redmineIssue = null;//= redmineRepository.getIssueCache().getIssue(issueId);
-        if (redmineIssue == null) {
-            redmineIssue = redmineRepository.getIssue(issueId);
-        }
-        return redmineIssue;
+        return redmineRepository.getIssue(issueId);
     }
 
     public static void openIssue(RedmineIssue redmineIssue) {

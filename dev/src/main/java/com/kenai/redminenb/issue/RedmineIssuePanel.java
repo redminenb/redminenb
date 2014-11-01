@@ -350,16 +350,15 @@ public class RedmineIssuePanel extends JPanel {
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addComponent(parentLabel));
                         layout.setVerticalGroup(
                                 layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(parentButton).addComponent(parentLabel));
+                        parentHeaderPanel.add(parentButton);
                         parentHeaderPanel.setLayout(layout);
-                        parentHeaderPanel.setMinimumSize(parentHeaderPanel.getPreferredSize());
                      }
                   });
                }
             });            
          } else {
             // no parent issue
-            //parentHeaderPanel.setVisible(false);
-            parentHeaderPanel.setVisible(true);
+            parentHeaderPanel.setVisible(false);
             parentHeaderPanel.removeAll();
             headerLabel.setIcon(null);
          }
@@ -689,9 +688,10 @@ public class RedmineIssuePanel extends JPanel {
         dueDateChooser = new com.kenai.redminenb.util.DatePicker();
         journalOuterPane = new javax.swing.JPanel();
         journalPane = new javax.swing.JPanel();
-        updateCommentOuterPanel = new javax.swing.JPanel();
 
         headerLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.headerLabel.text")); // NOI18N
+
+        parentHeaderPanel.setRequestFocusEnabled(false);
 
         updatedLabel.setFont(updatedLabel.getFont().deriveFont(updatedLabel.getFont().getStyle() & ~java.awt.Font.BOLD, updatedLabel.getFont().getSize()-2));
         updatedLabel.setForeground(javax.swing.UIManager.getDefaults().getColor("textInactiveText"));
@@ -726,8 +726,8 @@ public class RedmineIssuePanel extends JPanel {
                         .addComponent(updatedValueLabel)
                         .addGap(246, 246, 246))
                     .addComponent(parentHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 782, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         headPaneLayout.setVerticalGroup(
             headPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -780,9 +780,9 @@ public class RedmineIssuePanel extends JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(updateButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(infoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 360, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(infoLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+                .addComponent(toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         buttonPaneLayout.setVerticalGroup(
@@ -794,7 +794,7 @@ public class RedmineIssuePanel extends JPanel {
                         .addComponent(updateButton))
                     .addComponent(infoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 0, 0))
         );
 
         descriptionLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.descriptionLabel.text")); // NOI18N
@@ -1025,9 +1025,9 @@ public class RedmineIssuePanel extends JPanel {
                                 .addComponent(attachmentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(issuePaneLayout.createSequentialGroup()
                                 .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(updateCommentLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 879, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(updateCommentLabel)
                                     .addComponent(logtimeLabel))
-                                .addGap(0, 31, Short.MAX_VALUE)))
+                                .addGap(0, 0, Short.MAX_VALUE)))
                         .addContainerGap())
                     .addComponent(updateCommentTabPanel)
                     .addGroup(issuePaneLayout.createSequentialGroup()
@@ -1067,7 +1067,7 @@ public class RedmineIssuePanel extends JPanel {
                                         .addComponent(categoryComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(categoryAddButton, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(60, 60, 60)
+                                .addGap(18, 18, 18)
                                 .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(dueDateLabel)
                                     .addComponent(startDateLabel)
@@ -1092,7 +1092,7 @@ public class RedmineIssuePanel extends JPanel {
                                                 .addComponent(estimateTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(estimateTimeLabel1)))))
-                                .addContainerGap(177, Short.MAX_VALUE))
+                                .addContainerGap())
                             .addComponent(descriptionPanel)))))
         );
         issuePaneLayout.setVerticalGroup(
@@ -1179,9 +1179,6 @@ public class RedmineIssuePanel extends JPanel {
         journalPane.setLayout(new javax.swing.BoxLayout(journalPane, javax.swing.BoxLayout.PAGE_AXIS));
         journalOuterPane.add(journalPane, java.awt.BorderLayout.PAGE_START);
 
-        updateCommentOuterPanel.setOpaque(false);
-        updateCommentOuterPanel.setLayout(new java.awt.BorderLayout());
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -1192,9 +1189,6 @@ public class RedmineIssuePanel extends JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(buttonPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(502, 502, 502)
-                        .addComponent(updateCommentOuterPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(journalOuterPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -1208,14 +1202,12 @@ public class RedmineIssuePanel extends JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(headPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonPane, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(buttonPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(issuePane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(8, 8, 8)
                 .addComponent(journalOuterPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(updateCommentOuterPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 4, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1414,7 +1406,6 @@ public class RedmineIssuePanel extends JPanel {
     javax.swing.JButton updateButton;
     javax.swing.JLabel updateCommentHtmlOutputLabel;
     javax.swing.JLabel updateCommentLabel;
-    javax.swing.JPanel updateCommentOuterPanel;
     javax.swing.JScrollPane updateCommentScrollPane1;
     javax.swing.JTabbedPane updateCommentTabPanel;
     javax.swing.JTextArea updateCommentTextArea;

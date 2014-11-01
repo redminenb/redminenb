@@ -514,11 +514,14 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         qSubjectCheckBox.setSelected(true);
         Mnemonics.setLocalizedText(qSubjectCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qSubjectCheckBox.text")); // NOI18N
+        qSubjectCheckBox.setOpaque(false);
 
         Mnemonics.setLocalizedText(qDescriptionCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qDescriptionCheckBox.text")); // NOI18N
+        qDescriptionCheckBox.setOpaque(false);
 
         Mnemonics.setLocalizedText(qCommentsCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qCommentsCheckBox.text")); // NOI18N
         qCommentsCheckBox.setEnabled(false);
+        qCommentsCheckBox.setOpaque(false);
 
         GroupLayout byTextPanelLayout = new GroupLayout(byTextPanel);
         byTextPanel.setLayout(byTextPanelLayout);
@@ -527,7 +530,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addContainerGap()
                 .addComponent(queryLabel)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(queryTextField, GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
+                .addComponent(queryTextField, GroupLayout.DEFAULT_SIZE, 268, Short.MAX_VALUE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(qSubjectCheckBox)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -667,6 +670,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.ipady = 20;
         gotoPanel.add(separatorLabel1, gridBagConstraints);
 
+        saveButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         Mnemonics.setLocalizedText(saveButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveButton.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 4;
@@ -674,6 +678,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gotoPanel.add(saveButton, gridBagConstraints);
         saveButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.saveButton.AccessibleContext.accessibleDescription")); // NOI18N
 
+        webButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         Mnemonics.setLocalizedText(webButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.text")); // NOI18N
         webButton.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.actionCommand")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
@@ -682,6 +687,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gotoPanel.add(webButton, gridBagConstraints);
         webButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.webButton.AccessibleContext.accessibleDescription")); // NOI18N
 
+        refreshConfigurationButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         Mnemonics.setLocalizedText(refreshConfigurationButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshConfigurationButton.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 8;
@@ -692,17 +698,13 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         GroupLayout searchPanelLayout = new GroupLayout(searchPanel);
         searchPanel.setLayout(searchPanelLayout);
         searchPanelLayout.setHorizontalGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, 768, Short.MAX_VALUE)
+            .addComponent(gotoPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(searchPanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(searchPanelLayout.createSequentialGroup()
-                        .addComponent(saveChangesButton)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cancelChangesButton)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(0, 0, 0))
+                .addComponent(saveChangesButton)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cancelChangesButton)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(criteriaPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         searchPanelLayout.setVerticalGroup(searchPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(searchPanelLayout.createSequentialGroup()
@@ -723,6 +725,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         topButtonPanel.setOpaque(false);
         topButtonPanel.setLayout(new GridBagLayout());
 
+        modifyButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         Mnemonics.setLocalizedText(modifyButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -730,6 +733,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         topButtonPanel.add(modifyButton, gridBagConstraints);
         modifyButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.modifyButton.AccessibleContext.accessibleDescription")); // NOI18N
 
+        removeButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         Mnemonics.setLocalizedText(removeButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.removeButton.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 4;
@@ -745,6 +749,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.ipady = 20;
         topButtonPanel.add(jLabel5, gridBagConstraints);
 
+        refreshButton.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         Mnemonics.setLocalizedText(refreshButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshButton.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -779,7 +784,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
             .addGroup(queryHeaderPanelLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
                 .addComponent(nameLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 386, Short.MAX_VALUE)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addComponent(refreshCheckBox)
                 .addGap(18, 18, 18)
                 .addComponent(lastRefreshLabel)
@@ -788,15 +793,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addGap(0, 0, 0))
         );
         queryHeaderPanelLayout.setVerticalGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(nameLabel))
-            .addGroup(queryHeaderPanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(lastRefreshDateLabel)
-                    .addComponent(lastRefreshLabel)
-                    .addComponent(refreshCheckBox)))
+            .addComponent(nameLabel)
+            .addGroup(queryHeaderPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addComponent(lastRefreshDateLabel)
+                .addComponent(lastRefreshLabel)
+                .addComponent(refreshCheckBox))
         );
 
         refreshCheckBox.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.refreshCheckBox.AccessibleContext.accessibleDescription")); // NOI18N
@@ -830,7 +831,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(searchPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 441, Short.MAX_VALUE)
+                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(noContentPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())

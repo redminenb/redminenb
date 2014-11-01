@@ -24,10 +24,6 @@
                       <Component id="buttonPane" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="502" max="-2" attributes="0"/>
-                      <Component id="updateCommentOuterPanel" max="32767" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="journalOuterPane" max="32767" attributes="0"/>
                   </Group>
@@ -45,14 +41,12 @@
           <Group type="102" alignment="0" attributes="0">
               <Component id="headPane" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="buttonPane" min="-2" pref="29" max="-2" attributes="0"/>
+              <Component id="buttonPane" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="issuePane" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
               <Component id="journalOuterPane" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="updateCommentOuterPanel" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+              <EmptySpace min="0" pref="4" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -77,9 +71,9 @@
                           <EmptySpace min="-2" pref="246" max="-2" attributes="0"/>
                       </Group>
                       <Component id="parentHeaderPanel" max="32767" attributes="0"/>
-                      <Component id="headerLabel" pref="782" max="32767" attributes="0"/>
+                      <Component id="headerLabel" max="32767" attributes="0"/>
                   </Group>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -111,6 +105,9 @@
           </Properties>
         </Component>
         <Container class="javax.swing.JPanel" name="parentHeaderPanel">
+          <Properties>
+            <Property name="requestFocusEnabled" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>
         </Container>
@@ -192,9 +189,9 @@
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Component id="updateButton" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="infoLabel" min="-2" pref="360" max="-2" attributes="0"/>
+                  <Component id="infoLabel" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Component id="toolbar" pref="358" max="32767" attributes="0"/>
+                  <Component id="toolbar" max="32767" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -210,7 +207,7 @@
                       <Component id="infoLabel" alignment="0" min="-2" pref="29" max="-2" attributes="0"/>
                       <Component id="toolbar" min="-2" pref="29" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -283,10 +280,10 @@
                               </Group>
                               <Group type="102" attributes="0">
                                   <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="updateCommentLabel" min="-2" pref="879" max="-2" attributes="0"/>
+                                      <Component id="updateCommentLabel" min="-2" max="-2" attributes="0"/>
                                       <Component id="logtimeLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                                   </Group>
-                                  <EmptySpace min="0" pref="31" max="32767" attributes="0"/>
+                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -338,7 +335,7 @@
                                           <Component id="categoryAddButton" min="-2" pref="18" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
-                                  <EmptySpace min="-2" pref="60" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
                                       <Component id="dueDateLabel" min="-2" max="-2" attributes="0"/>
                                       <Component id="startDateLabel" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -369,7 +366,7 @@
                                           </Group>
                                       </Group>
                                   </Group>
-                                  <EmptySpace pref="177" max="32767" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
                               </Group>
                               <Component id="descriptionPanel" alignment="0" max="32767" attributes="0"/>
                           </Group>
@@ -1113,13 +1110,6 @@
           </Layout>
         </Container>
       </SubComponents>
-    </Container>
-    <Container class="javax.swing.JPanel" name="updateCommentOuterPanel">
-      <Properties>
-        <Property name="opaque" type="boolean" value="false"/>
-      </Properties>
-
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
     </Container>
   </SubComponents>
 </Form>

@@ -52,7 +52,7 @@ public class QueryListModel extends AbstractTableModel{
     public Class<?> getColumnClass(int columnIndex) {
         switch(columnIndex) {
             case 0:
-                return String.class;
+                return Integer.class;
             case 1:
                 return String.class;
             case 2: 
@@ -77,7 +77,7 @@ public class QueryListModel extends AbstractTableModel{
         RedmineIssue ri = getIssue(rowIndex);
         switch(columnIndex) {
             case 0:
-                return ri.getID();
+                return ri.getIssue().getId();
             case 1:
                 return ri.getSummary();
             case 2: 

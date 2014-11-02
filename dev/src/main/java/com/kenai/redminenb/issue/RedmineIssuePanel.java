@@ -366,6 +366,8 @@ public class RedmineIssuePanel extends JPanel {
          commentPanel.setVisible(true);
          logtimePanel.setVisible(true);
          descriptionPanel.setSelectedIndex(1);
+         attachmentLabel.setVisible(true);
+         attachmentPanel.setVisible(true);
          spentHoursLabel.setText(NbBundle.getMessage(getClass(), 
                  "RedmineIssuePanel.spentHoursReplacementLabel.text",
                  issue.getSpentHours()));
@@ -390,7 +392,9 @@ public class RedmineIssuePanel extends JPanel {
          commentPanel.setVisible(false);
          logtimePanel.setVisible(false);
          descriptionPanel.setSelectedIndex(0);
-         spentHoursLabel = new javax.swing.JLabel();
+         attachmentLabel.setVisible(false);
+         attachmentPanel.setVisible(false);
+         spentHoursLabel.setText("");
       }
       setInfoMessage(null);
       updateTextileOutput();

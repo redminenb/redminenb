@@ -4,7 +4,7 @@
 
     <groupId>com.kenai.redminenb</groupId>
     <artifactId>redminenb</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.4</version>
     <packaging>nbm</packaging>
 
     <name>RedmineNB</name>
@@ -219,8 +219,7 @@
                         } else {
                             value = value.trim() + "";
                         }
-                        for(var i = 0; i < dependencies.length; i++) {
-                            if(value != "") {
+                        for(var i = 0; i < dependencies.length; i++) { if(value != "") {
                                 value += ", ";
                             }
                             value += dependencies[i];

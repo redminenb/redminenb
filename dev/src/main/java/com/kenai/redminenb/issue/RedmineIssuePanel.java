@@ -5,7 +5,6 @@ import com.kenai.redminenb.ui.Defaults;
 import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.ListComboBoxModel;
 import com.kenai.redminenb.util.RedmineUtil;
-import com.kenai.redminenb.util.markup.TextileUtil;
 
 import com.kenai.redminenb.api.Helper;
 import com.kenai.redminenb.repository.RedmineRepository;
@@ -64,7 +63,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.text.JTextComponent;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.DropDownButtonFactory;
@@ -73,6 +71,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
+import org.openide.windows.WindowManager;
 
 /**
  * Panel showing a Redmine Issue.
@@ -80,6 +79,9 @@ import org.openide.util.RequestProcessor;
  * @author Mykolas
  * @author Anchialas <anchialas@gmail.com>
  */
+@NbBundle.Messages({
+    "BTN_AddAttachment=Add attachment"
+})
 public class RedmineIssuePanel extends JPanel {
 
    private static final long serialVersionUID = 9011030935877495476L;
@@ -245,7 +247,8 @@ public class RedmineIssuePanel extends JPanel {
           }
           LinkButton lb = new LinkButton();
           lb.setBorder(null);
-          lb.setText("Add");
+          lb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png")));
+          lb.setToolTipText(Bundle.BTN_AddAttachment());
           lb.setActionCommand("addAttachment");
           lb.addActionListener(new ActionListener() {
 
@@ -281,7 +284,7 @@ public class RedmineIssuePanel extends JPanel {
                   JFileChooser fileChooser = new JFileChooser(lastDirectory);
                   fileChooser.setAccessory(panel);
                   fileChooser.setDialogTitle("Add attachment");
-                  int result = fileChooser.showOpenDialog(RedmineIssuePanel.this);
+                  int result = fileChooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
                   if (result == JFileChooser.APPROVE_OPTION) {
                       lastDirectory = fileChooser.getCurrentDirectory();
                       final File selectedFile = fileChooser.getSelectedFile();

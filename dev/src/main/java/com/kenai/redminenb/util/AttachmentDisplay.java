@@ -27,9 +27,7 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
 //  delete an attachment
 //  @todo: Fix this when http://www.redmine.org/issues/14828 is resolved
 //    private final LinkButton deleteButton = new LinkButton();
-//    private final JLabel medianLabel = new JLabel();
     private final LinkButton downloadButton = new LinkButton();
-    private final JLabel trailingLabel = new JLabel();
 
     public AttachmentDisplay(RedmineIssue issue, Attachment ad) {
         super();
@@ -38,23 +36,21 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
         this.ad = ad;
         this.issue = issue;
         leadingLabel.setText(String.format(
-                "%1$s (%2$d bytes) %3$tY-%3$tm-%3$td %3$tH:%3$tM [",
+                "%1$s (%2$d bytes) %3$tY-%3$tm-%3$td %3$tH:%3$tM ",
                 ad.getFileName(),
                 ad.getFileSize(),
                 ad.getCreatedOn()));
-//        medianLabel.setText(", ");
-        trailingLabel.setText("]");
+        leadingLabel.setToolTipText(ad.getDescription());
         this.add(leadingLabel);
         this.add(downloadButton);
-//        this.add(medianLabel);
 //        this.add(deleteButton);
-        this.add(trailingLabel);
 //        deleteButton.setBorder(null);
 //        deleteButton.setText("delete");
 //        deleteButton.addActionListener(this);
 //        deleteButton.setActionCommand(COMMAND_DELETE);
         downloadButton.setBorder(null);
-        downloadButton.setText("download");
+        downloadButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/document-save.png")));
+        downloadButton.setToolTipText("download");
         downloadButton.addActionListener(this);
         downloadButton.setActionCommand(COMMAND_DOWNLOAD);
     }

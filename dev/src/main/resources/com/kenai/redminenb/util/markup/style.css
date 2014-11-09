@@ -1,0 +1,247 @@
+body {
+    font-size:14pt;
+    font-family:serif;
+    font-weight:normal;
+    margin:0;
+    color:black;
+}
+
+dfn {
+    font-style:italic;
+}
+
+code {
+    font-size:small;
+    font-family:Monospaced;
+}
+
+address {
+    color:blue;
+    font-style:italic;
+}
+
+var {
+    font-weight:bold;
+    font-style:italic;
+}
+
+pre {
+    margin-top:5px;
+    margin-bottom:5px;
+    font-family:Monospaced;
+}
+
+caption {
+    caption-side:top;
+    text-align:center;
+}
+
+big {
+    font-size:x-large;
+}
+
+small {
+    font-size:x-small;
+}
+
+b, strong {
+    font-weight:bold;
+}
+
+u {
+    text-decoration:underline;
+}
+
+i, em {
+    font-style:italic;
+}
+
+s, strike {
+    text-decoration:line-through;
+}
+
+kbd {
+    font-size:small;
+    font-family:Monospaced;
+}
+
+center {
+    text-align:center;
+}
+
+sub {
+    vertical-align:sub;
+}
+
+sup {
+    vertical-align: super;
+}
+
+nobr {
+    white-space:nowrap;
+}
+
+blockquote {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 35px;
+    margin-right: 35px;
+}
+
+p {
+    margin: 5px;
+}
+
+cite {
+    font-style:italic;
+}
+
+tt {
+    font-family:Monospaced;
+}
+
+a {
+    color:blue;
+    text-decoration:underline;
+}
+
+samp {
+    font-size:small;
+    font-family:Monospaced;
+}
+
+/* Headlines */
+
+h1 {
+    font-size:x-large;
+}
+h2 {
+    font-size:large;
+}
+h3 {
+    font-size:medium;
+}
+h4 {
+    font-size:small;
+}
+h5 {
+    font-size:x-small;
+}
+h6 {
+    font-size:xx-small;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-weight:bold;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+/* List defintions */
+
+ol {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 50px;
+    margin-right: 50px;
+    list-style-type:decimal;
+}
+
+ul {
+    margin-top:5px;
+    margin-bottom:5px;
+    margin-left:25px;
+    margin-right:25px;
+    list-style-type:disc;
+}
+
+dir {
+    margin-left: 40px;
+    margin-right: 40px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+menu {
+    margin-left:40px;
+    margin-right:40px;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+ul li menu {
+    list-style-type:circle;
+    margin-left:25px;
+    margin-right:25px;
+}
+dl {
+    margin-left:0px;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+dd {
+    margin-left:40px;
+    margin-right:40px;
+    margin-top:0;
+    margin-bottom:0;
+}
+dt {
+    margin-top:0;
+    margin-bottom:0;
+}
+dd p {
+    margin-left:0;
+    margin-top:0;
+    margin-bottom:0;
+}
+ul li p, li p, dir li p, ol li p {
+    margin-top:0;
+    margin-bottom:0;
+}
+ul li ul li ul {
+    list-style-type:square;
+    margin-left:25px;
+    margin-right:25px;
+}
+
+menu li p {
+    margin-top:0;
+    margin-bottom:0;
+}
+
+ul li ul {
+    list-style-type:circle;
+    margin-left:25px;
+    margin-right:25px;
+}
+
+ul li, ul li ul li, ul li ul li ul li, dir li, ol li, menu li {
+    margin: 0;
+}
+
+/* Table Definitions */
+
+table {
+    border-style:outset;
+    border-width:0;
+}
+
+tr {
+    text-align:left;
+}
+
+td p {
+    margin-top:0;
+}
+
+/* Specific formating */
+
+div.note {
+    margin: 5px;
+}
+
+div.note p {
+    margin: 0;
+}
+
+div.note * p {
+    margin: 5px;
+}

@@ -19,7 +19,6 @@ package com.kenai.redminenb.issue;
 import com.kenai.redminenb.util.markup.TextileUtil;
 import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.JournalDetail;
-import java.awt.Dimension;
 import java.io.StringWriter;
 import java.util.MissingResourceException;
 import org.apache.commons.lang.StringUtils;
@@ -58,7 +57,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         StringWriter writer = new StringWriter();
 
         if (jd.getDetails() != null && jd.getDetails().size() > 0) {
-            writer.append("<ul style='padding-top: 0px; margin-top: 5px; padding-bottom: 0px; margin-bottom: 5px'>");
+            writer.append("<ul>");
             for (JournalDetail detail : jd.getDetails()) {
                 writer.append("<li>");
                 String fieldName = detail.getName();
@@ -95,31 +94,13 @@ public class JournalDisplay extends javax.swing.JPanel {
         }
         
         if (StringUtils.isNotBlank(noteText)) {
-            writer.append("<div style='padding: 5px'>");
+            writer.append("<div class='note'>");
             TextileUtil.convertToHTML(noteText, writer);
             writer.append("</div>");
         }
         
         String output = writer.toString();
-        if(output.length() > 0) {
-            output = "<html><body>" + output + "</body></html>";
-        }
-        contentLabel.setText(output);
-        this.validate();
-        this.invalidate();
-        Dimension leftDimension = leftLabel.getPreferredSize();
-        Dimension rightDimension = rightLabel.getPreferredSize();
-        Dimension contentDimension = contentLabel.getPreferredSize();
-        Dimension seperatorDimension = separator.getPreferredSize();
-        int width = (int) Math.max(
-                leftDimension.getWidth() + rightDimension.getWidth() + 10,
-                contentDimension.getWidth() + 10);
-        int height = (int) (Math.max(leftDimension.getHeight(), rightDimension.getHeight())
-                + seperatorDimension.getHeight()
-                + contentDimension.getHeight());
-        Dimension d = new Dimension(width, height);
-        setMinimumSize(d);
-        setPreferredSize(d);
+        content.setHTMLText(output);
     }
 
     private String escapeHTML(String input) {
@@ -148,7 +129,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         leftLabel = new javax.swing.JLabel();
         rightLabel = new javax.swing.JLabel();
         separator = new javax.swing.JSeparator();
-        contentLabel = new javax.swing.JLabel();
+        content = new com.kenai.redminenb.util.markup.TextilePreview();
 
         setOpaque(false);
         setLayout(new java.awt.GridBagLayout());
@@ -171,22 +152,19 @@ public class JournalDisplay extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(separator, gridBagConstraints);
 
-        contentLabel.setFont(contentLabel.getFont().deriveFont(contentLabel.getFont().getStyle() & ~java.awt.Font.BOLD));
-        org.openide.awt.Mnemonics.setLocalizedText(contentLabel, org.openide.util.NbBundle.getMessage(JournalDisplay.class, "JournalDisplay.contentLabel.text")); // NOI18N
+        content.setOpaque(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(contentLabel, gridBagConstraints);
+        add(content, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel contentLabel;
+    private com.kenai.redminenb.util.markup.TextilePreview content;
     private javax.swing.JLabel leftLabel;
     private javax.swing.JLabel rightLabel;
     private javax.swing.JSeparator separator;

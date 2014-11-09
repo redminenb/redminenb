@@ -24,7 +24,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -94,7 +93,7 @@ public class RedmineIssuePanel extends JPanel {
    private JPopupMenu toolbarPopup;
    private ExpandablePanel commentPanel;
    private ExpandablePanel logtimePanel;
-
+   
    public RedmineIssuePanel(RedmineIssue redmineIssue) {
       this.redmineIssue = redmineIssue;
 
@@ -106,8 +105,8 @@ public class RedmineIssuePanel extends JPanel {
       initValues();
       init();
       initIssue();
-   }
-
+    }
+ 
    private void init() {
       headerLabel.setFont(headerLabel.getFont().deriveFont(headerLabel.getFont().getSize() * 1.5f));
       parentHeaderPanel.setOpaque(false);
@@ -121,19 +120,11 @@ public class RedmineIssuePanel extends JPanel {
    }
 
    void updateCommentTextileOutput() {
-      updateTextileRendering(updateCommentTextArea, updateCommentHtmlOutputLabel);
+       updateCommentHtmlOutputLabel.setTextileText(updateCommentTextArea.getText());
    }
    
    void updateTextileOutput() {
-      updateTextileRendering(descTextArea, htmlOutputLabel);
-   }
-   
-   private static void updateTextileRendering(JTextComponent input, JLabel output) {
-      String text = input.getText();
-      if (StringUtils.isNotBlank(text)) {
-         text = "<html>" + TextileUtil.convertToHTML(text) + "</html>";
-      }
-      output.setText(text);
+        htmlOutputLabel.setTextileText(descTextArea.getText());
    }
 
    void addToolbarPopupButton() {
@@ -668,13 +659,12 @@ public class RedmineIssuePanel extends JPanel {
         descriptionPanel = new javax.swing.JTabbedPane();
         descScrollPane = new javax.swing.JScrollPane();
         descTextArea = new javax.swing.JTextArea();
-        htmlOutputLabel = new javax.swing.JLabel();
+        htmlOutputLabel = new com.kenai.redminenb.util.markup.TextilePreview();
         updateCommentLabel = new javax.swing.JLabel();
         updateCommentTabPanel = new javax.swing.JTabbedPane();
         updateCommentScrollPane1 = new javax.swing.JScrollPane();
         updateCommentTextArea = new javax.swing.JTextArea();
-        jScrollPane1updateCommentScrollPane2 = new javax.swing.JScrollPane();
-        updateCommentHtmlOutputLabel = new javax.swing.JLabel();
+        updateCommentHtmlOutputLabel = new com.kenai.redminenb.util.markup.TextilePreview();
         attachmentLabel = new javax.swing.JLabel();
         attachmentPanel = new com.kenai.redminenb.util.DelegatingBaseLineJPanel();
         logtimeLabel = new javax.swing.JLabel();
@@ -892,16 +882,10 @@ public class RedmineIssuePanel extends JPanel {
         descScrollPane.setMinimumSize(new java.awt.Dimension(22, 120));
         descScrollPane.setPreferredSize(new java.awt.Dimension(223, 120));
 
-        descTextArea.setColumns(20);
+        descTextArea.setLineWrap(true);
         descScrollPane.setViewportView(descTextArea);
 
         descriptionPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.descScrollPane.TabConstraints.tabTitle"), descScrollPane); // NOI18N
-
-        htmlOutputLabel.setBackground(javax.swing.UIManager.getDefaults().getColor("EditorPane.background"));
-        htmlOutputLabel.setFont(htmlOutputLabel.getFont().deriveFont(htmlOutputLabel.getFont().getSize()-2f));
-        htmlOutputLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        htmlOutputLabel.setOpaque(true);
-        htmlOutputLabel.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
         descriptionPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.htmlOutputLabel.TabConstraints.tabTitle"), htmlOutputLabel); // NOI18N
 
         updateCommentLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentLabel.text")); // NOI18N
@@ -913,18 +897,7 @@ public class RedmineIssuePanel extends JPanel {
         updateCommentScrollPane1.setViewportView(updateCommentTextArea);
 
         updateCommentTabPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentScrollPane1.TabConstraints.tabTitle"), updateCommentScrollPane1); // NOI18N
-
-        jScrollPane1updateCommentScrollPane2.setMinimumSize(new java.awt.Dimension(22, 80));
-        jScrollPane1updateCommentScrollPane2.setPreferredSize(new java.awt.Dimension(228, 120));
-
-        updateCommentHtmlOutputLabel.setBackground(javax.swing.UIManager.getDefaults().getColor("EditorPane.background"));
-        updateCommentHtmlOutputLabel.setFont(updateCommentHtmlOutputLabel.getFont().deriveFont(updateCommentHtmlOutputLabel.getFont().getSize()-2f));
-        updateCommentHtmlOutputLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        updateCommentHtmlOutputLabel.setOpaque(true);
-        updateCommentHtmlOutputLabel.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
-        jScrollPane1updateCommentScrollPane2.setViewportView(updateCommentHtmlOutputLabel);
-
-        updateCommentTabPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.jScrollPane1updateCommentScrollPane2.TabConstraints.tabTitle"), jScrollPane1updateCommentScrollPane2); // NOI18N
+        updateCommentTabPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentHtmlOutputLabel.TabConstraints.tabTitle"), updateCommentHtmlOutputLabel); // NOI18N
 
         attachmentLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.attachmentLabel.text")); // NOI18N
 
@@ -1118,10 +1091,9 @@ public class RedmineIssuePanel extends JPanel {
                     .addGroup(issuePaneLayout.createSequentialGroup()
                         .addComponent(descriptionLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(wikiSyntaxButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(descriptionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(wikiSyntaxButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(descriptionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(statusLabel)
@@ -1159,7 +1131,7 @@ public class RedmineIssuePanel extends JPanel {
                             .addComponent(doneLabel)
                             .addComponent(doneComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(spentHoursLabel))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 3, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(issuePaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(attachmentLabel)
@@ -1181,7 +1153,7 @@ public class RedmineIssuePanel extends JPanel {
 
         journalPane.setOpaque(false);
         journalPane.setLayout(new javax.swing.BoxLayout(journalPane, javax.swing.BoxLayout.PAGE_AXIS));
-        journalOuterPane.add(journalPane, java.awt.BorderLayout.PAGE_START);
+        journalOuterPane.add(journalPane, java.awt.BorderLayout.CENTER);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -1210,8 +1182,8 @@ public class RedmineIssuePanel extends JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(issuePane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(8, 8, 8)
-                .addComponent(journalOuterPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 4, Short.MAX_VALUE))
+                .addComponent(journalOuterPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1371,10 +1343,9 @@ public class RedmineIssuePanel extends JPanel {
     javax.swing.JFormattedTextField estimateTimeTextField;
     javax.swing.JPanel headPane;
     javax.swing.JLabel headerLabel;
-    javax.swing.JLabel htmlOutputLabel;
+    com.kenai.redminenb.util.markup.TextilePreview htmlOutputLabel;
     final javax.swing.JLabel infoLabel = new javax.swing.JLabel();
     javax.swing.JPanel issuePane;
-    javax.swing.JScrollPane jScrollPane1updateCommentScrollPane2;
     javax.swing.JPanel journalOuterPane;
     javax.swing.JPanel journalPane;
     javax.swing.JComboBox logtimeActivityComboBox;
@@ -1408,7 +1379,7 @@ public class RedmineIssuePanel extends JPanel {
     org.openide.awt.Toolbar toolbar;
     javax.swing.JComboBox trackerComboBox;
     javax.swing.JButton updateButton;
-    javax.swing.JLabel updateCommentHtmlOutputLabel;
+    com.kenai.redminenb.util.markup.TextilePreview updateCommentHtmlOutputLabel;
     javax.swing.JLabel updateCommentLabel;
     javax.swing.JScrollPane updateCommentScrollPane1;
     javax.swing.JTabbedPane updateCommentTabPanel;

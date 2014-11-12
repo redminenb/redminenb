@@ -15,6 +15,7 @@
  */
 package com.kenai.redminenb.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +29,10 @@ public class ListListModel<T> extends AbstractListModel {
 
    protected final List<T> list;
 
+   public ListListModel() {
+       this(new ArrayList<T>());
+   }
+   
    public ListListModel(List<T> list) {
       this.list = list;
    }
@@ -60,10 +65,12 @@ public class ListListModel<T> extends AbstractListModel {
    }
 
    public void addAll(Collection<? extends T> c) {
-      int idx1 = list.size() - 1;
+      int idx1 = list.size();
       list.addAll(c);
       int idx2 = list.size() - 1;
-      fireIntervalAdded(this, idx1, idx2);
+      if(idx2 >= idx1) {
+        fireIntervalAdded(this, idx1, idx2);
+      }
    }
 
    public void removeAll(Collection<? extends T> c) {

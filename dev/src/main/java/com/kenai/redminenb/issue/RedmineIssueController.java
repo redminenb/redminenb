@@ -152,7 +152,8 @@ public class RedmineIssueController implements IssueController {
         "CTL_CreateSubTaskAction=Create Subtask",
         "CTL_ActionListAction.add=Add to Action Items",
         "CTL_ActionListAction.remove=Remove from Action Items",
-        "CTL_OpenIssueForTimeTracking=Open Timetracker with Issue"
+        "CTL_OpenIssueForTimeTracking=Open Timetracker with Issue",
+        "CTL_OpenWatchersList=Open Watchers List"
     })
     private void initActions() {
         Action timeTrackingAction = new AbstractAction(Bundle.CTL_OpenIssueForTimeTracking(),
@@ -208,6 +209,17 @@ public class RedmineIssueController implements IssueController {
                         RedmineUtil.openIssue(subTask);
                     }
                 };
+        Action viewWatchers = new AbstractAction(Bundle.CTL_OpenWatchersList(),
+                Defaults.getIcon("face-glasses.png")) {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        WatcherEditor we = new WatcherEditor(redmineIssue);
+                        we.run();
+                    }
+                };
+        
+        issuePanel.addToolbarAction(viewWatchers, false);
         issuePanel.addToolbarAction(timeTrackingAction, false);
         issuePanel.addToolbarAction(showInBrowserAction, false);
         issuePanel.addToolbarAction(createSubTaskAction, false);

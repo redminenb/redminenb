@@ -38,6 +38,7 @@ public class RedmineIssueController implements IssueController {
     private final RedmineIssue redmineIssue;
     private final JComponent component;
     private final RedmineIssuePanel issuePanel;
+    private Action viewWatchers;
 
     public RedmineIssueController(RedmineIssue issue) {
         this.redmineIssue = issue;
@@ -83,6 +84,7 @@ public class RedmineIssueController implements IssueController {
             }
             
         }.execute();
+        viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
     }
 
     @Override
@@ -209,7 +211,7 @@ public class RedmineIssueController implements IssueController {
                         RedmineUtil.openIssue(subTask);
                     }
                 };
-        Action viewWatchers = new AbstractAction(Bundle.CTL_OpenWatchersList(),
+        viewWatchers = new AbstractAction(Bundle.CTL_OpenWatchersList(),
                 Defaults.getIcon("face-glasses.png")) {
 
                     @Override
@@ -218,7 +220,8 @@ public class RedmineIssueController implements IssueController {
                         we.run();
                     }
                 };
-        
+
+        viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
         issuePanel.addToolbarAction(viewWatchers, false);
         issuePanel.addToolbarAction(timeTrackingAction, false);
         issuePanel.addToolbarAction(showInBrowserAction, false);

@@ -82,9 +82,10 @@ import org.openide.util.lookup.InstanceContent;
     "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}"
 })
 public class RedmineRepository {    
-    static final String PROPERTY_AUTH_MODE = "authMode";        // NOI18N  
-    static final String PROPERTY_ACCESS_KEY = "accessKey";      // NOI18N  
-    static final String PROPERTY_PROJECT_ID = "projectId";      // NOI18N  
+    static final String PROPERTY_AUTH_MODE = "authMode";                // NOI18N  
+    static final String PROPERTY_ACCESS_KEY = "accessKey";              // NOI18N  
+    static final String PROPERTY_PROJECT_ID = "projectId";              // NOI18N  
+    static final String PROPERTY_FEATURE_WATCHERS = "featureWatchers";  // NOI18N
     
     private static final List<TimeEntryActivity> fallbackTimeActivityEntries;
     
@@ -193,7 +194,7 @@ public class RedmineRepository {
     }
 
     synchronized void setInfoValues(String name, String url, String user, char[] password,
-            String accessKey, AuthMode authMode, Project project) {
+            String accessKey, AuthMode authMode, Project project, boolean featureWatchers) {
         String id = info != null ? info.getID() : name + System.currentTimeMillis();
         String httpUser = null;
         char[] httpPassword = null;
@@ -206,6 +207,7 @@ public class RedmineRepository {
                 httpUser,
                 password,
                 httpPassword);
+        ri.putValue(PROPERTY_FEATURE_WATCHERS, Boolean.toString(featureWatchers));
         info = ri;
         setAccessKey(accessKey);
         setAuthMode(authMode);
@@ -213,6 +215,9 @@ public class RedmineRepository {
     }
 
     public String getDisplayName() {
+        if (info == null) {
+            return "";
+        }
         try {
             if (isReachable()) {
                 return info.getDisplayName();
@@ -231,11 +236,16 @@ public class RedmineRepository {
     }
 
     public String getUrl() {
-        //return taskRepository != null ? taskRepository.getUrl() : null;
+        if(info == null) {
+            return "";
+        }
         return info.getUrl();
     }
 
     public AuthMode getAuthMode() {
+        if(info == null) {
+            return AuthMode.AccessKey;
+        }
         return AuthMode.get(info.getValue(PROPERTY_AUTH_MODE));
     }
 
@@ -248,6 +258,9 @@ public class RedmineRepository {
     }
 
     public String getAccessKey() {
+        if(info == null) {
+            return "";
+        }
         return info.getValue(PROPERTY_ACCESS_KEY);
     }
 
@@ -260,10 +273,16 @@ public class RedmineRepository {
     }
 
     public char[] getPassword() {
+        if(info == null) {
+            return new char[0];
+        }
         return info.getPassword();
     }
 
     public String getUsername() {
+        if(info == null) {
+            return "";
+        }
         return info.getUsername();
     }
 
@@ -571,7 +590,7 @@ public class RedmineRepository {
         }
         return lookup;
     }
-
+    
     public final RedmineManager getManager() throws RedmineException {
         AuthMode authMode = getAuthMode();
         if (manager == null) {
@@ -764,5 +783,17 @@ public class RedmineRepository {
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+    
+    public boolean isFeatureWatchers() {
+        if (info == null) {
+            return false;
+        }
+        String supportsWatchers = info.getValue(PROPERTY_FEATURE_WATCHERS);
+        if(supportsWatchers == null) {
+            return false;
+        } else {
+            return Boolean.parseBoolean(supportsWatchers);
+        }
     }
 }

@@ -23,18 +23,26 @@ import com.kenai.redminenb.util.RedmineUtil;
 
 import com.kenai.redminenb.api.AuthMode;
 import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.bean.Project;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -56,538 +64,319 @@ import org.openide.util.RequestProcessor.Task;
  * @author Anchialas <anchialas@gmail.com>
  */
 @Messages({
-   "MSG_MissingName=Missing Name",
-   "MSG_WrongUrl=Wrong URL format",
-   "MSG_MissingUrl=Missing URL",
-   "MSG_MissingUsername=Missing Usernname",
-   "MSG_MissingPassword=Missing Password",
-   "MSG_MissingAccessKey=Missing Access Key",
-   "MSG_MissingProject=No Project is selected",
-   "MSG_TrackerAlreadyExists=Issue Tracker with the same name already exists",
-   "MSG_RepositoryAlreadyExists=The same Issue Tracker already exists",
-   "# {0} - the user name",
-   "MSG_AuthSuccessful=Successfully authenticated as ''{0}''"
+    "MSG_MissingName=Missing Name",
+    "MSG_WrongUrl=Wrong URL format",
+    "MSG_MissingUrl=Missing URL",
+    "MSG_MissingUsername=Missing Usernname",
+    "MSG_MissingPassword=Missing Password",
+    "MSG_MissingAccessKey=Missing Access Key",
+    "MSG_MissingProject=No Project is selected",
+    "MSG_TrackerAlreadyExists=Issue Tracker with the same name already exists",
+    "MSG_RepositoryAlreadyExists=The same Issue Tracker already exists",
+    "MSG_AuthSuccessful=Successfully authenticated"
 })
-public class RedmineRepositoryController implements RepositoryController, DocumentListener, ActionListener {
+public class RedmineRepositoryController implements RepositoryController, DocumentListener, ActionListener, ItemListener {
 
-   private RedmineRepository repository;
-   //private RedmineRepository realRepository;
-   private RedmineRepositoryPanel panel;
-   private String errorMessage;
-   private boolean connectError;
-   private boolean populated = false;
-   private boolean connected = false;
-   private TaskRunner taskRunner;
-   private RequestProcessor rp;
-   private final ChangeSupport support = new ChangeSupport(this);
+    private final RedmineRepository repository;
+    private final RedmineRepositoryPanel panel;
+    private String errorMessage;
+    private final ChangeSupport support = new ChangeSupport(this);
 
-   public RedmineRepositoryController(RedmineRepository repository) {
-      this.repository = repository;
+    @SuppressWarnings("LeakingThisInConstructor")
+    public RedmineRepositoryController(RedmineRepository repository) {
+        this.repository = repository;
 
-      panel = new RedmineRepositoryPanel(this);
-      panel.nameTextField.getDocument().addDocumentListener(this);
-      panel.urlTextField.getDocument().addDocumentListener(this);
-      panel.accessKeyTextField.getDocument().addDocumentListener(this);
-      panel.userField.getDocument().addDocumentListener(this);
-      panel.pwdField.getDocument().addDocumentListener(this);
+        panel = new RedmineRepositoryPanel(this);
+        panel.nameTextField.getDocument().addDocumentListener(this);
+        panel.urlTextField.getDocument().addDocumentListener(this);
+        panel.accessKeyTextField.getDocument().addDocumentListener(this);
+        panel.userField.getDocument().addDocumentListener(this);
+        panel.pwdField.getDocument().addDocumentListener(this);
 
-      panel.projectComboBox.addActionListener(this);
-      panel.connectButton.addActionListener(this);
-      panel.createNewProjectButton.addActionListener(this);
+        panel.featureWatchers.addActionListener(this);
+        panel.projectComboBox.addItemListener(this);
+        panel.connectButton.addActionListener(this);
+        panel.createNewProjectButton.addActionListener(this);
 
-      panel.rbAccessKey.addActionListener(this);
-      panel.rbCredentials.addActionListener(this);
-   }
+        panel.rbAccessKey.addActionListener(this);
+        panel.rbCredentials.addActionListener(this);
+    }
 
-   @Override
-   public JComponent getComponent() {
-      return panel;
-   }
+    @Override
+    public JComponent getComponent() {
+        return panel;
+    }
 
-   private String getUrl() {
-      String url = panel.urlTextField.getText().trim();
-      return url.endsWith("/") ? url.substring(0, url.length() - 1) : url; // NOI18N
-   }
+    private String getUrl() {
+        String url = panel.urlTextField.getText().trim();
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url; // NOI18N
+    }
 
-   private String getName() {
-      return panel.nameTextField.getText().trim();
-   }
+    private String getName() {
+        return panel.nameTextField.getText().trim();
+    }
 
-   private String getUser() {
-      return panel.userField.getText();
-   }
+    private String getUser() {
+        return panel.userField.getText();
+    }
 
-   private char[] getPassword() {
-      return panel.pwdField.getPassword();
-   }
+    private char[] getPassword() {
+        return panel.pwdField.getPassword();
+    }
 
-   public AuthMode getAuthMode() {
-      return panel.getAuthMode();
-   }
+    public AuthMode getAuthMode() {
+        return panel.getAuthMode();
+    }
 
-   private String getAccessKey() {
-      return panel.accessKeyTextField.getText().trim();
-   }
+    private String getAccessKey() {
+        return panel.accessKeyTextField.getText().trim();
+    }
 
-   private Project getProject() {
-      return (Project)panel.projectComboBox.getSelectedItem();
-   }
+    private Project getProject() {
+        return (Project) panel.projectComboBox.getSelectedItem();
+    }
 
-   @Override
-   public boolean isValid() {
-      return validate();
-   }
+    private boolean isFeatureWatchers() {
+        return panel.featureWatchers.isSelected();
+    }
 
-   private boolean validate() {
-      if (connectError) {
-         panel.connectButton.setEnabled(true);
-         return false;
-      }
+    @Override
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
+    public boolean isValid() {
+        errorMessage = null;
 
-      if (!populated) {
-         return false;
-      }
-      errorMessage = null;
-
-      panel.connectButton.setEnabled(false);
-      panel.createNewProjectButton.setEnabled(false);
-
-      // check url
-      String url = getUrl();
-      if (url.equals("")) { // NOI18N
-         errorMessage = Bundle.MSG_MissingUrl();
-         return false;
-      }
-
-      try {
-         new URL(url); // check this first even if URL is an URI
-         new URI(url);
-      } catch (Exception ex) {
-         errorMessage = Bundle.MSG_WrongUrl();
-         Redmine.LOG.log(Level.FINE, errorMessage, ex);
-         return false;
-      }
-
-      // username and password required if not access key authentication
-      if (getAuthMode() == AuthMode.Credentials) {
-         if (StringUtils.isBlank(getUser())) {
-            errorMessage = Bundle.MSG_MissingUsername();
+        // check url
+        String url = getUrl();
+        if (getUrl().trim().isEmpty()) { // NOI18N
+            errorMessage = Bundle.MSG_MissingUrl();
             return false;
-         } else if (ArrayUtils.isEmpty(getPassword())) {
-            errorMessage = Bundle.MSG_MissingPassword();
+        }
+
+        try {
+            new URL(url); // check this first even if URL is an URI
+            new URI(url);
+        } catch (MalformedURLException | URISyntaxException ex) {
+            errorMessage = Bundle.MSG_WrongUrl();
+            Redmine.LOG.log(Level.FINE, errorMessage, ex);
             return false;
-         }
-      } else {
-         if (StringUtils.isBlank(getAccessKey())) {
-            errorMessage = Bundle.MSG_MissingAccessKey();
-            return false;
-         }
-      }
+        }
 
-      panel.connectButton.setEnabled(true);
-      panel.createNewProjectButton.setEnabled(connected);
-
-
-      // check name
-      String name = panel.nameTextField.getText().trim();
-
-      if (name.equals("")) { // NOI18N
-         errorMessage = Bundle.MSG_MissingName();
-         return false;
-      }
-
-      // is name unique?
-//      if ((repository.isFresh() && Redmine.getInstance().isRepositoryNameExists(name))
-//               || (!repository.isFresh() && !name.equals(repository.getName())
-//               && Redmine.getInstance().isRepositoryNameExists(name))) {
-//      if (Redmine.getInstance().isRepositoryNameExists(name)) {
-//         errorMessage = Bundle.MSG_TrackerAlreadyExists();
-//         return false;
-//      }
-
-      // is repository unique?
-//      RedmineRepository confRepository = Redmine.getInstance().repositoryExists(repository);
-//
-//      if ((repository.isFresh() && Redmine.getInstance().isRepositoryExists(repository))
-//              || (!repository.isFresh() && confRepository != null
-//              && !confRepository.getID().equals(repository.getID()))) {
-//         errorMessage = Bundle.MSG_RepositoryAlreadyExists();
-//         return false;
-//      }
-
-      if (panel.projectComboBox.getSelectedIndex() == -1) {
-         errorMessage = Bundle.MSG_MissingProject();
-         return false;
-      }
-
-      return true;
-   }
-
-   @Override
-   public HelpCtx getHelpCtx() {
-      return new HelpCtx(getClass().getName());
-   }
-
-   @Override
-   public String getErrorMessage() {
-      return errorMessage != null ? "<html>" + errorMessage + "</html>" : errorMessage;
-   }
-
-   @Override
-   public void applyChanges() {
-      repository.setInfoValues(getName(),
-                               getUrl(),
-                               getUser(),
-                               getPassword(),
-                               getAccessKey(),
-                               getAuthMode(),
-                               getProject());
-   }
-
-   @Override
-   public final void populate() {
-      taskRunner = new TaskRunner(NbBundle.getMessage(RedmineRepositoryPanel.class, "LBL_ReadingRepoData")) {  // NOI18N
-
-         @Override
-         protected void postRunSwing() {
-            super.postRunSwing();
-            if (populated) {
-               panel.progressPanel.setVisible(false);
+        // username and password required if not access key authentication
+        if (getAuthMode() == AuthMode.Credentials) {
+            if (StringUtils.isBlank(getUser())) {
+                errorMessage = Bundle.MSG_MissingUsername();
+                return false;
+            } else if (ArrayUtils.isEmpty(getPassword())) {
+                errorMessage = Bundle.MSG_MissingPassword();
+                return false;
             }
-         }
+        } else {
+            if (StringUtils.isBlank(getAccessKey())) {
+                errorMessage = Bundle.MSG_MissingAccessKey();
+                return false;
+            }
+        }
 
-         @Override
-         void execute() {
-            SwingUtilities.invokeLater(new Runnable() {
-               @Override
-               public void run() {
-                  RepositoryInfo info = repository.getInfo();
-                  if (info != null) {
-                     connected = false;
+        if (getName().trim().isEmpty()) {
+            errorMessage = Bundle.MSG_MissingName();
+            return false;
+        }
 
-                     panel.nameTextField.setText(info.getDisplayName());
-                     panel.urlTextField.setText(info.getUrl());
+        if (panel.projectComboBox.getSelectedIndex() == -1) {
+            errorMessage = Bundle.MSG_MissingProject();
+            return false;
+        }
 
-                     panel.setAuthMode(repository.getAuthMode());
-                     panel.accessKeyTextField.setText(repository.getAccessKey());
-                     panel.userField.setText(repository.getUsername());
-                     panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
+        return true;
+    }
 
-                     panel.projectComboBox.setModel(new ListComboBoxModel<Project>(Collections.singletonList(repository.getProject())));
-                     panel.projectComboBox.setSelectedItem(repository.getProject());
-                     panel.projectComboBox.setEnabled(false);
-                  }
-                  populated = true;
-                  fireChange();
-               }
-            });
-         }
-      };
-      taskRunner.startTask();
-   }
+    @Override
+    public HelpCtx getHelpCtx() {
+        return new HelpCtx(getClass().getName());
+    }
 
-   @Override
-   public void insertUpdate(DocumentEvent e) {
-      changedUpdate(e);
-   }
+    @Override
+    public String getErrorMessage() {
+        return errorMessage != null ? "<html>" + errorMessage + "</html>" : errorMessage;
+    }
 
-   @Override
-   public void removeUpdate(DocumentEvent e) {
-      changedUpdate(e);
-   }
+    @Override
+    public void applyChanges() {
+        repository.setInfoValues(getName(),
+                getUrl(),
+                getUser(),
+                getPassword(),
+                getAccessKey(),
+                getAuthMode(),
+                getProject(),
+                isFeatureWatchers());
+    }
 
-   @Override
-   public void changedUpdate(DocumentEvent e) {
-      if (populated) {
-         validateErrorOff(e);
-         fireChange();
-      }
-   }
+    @Override
+    public final void populate() {
+        assert SwingUtilities.isEventDispatchThread();
 
-   @Override
-   public void actionPerformed(ActionEvent e) {
-      if (e.getSource() == panel.connectButton) {
-         onConnect();
-      } else if (e.getSource() == panel.projectComboBox) {
-         onProjectSelected();
-      } else if (e.getSource() == panel.createNewProjectButton) {
-         onCreateNewProject();
-      } else {
-         SwingUtilities.invokeLater(new Runnable() {
+        panel.progressIcon.setIcon(null);
+        panel.progressTextPane.setText("");
+        panel.progressPanel.setVisible(true);
+
+        panel.nameTextField.setText(repository.getDisplayName());
+        panel.urlTextField.setText(repository.getUrl());
+
+        panel.setAuthMode(repository.getAuthMode());
+        panel.accessKeyTextField.setText(repository.getAccessKey());
+        panel.userField.setText(repository.getUsername());
+        panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
+
+        panel.projectComboBox.setModel(new ListComboBoxModel<>(Collections.singletonList(repository.getProject())));
+        panel.projectComboBox.setSelectedItem(repository.getProject());
+        
+        panel.featureWatchers.setSelected(repository.isFeatureWatchers());
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+        changedUpdate(e);
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+        changedUpdate(e);
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+        fireChange();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == panel.connectButton) {
+            onConnect();
+        } else if (e.getSource() == panel.projectComboBox) {
+            onProjectSelected();
+        } else if (e.getSource() == panel.createNewProjectButton) {
+            onCreateNewProject();
+        }
+    }
+
+    private void onConnect() {
+        panel.enableFields(false);
+        
+        new SwingWorker<List<Project>,Object>() {
+
             @Override
-            public void run() {
-               validate();
-               fireChange();
+            protected List<Project> doInBackground() throws Exception {
+                RedmineManager manager = RedmineRepositoryController.this.getManager();
+                List<Project> projects = manager.getProjects();
+                Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
+                return projects;
             }
-         });
-      }
-   }
 
-   private void onConnect() {
-//      if (taskRunner == null) {
-      taskRunner = new TaskRunner(NbBundle.getMessage(RedmineRepositoryPanel.class,
-                                                      "LBL_Connecting")) {  // NOI18N
-         private List<Project> projects;
+            @Override
+            protected void done() {
+                panel.progressIcon.setIcon(null);
+                panel.progressTextPane.setText("");
+                panel.progressPanel.setVisible(true);
+                try {
+                    List<Project> projects = get();
+                    panel.progressIcon.setIcon(Defaults.getIcon("info.png"));
+                    panel.progressTextPane.setText(Bundle.MSG_AuthSuccessful());
+                    Object item = panel.projectComboBox.getSelectedItem();
+                    panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
+                    panel.projectComboBox.setSelectedItem(item);
+                } catch (ExecutionException ex) {
+                    Throwable cause = ex.getCause();
+                    String errorMessage = null;
+                    if (cause instanceof RedmineException) {
+                        errorMessage = Redmine.getMessage("MSG_REDMINE_ERROR",
+                                Jsoup.parse(ex.getLocalizedMessage()).text());
+                        Redmine.LOG.log(Level.INFO, errorMessage, ex);
+                    } else if (cause instanceof Exception) {
+                        errorMessage = Redmine.getMessage("MSG_CONNECTION_ERROR",
+                                ex.getLocalizedMessage());
+                        Redmine.LOG.log(Level.WARNING, errorMessage, ex);
+                    }
+                    if (errorMessage != null) {
+                        panel.progressIcon.setIcon(Defaults.getIcon("warning.png"));
+                        panel.progressTextPane.setText(errorMessage);
+                    }
+                } catch (InterruptedException ex) {
+                }
+                panel.enableFields(true);
+            }
+        }.execute();
+    }
 
-         @Override
-         void execute() {
-            connectError = true;
-            connected = false;
+    private void onProjectSelected() {
+        Project project = getProject();
+        if (project != null && StringUtils.isEmpty(getName())) {
+            panel.nameTextField.setText(project.getName());
+        }
+        fireChange();
+    }
 
-            repository.setInfoValues(getName(),
-                                     getUrl(),
-                                     getUser(),
-                                     getPassword(),
-                                     getAccessKey(),
-                                     getAuthMode(),
-                                     getProject());
+    private void onCreateNewProject() {
+        Object selectedProject = panel.projectComboBox.getSelectedItem();
 
+        RedmineProjectPanel projectPanel = new RedmineProjectPanel(repository);
+
+        if (RedmineUtil.show(projectPanel, "New Redmine project", "OK")) {
             try {
-//                  InetAddress inetAddr = InetAddress.getByName(repository.getUrl());
-//                  if (inetAddr.isReachable(500)) {
-//                     
-//                  }
+                List<Project> projects = repository.getManager().getProjects();
+                Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
 
-               projects = repository.getManager().getProjects();
-               Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
-
-               panel.progressPanel.removeAll();
-               panel.progressPanel.add(new JLabel(Bundle.MSG_AuthSuccessful(repository.getCurrentUser().getUser().getFullName()),
-                                                  Defaults.getIcon("info.png"),
-                                                  SwingUtilities.LEADING), BorderLayout.NORTH);
-               panel.progressPanel.setVisible(true);
-
-               connectError = false;
-               connected = true;
-
-               SwingUtilities.invokeLater(new Runnable() {
-                  @Override
-                  public void run() {
-                     Object item = panel.projectComboBox.getSelectedItem();
-                     panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
-                     panel.projectComboBox.setSelectedItem(item);
-                     panel.projectComboBox.setEnabled(true);
-                     onProjectSelected();
-                  }
-               });
+                panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
+                for (Project p : projects) {
+                    if (p.getIdentifier().equals(projectPanel.getIdentifier())) {
+                        selectedProject = p;
+                        break;
+                    }
+                }
+                panel.projectComboBox.setSelectedItem(selectedProject);
 
             } catch (RedmineException ex) {
-               errorMessage = Redmine.getMessage("MSG_REDMINE_ERROR",
-                                                 Jsoup.parse(ex.getLocalizedMessage()).text());
-               Redmine.LOG.log(Level.INFO, errorMessage, ex);
-            } catch (Exception ex) {
-               errorMessage = Redmine.getMessage("MSG_CONNECTION_ERROR",
-                                                 ex.getLocalizedMessage());
-               Redmine.LOG.log(Level.WARNING, errorMessage, ex);
+                errorMessage = NbBundle.getMessage(Redmine.class,
+                        "MSG_REDMINE_ERROR",
+                        Jsoup.parse(ex.getLocalizedMessage()).text());
+                Redmine.LOG.log(Level.INFO, errorMessage, ex);
             }
+        }
+        fireChange();
+    }
 
-            fireChange();
-         }
-      };
+    @Override
+    public void addChangeListener(ChangeListener l) {
+        support.addChangeListener(l);
+    }
 
-//      }
-      taskRunner.startTask();
-   }
+    @Override
+    public void removeChangeListener(ChangeListener l) {
+        support.removeChangeListener(l);
+    }
 
-   private void onProjectSelected() {
-      Project project = getProject();
-      //repository.setProject(project);
-      // auto-set name
-      if (project != null && StringUtils.isEmpty(getName())) {
-         panel.nameTextField.setText(project.getName());
-      }
-      fireChange();
-   }
-
-   private void onCreateNewProject() {
-      Object selectedProject = panel.projectComboBox.getSelectedItem();
-
-      RedmineProjectPanel projectPanel = new RedmineProjectPanel(repository);
-
-      if (RedmineUtil.show(projectPanel, "New Redmine project", "OK")) {
-         try {
-            List<Project> projects = repository.getManager().getProjects();
-            Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
-
-            panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
-            for (Project p : projects) {
-               if (p.getIdentifier().equals(projectPanel.getIdentifier())) {
-                  selectedProject = p;
-                  break;
-               }
-            }
-            panel.projectComboBox.setSelectedItem(selectedProject);
-
-         } catch (RedmineException ex) {
-            errorMessage = NbBundle.getMessage(Redmine.class,
-                                               "MSG_REDMINE_ERROR", 
-                                               Jsoup.parse(ex.getLocalizedMessage()).text());
-            Redmine.LOG.log(Level.INFO, errorMessage, ex);
-         }
-      }
-      fireChange();
-   }
-
-   private void validateErrorOff(DocumentEvent e) {
-      if (e.getDocument() == panel.accessKeyTextField.getDocument()
-              || e.getDocument() == panel.urlTextField.getDocument()
-              || e.getDocument() == panel.userField.getDocument()
-              || e.getDocument() == panel.pwdField.getDocument()) {
-         connectError = false;
-         panel.projectComboBox.setModel(new ListComboBoxModel<Project>());
-         panel.projectComboBox.setEnabled(false);
-      }
-   }
-
-   void cancel() {
-      if (taskRunner != null) {
-         taskRunner.cancel();
-      }
-   }
-
-   private RequestProcessor getRequestProcessor() {
-      if (rp == null) {
-         rp = new RequestProcessor("Redmine Repository tasks", 1, true); // NOI18N
-      }
-      return rp;
-   }
-
-   @Override
-   public void addChangeListener(ChangeListener l) {
-      support.addChangeListener(l);
-   }
-
-   @Override
-   public void removeChangeListener(ChangeListener l) {
-      support.removeChangeListener(l);
-   }
-
-   protected void fireChange() {
-      support.fireChange();
-   }
+    protected void fireChange() {
+        support.fireChange();
+    }
 
     @Override
     public void cancelChanges() {
     }
 
-   //
-   // inner classes
-   //
-   private abstract class TaskRunner implements Runnable, Cancellable, ActionListener {
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        fireChange();
+    }
 
-      private Task task;
-      private ProgressHandle handle;
-      private String labelText;
-
-      public TaskRunner(String labelText) {
-         this.labelText = labelText;
-      }
-
-      final void startTask() {
-         //cancel();
-         task = getRequestProcessor().create(this);
-         task.schedule(0);
-      }
-
-      @Override
-      final public void run() {
-         preRun();
-         try {
-            execute();
-         } finally {
-            postRun();
-         }
-      }
-
-      abstract void execute();
-
-      protected void preRun() {
-         handle = ProgressHandleFactory.createHandle(labelText, this);
-
-         panel.progressPanel.removeAll();
-         panel.progressPanel.add(ProgressHandleFactory.createProgressComponent(handle), BorderLayout.NORTH);
-         panel.progressPanel.add(ProgressHandleFactory.createMainLabelComponent(handle), BorderLayout.CENTER);
-         panel.cancelButton.addActionListener(this);
-
-         handle.start();
-
-         SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-               preRunSwing();
-            }
-         });
-      }
-
-      /**
-       * Pre-run stuff invoked on AWT Event Dispatching Thread.
-       */
-      protected void preRunSwing() {
-         panel.progressPanel.setVisible(true);
-         panel.cancelButton.setVisible(true);
-         panel.connectButton.setEnabled(false);
-         panel.createNewProjectButton.setEnabled(false);
-         panel.enableFields(false);
-         panel.projectComboBox.setEnabled(false);
-      }
-
-      protected void postRun() {
-         if (handle != null) {
-            handle.finish();
-         }
-         panel.cancelButton.removeActionListener(this);
-
-         SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-               postRunSwing();
-            }
-         });
-      }
-
-      /**
-       * Post-run stuff invoked on AWT Event Dispatching Thread.
-       */
-      protected void postRunSwing() {
-         if (errorMessage != null
-                 && !connected) {
-            panel.progressPanel.setVisible(false);
-         }
-         panel.connectButton.setEnabled(true);
-         panel.cancelButton.setVisible(false);
-         panel.enableFields(true);
-
-         if (panel.projectComboBox.getItemCount() > 0) {
-            panel.projectComboBox.setEnabled(true);
-         }
-         if (connected) {
-            panel.createNewProjectButton.setEnabled(true);
-         }
-         validate();
-      }
-
-      @Override
-      // TODO: implement correct task interruption
-      public boolean cancel() {
-         boolean ret = true;
-
-         postRun();
-
-         if (task != null) {
-            // return true if the task has been removed from the queue,
-            // false it the task has already been processed
-            ret = task.cancel();
-         }
-
-         errorMessage = null;
-         return ret;
-      }
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-         if (e.getSource() == panel.cancelButton) {
-            cancel();
-         }
-      }
-   }
+    private RedmineManager getManager() {
+        RedmineManager manager;
+        if (getAuthMode() == AuthMode.AccessKey) {
+            manager = new RedmineManager(getUrl(), getAccessKey());
+        } else {
+            manager = new RedmineManager(getUrl());
+            manager.setLogin(getUser());
+            manager.setPassword(new String(getPassword()));
+        }
+        return manager;
+    }
 }

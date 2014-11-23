@@ -191,6 +191,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(progressPanel, gridBagConstraints);
 

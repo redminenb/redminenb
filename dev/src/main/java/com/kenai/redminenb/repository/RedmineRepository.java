@@ -812,7 +812,7 @@ public class RedmineRepository {
             return Boolean.parseBoolean(supportsWatchers);
         }
     }
-}
+
     public IssuePriority getDefaultIssuePriority() {
         for (IssuePriority issuePriority : getIssuePriorities()) {
             if (issuePriority.isDefault()) {

@@ -17,9 +17,7 @@ import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.repository.RedmineRepository;
-import com.kenai.redminenb.repository.RedmineRepositoryProvider;
 import com.kenai.redminenb.util.TimeUtil;
-import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import java.awt.event.ActionEvent;
@@ -32,7 +30,6 @@ import java.util.logging.Logger;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import org.netbeans.api.settings.ConvertAsProperties;
-import org.netbeans.modules.bugtracking.api.Repository;
 import org.netbeans.modules.bugtracking.api.RepositoryManager;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -51,7 +48,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Description(
         preferredID = IssueTimeTrackerTopComponent.PREFERRED_ID,
-        iconBase = "/com/kenai/redminenb/resources/redmine.png",
+        iconBase = "com/kenai/redminenb/resources/redmine.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "properties", openAtStartup = false)

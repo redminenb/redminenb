@@ -17,7 +17,7 @@
 package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.RedmineConfig;
-import com.kenai.redminenb.api.Helper;
+import com.kenai.redminenb.repository.RedmineRepository;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,17 +30,21 @@ import org.netbeans.modules.bugtracking.spi.IssuePriorityProvider;
  */
 public class RedmineIssuePriorityProvider implements IssuePriorityProvider<RedmineIssue> {
 
+    private final RedmineRepository repo;
+
+    public RedmineIssuePriorityProvider(RedmineRepository repo) {
+        this.repo = repo;
+    }
+    
     @Override
     public String getPriorityID(RedmineIssue i) {
-        return Helper.getIssuePriority(i.getIssue()).getId().toString();
+        return i.getIssue().getPriorityId().toString();
     }
 
     @Override
     public IssuePriorityInfo[] getPriorityInfos() {
-        // need per manager list
-        List<IssuePriority> li = Helper.getDefaultIssuePriorities();
         List<IssuePriorityInfo> lipi = new ArrayList<>();
-        for (IssuePriority ip : li) {
+        for (IssuePriority ip : repo.getIssuePriorities()) {
             IssuePriorityInfo ipi = new IssuePriorityInfo(
                     ip.getId().toString(), 
                     ip.getName(),
@@ -48,8 +52,7 @@ public class RedmineIssuePriorityProvider implements IssuePriorityProvider<Redmi
             );
             lipi.add(ipi);
         }
-        return lipi.toArray(
-                new IssuePriorityInfo[lipi.size()]);
+        return lipi.toArray(new IssuePriorityInfo[lipi.size()]);
 
     }
 

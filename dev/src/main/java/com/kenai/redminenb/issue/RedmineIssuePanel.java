@@ -6,7 +6,6 @@ import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.ListComboBoxModel;
 import com.kenai.redminenb.util.RedmineUtil;
 
-import com.kenai.redminenb.api.Helper;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.AttachmentDisplay;
 import com.kenai.redminenb.util.ExpandablePanel;
@@ -209,7 +208,7 @@ public class RedmineIssuePanel extends JPanel {
          statusComboBox.setSelectedItem(redmineIssue.getRepository().getStatus(issue.getStatusId()));
          categoryComboBox.setSelectedItem(issue.getCategory());
 
-         IssuePriority ip = Helper.getIssuePriority(issue);
+         IssuePriority ip = redmineIssue.getRepository().getIssuePriority(issue.getPriorityId());
          priorityComboBox.setSelectedItem(ip);
          if (priorityComboBox.getSelectedIndex() < 0) {
             priorityComboBox.addItem(ip);
@@ -370,7 +369,7 @@ public class RedmineIssuePanel extends JPanel {
          setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
          trackerComboBox.setSelectedItem(0);
          statusComboBox.setSelectedIndex(0);
-         priorityComboBox.setSelectedItem(Helper.getDefaultIssuePriority());
+         priorityComboBox.setSelectedItem(redmineIssue.getRepository().getDefaultIssuePriority());
          categoryComboBox.setSelectedItem(null);
 
          subjectTextField.setText(null);

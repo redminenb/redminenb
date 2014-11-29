@@ -25,7 +25,6 @@ import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.Is;
 
 import com.kenai.redminenb.api.AuthMode;
-import com.kenai.redminenb.api.Helper;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
@@ -56,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import org.apache.commons.lang.math.Fraction;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
@@ -97,9 +97,22 @@ public class RedmineRepository {
         development.setDefault(false);
         development.setId(9);
         development.setName("Development");
-        fallbackTimeActivityEntries = Arrays.asList(design, development);
+        fallbackTimeActivityEntries = Collections.unmodifiableList(
+                Arrays.asList(design, development));
     }
  
+    private static final List<IssuePriority> fallbackIssuePriorities;
+            
+    static {
+        fallbackIssuePriorities = Collections.unmodifiableList( Arrays.asList(
+                createIssuePriority(7, "Immediate", false),
+                createIssuePriority(6, "Urgent", false),
+                createIssuePriority(5, "High", false),
+                createIssuePriority(4, "Normal", true),
+                createIssuePriority(3, "Low", false)));
+    }
+                    
+    
     private RepositoryInfo info;
     private transient RepositoryController controller;
     private Map<String, RedmineQuery> queries = null;
@@ -512,16 +525,19 @@ public class RedmineRepository {
         return Collections.<Version>emptyList();
     }
 
-    public Collection<IssuePriority> getIssuePriorities() {
-        try {
-            // since Redmine V2.2.0
-            return Helper.getIssuePriorities(getManager());
-        } catch (Exception ex) {
-            // LOG on info level, as SEVERE causes 
-            Redmine.LOG.log(Level.INFO, "Can't get issue priorities", ex);
+    public List<IssuePriority> getIssuePriorities() {
+        if (issuePriorities == null) {
+            try {
+                // since Redmine V2.2.0
+                issuePriorities = getManager().getIssuePriorities();
+                Collections.reverse(issuePriorities);
+            } catch (Exception ex) {
+                // LOG on info level, as SEVERE causes 
+                issuePriorities = fallbackIssuePriorities;
+                Redmine.LOG.log(Level.INFO, "Can't get issue priorities, using defaults", ex);
+            }
         }
-        Redmine.LOG.log(Level.INFO, "Using default issue priorities");
-        return Helper.storeIssuePriorities(Helper.getDefaultIssuePriorities());
+        return issuePriorities;
     }
 
     /*public IssueCache<RedmineIssue> getIssueCache() {
@@ -764,5 +780,33 @@ public class RedmineRepository {
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+    
+    public IssuePriority getDefaultIssuePriority() {
+        for (IssuePriority issuePriority : getIssuePriorities()) {
+            if (issuePriority.isDefault()) {
+                return issuePriority;
+            }
+        }
+        return null;
+    }
+    
+    public static IssuePriority createIssuePriority(Integer id, String name, boolean isDefault) {
+        IssuePriority ip = new IssuePriority();
+        ip.setId(id);
+        ip.setName(name);
+        ip.setDefault(isDefault);
+        return ip;
+    }
+
+    private List<IssuePriority> issuePriorities;
+
+    public IssuePriority getIssuePriority(Integer id) {
+        for(IssuePriority ip: getIssuePriorities()) {
+            if(ip.getId().equals(id)) {
+                return ip;
+            }
+        }
+        return null;
     }
 }

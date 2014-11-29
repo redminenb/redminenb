@@ -15,6 +15,7 @@
  */
 package com.kenai.redminenb;
 
+import com.kenai.redminenb.issue.RedmineIssuePriorityProvider;
 import com.kenai.redminenb.repository.RedmineRepository;
 
 import org.netbeans.modules.bugtracking.api.Repository;
@@ -59,7 +60,7 @@ public class RedmineConnector implements BugtrackingConnector {
                 repo,
                 null, // Status provider needs a persistent cache
                 Redmine.getInstance().getIssueScheduleProvider(),
-                Redmine.getInstance().getIssuePriorityProvider(),
+                new RedmineIssuePriorityProvider(repo),
                 null);
     }
 }

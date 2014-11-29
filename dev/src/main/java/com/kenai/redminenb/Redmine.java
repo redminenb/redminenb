@@ -92,13 +92,6 @@ public final class Redmine {
         return rqp;
     }
 
-    public RedmineIssuePriorityProvider getIssuePriorityProvider() {
-        if (ipp == null) {
-            ipp = new RedmineIssuePriorityProvider();
-        }
-        return ipp;
-    }
-
     public RedmineIssueScheduleProvider getIssueScheduleProvider() {
         if (issp == null) {
             issp = new RedmineIssueScheduleProvider();

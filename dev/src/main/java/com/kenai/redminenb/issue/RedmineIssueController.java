@@ -38,6 +38,7 @@ public class RedmineIssueController implements IssueController {
     private final RedmineIssue redmineIssue;
     private final JComponent component;
     private final RedmineIssuePanel issuePanel;
+    private Action viewWatchers;
 
     public RedmineIssueController(RedmineIssue issue) {
         this.redmineIssue = issue;
@@ -83,6 +84,7 @@ public class RedmineIssueController implements IssueController {
             }
             
         }.execute();
+        viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
     }
 
     @Override
@@ -152,7 +154,8 @@ public class RedmineIssueController implements IssueController {
         "CTL_CreateSubTaskAction=Create Subtask",
         "CTL_ActionListAction.add=Add to Action Items",
         "CTL_ActionListAction.remove=Remove from Action Items",
-        "CTL_OpenIssueForTimeTracking=Open Timetracker with Issue"
+        "CTL_OpenIssueForTimeTracking=Open Timetracker with Issue",
+        "CTL_OpenWatchersList=Open Watchers List"
     })
     private void initActions() {
         Action timeTrackingAction = new AbstractAction(Bundle.CTL_OpenIssueForTimeTracking(),
@@ -208,6 +211,18 @@ public class RedmineIssueController implements IssueController {
                         RedmineUtil.openIssue(subTask);
                     }
                 };
+        viewWatchers = new AbstractAction(Bundle.CTL_OpenWatchersList(),
+                Defaults.getIcon("face-glasses.png")) {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        WatcherEditor we = new WatcherEditor(redmineIssue);
+                        we.run();
+                    }
+                };
+
+        viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
+        issuePanel.addToolbarAction(viewWatchers, false);
         issuePanel.addToolbarAction(timeTrackingAction, false);
         issuePanel.addToolbarAction(showInBrowserAction, false);
         issuePanel.addToolbarAction(createSubTaskAction, false);

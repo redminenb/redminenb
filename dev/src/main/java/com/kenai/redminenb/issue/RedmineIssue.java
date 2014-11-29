@@ -1,4 +1,4 @@
-/*
+            /*
  * Copyright 2012 Mykolas and Anchialas.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -223,7 +223,7 @@ public final class RedmineIssue {
 
         try {
             if (issue.getId() != null) {
-                setIssue(getRepository().getManager().getIssueById(issue.getId(), INCLUDE.journals, INCLUDE.attachments));
+                setIssue(getRepository().getManager().getIssueById(issue.getId(), INCLUDE.journals, INCLUDE.attachments, INCLUDE.watchers));
             }
             return true;
         } catch (NotFoundException ex) {

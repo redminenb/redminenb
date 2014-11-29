@@ -24,6 +24,7 @@ import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
+import com.taskadapter.redmineapi.bean.Watcher;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -189,6 +190,22 @@ public class Defaults {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             if (value instanceof TimeEntryActivity) {
                 value = ((TimeEntryActivity) value).getName();
+            } else {
+                if (value == null) {
+                    value = " ";
+                }
+            }
+            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        }
+    }
+
+    public static class WatcherLCR extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            if (value instanceof Watcher) {
+                Watcher w = (Watcher) value;
+                value = String.format("%s (%d)", w.getName(), w.getId());
             } else {
                 if (value == null) {
                     value = " ";

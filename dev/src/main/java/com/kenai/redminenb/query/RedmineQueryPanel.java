@@ -125,6 +125,9 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                case "assignee":
                    assigneeList.clearSelection();
                    break;
+               case "watcher":
+                   watcherList.clearSelection();
+                   break;
            }
        }
    };
@@ -160,23 +163,19 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       ListCellRenderer parameterValueLCR = new Defaults.ParameterValueLCR();
       
       trackerList.setCellRenderer(parameterValueLCR);
-      trackerClear.setActionCommand("tracker");
       trackerClear.addActionListener(clearActionListener);
       categoryList.setCellRenderer(parameterValueLCR);
-      categoryClear.setActionCommand("category");
       categoryClear.addActionListener(clearActionListener);
       versionList.setCellRenderer(parameterValueLCR);
-      versionClear.setActionCommand("version");
       versionClear.addActionListener(clearActionListener);
       statusList.setCellRenderer(parameterValueLCR);
-      statusClear.setActionCommand("status");
       statusClear.addActionListener(clearActionListener);
       priorityList.setCellRenderer(new Defaults.PriorityLCR());
-      priorityClear.setActionCommand("priority");
       priorityClear.addActionListener(clearActionListener);
       assigneeList.setCellRenderer(new Defaults.RepositoryUserLCR());
-      assigneeClear.setActionCommand("assignee");
       assigneeClear.addActionListener(clearActionListener);
+      watcherList.setCellRenderer(new Defaults.RepositoryUserLCR());
+      watcherClear.addActionListener(clearActionListener);
 
       setFocusListener(this);
 
@@ -266,9 +265,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         categoryClear = new LinkButton();
         versionClear = new LinkButton();
         filler1 = new Box.Filler(new Dimension(0, 0), new Dimension(0, 0), new Dimension(0, 0));
+        watcherClear = new LinkButton();
         byTextPanel = new JPanel();
-        queryLabel = new JLabel();
-        queryTextField = new JTextField();
         qSubjectCheckBox = new JCheckBox();
         qDescriptionCheckBox = new JCheckBox();
         tableFieldsPanel = new JPanel();
@@ -475,6 +473,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         trackerClear.setBorder(null);
         Mnemonics.setLocalizedText(trackerClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerClear.text")); // NOI18N
+        trackerClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.trackerClear.actionCommand")); // NOI18N
         trackerClear.setFont(trackerClear.getFont().deriveFont(trackerClear.getFont().getStyle() & ~Font.BOLD, trackerClear.getFont().getSize()-2));
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -485,6 +484,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         statusClear.setBorder(null);
         Mnemonics.setLocalizedText(statusClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusClear.text")); // NOI18N
+        statusClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusClear.actionCommand")); // NOI18N
         statusClear.setFont(statusClear.getFont().deriveFont(statusClear.getFont().getStyle() & ~Font.BOLD, statusClear.getFont().getSize()-2));
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -495,6 +495,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         priorityClear.setBorder(null);
         Mnemonics.setLocalizedText(priorityClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityClear.text")); // NOI18N
+        priorityClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityClear.actionCommand")); // NOI18N
         priorityClear.setFont(priorityClear.getFont().deriveFont(priorityClear.getFont().getStyle() & ~Font.BOLD, priorityClear.getFont().getSize()-2));
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -505,6 +506,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         assigneeClear.setBorder(null);
         Mnemonics.setLocalizedText(assigneeClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.assigneeClear.text")); // NOI18N
+        assigneeClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.assigneeClear.actionCommand")); // NOI18N
         assigneeClear.setFont(assigneeClear.getFont().deriveFont(assigneeClear.getFont().getStyle() & ~Font.BOLD, assigneeClear.getFont().getSize()-2));
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 3;
@@ -515,6 +517,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         categoryClear.setBorder(null);
         Mnemonics.setLocalizedText(categoryClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryClear.text")); // NOI18N
+        categoryClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.categoryClear.actionCommand")); // NOI18N
         categoryClear.setFont(categoryClear.getFont().deriveFont(categoryClear.getFont().getStyle() & ~Font.BOLD, categoryClear.getFont().getSize()-2));
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 4;
@@ -525,6 +528,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         versionClear.setBorder(null);
         Mnemonics.setLocalizedText(versionClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionClear.text")); // NOI18N
+        versionClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionClear.actionCommand")); // NOI18N
         versionClear.setFont(versionClear.getFont().deriveFont(versionClear.getFont().getStyle() & ~Font.BOLD, versionClear.getFont().getSize()-2));
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 5;
@@ -537,6 +541,47 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 1.0;
         byDetailsPanel.add(filler1, gridBagConstraints);
+
+        jScrollPane5.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane5.setMinimumSize(new Dimension(100, 120));
+        jScrollPane5.setPreferredSize(new Dimension(100, 120));
+
+        watcherList.setModel(new AbstractListModel() {
+            String[] strings = { "" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        watcherList.setVisibleRowCount(6);
+        jScrollPane5.setViewportView(watcherList);
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        byDetailsPanel.add(jScrollPane5, gridBagConstraints);
+
+        watcherLabel.setFont(watcherLabel.getFont().deriveFont(watcherLabel.getFont().getStyle() | Font.BOLD, watcherLabel.getFont().getSize()-2));
+        watcherLabel.setLabelFor(watcherList);
+        Mnemonics.setLocalizedText(watcherLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.watcherLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
+        byDetailsPanel.add(watcherLabel, gridBagConstraints);
+
+        watcherClear.setBorder(null);
+        Mnemonics.setLocalizedText(watcherClear, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.watcherClear.text")); // NOI18N
+        watcherClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.watcherClear.actionCommand")); // NOI18N
+        watcherClear.setFont(watcherClear.getFont().deriveFont(watcherClear.getFont().getStyle() & ~Font.BOLD, watcherClear.getFont().getSize()-2));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        byDetailsPanel.add(watcherClear, gridBagConstraints);
 
         byTextPanel.setBackground(UIManager.getDefaults().getColor("TextArea.background"));
         byTextPanel.setLayout(new GridBagLayout());
@@ -892,6 +937,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JScrollPane jScrollPane2 = new HackedScrollPane();
     final JScrollPane jScrollPane3 = new HackedScrollPane();
     final JScrollPane jScrollPane4 = new HackedScrollPane();
+    final JScrollPane jScrollPane5 = new HackedScrollPane();
     final JScrollPane jScrollPane6 = new HackedScrollPane();
     final JLabel lastRefreshDateLabel = new JLabel();
     JLabel lastRefreshLabel;
@@ -905,8 +951,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     JCheckBox qDescriptionCheckBox;
     JCheckBox qSubjectCheckBox;
     JPanel queryHeaderPanel;
-    JLabel queryLabel;
-    JTextField queryTextField;
+    final JLabel queryLabel = new JLabel();
+    final JTextField queryTextField = new JTextField();
     final LinkButton refreshButton = new LinkButton();
     final JCheckBox refreshCheckBox = new JCheckBox();
     final LinkButton refreshConfigurationButton = new LinkButton();
@@ -931,6 +977,9 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     LinkButton versionClear;
     final JLabel versionLabel = new JLabel();
     final JList versionList = new JList();
+    LinkButton watcherClear;
+    final JLabel watcherLabel = new JLabel();
+    final JList watcherList = new JList();
     final LinkButton webButton = new LinkButton();
     // End of variables declaration//GEN-END:variables
 

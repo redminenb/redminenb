@@ -2,11 +2,9 @@ package com.kenai.redminenb.repository;
 
 import com.kenai.redminenb.api.AuthMode;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ButtonGroup;
-import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -14,8 +12,15 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.LayoutStyle;
 import com.kenai.redminenb.util.LinkButton;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import org.openide.util.NbBundle;
 
 /**
@@ -60,21 +65,18 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
     @Override
     public void addNotify() {
         super.addNotify();
-
-        progressPanel.setVisible(false);
-        cancelButton.setVisible(false);
         nameTextField.requestFocus();
     }
 
     @Override
     public void removeNotify() {
         super.removeNotify();
-        controller.cancel();
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        GridBagConstraints gridBagConstraints;
 
         buttonGroup1 = new ButtonGroup();
         nameLabel = new JLabel();
@@ -84,36 +86,134 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         urlTextField = new JTextField();
         accessKeyTextField = new JTextField();
         connectButton = new JButton();
-        cancelButton = new JButton();
         progressPanel = new JPanel();
+        progressIcon = new JLabel();
+        progressScrollPane = new JScrollPane();
+        progressTextPane = new JTextPane();
         rbAccessKey = new JRadioButton();
         authLabel = new JLabel();
         rbCredentials = new JRadioButton();
         projectComboBox = new JComboBox();
+        createNewProjectButton = new LinkButton();
+        featuresLabel = new JLabel();
+        featureWatchers = new JCheckBox();
 
         setNextFocusableComponent(nameTextField);
+        setLayout(new GridBagLayout());
 
         nameLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.nameLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(nameLabel, gridBagConstraints);
 
         hostLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.hostLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(hostLabel, gridBagConstraints);
 
         projectLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.projectLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(projectLabel, gridBagConstraints);
 
+        nameTextField.setColumns(25);
         nameTextField.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.nameTextField.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(nameTextField, gridBagConstraints);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(urlTextField, gridBagConstraints);
 
         accessKeyTextField.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.accessKeyTextField.text")); // NOI18N
         accessKeyTextField.setToolTipText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.accessKeyTextField.toolTipText")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(1, 5, 1, 5);
+        add(accessKeyTextField, gridBagConstraints);
 
         connectButton.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.connectButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(connectButton, gridBagConstraints);
 
-        cancelButton.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.cancelButton.text")); // NOI18N
-
-        progressPanel.setPreferredSize(new Dimension(250, 25));
         progressPanel.setLayout(new BorderLayout());
 
-        userField.setColumns(15);
+        progressIcon.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.progressIcon.text_1")); // NOI18N
+        progressPanel.add(progressIcon, BorderLayout.LINE_START);
 
-        pwdField.setColumns(15);
+        progressScrollPane.setMinimumSize(new Dimension(22, 75));
+        progressScrollPane.setOpaque(false);
+        progressScrollPane.setPreferredSize(new Dimension(9, 75));
+
+        progressTextPane.setOpaque(false);
+        progressScrollPane.setViewportView(progressTextPane);
+
+        progressPanel.add(progressScrollPane, BorderLayout.CENTER);
+
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(progressPanel, gridBagConstraints);
+
+        userField.setColumns(12);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(1, 5, 5, 5);
+        add(userField, gridBagConstraints);
+
+        pwdField.setColumns(12);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(1, 5, 5, 5);
+        add(pwdField, gridBagConstraints);
 
         buttonGroup1.add(rbAccessKey);
         rbAccessKey.setSelected(true);
@@ -124,8 +224,22 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
                 rbAuthPerformed(evt);
             }
         });
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(1, 5, 1, 5);
+        add(rbAccessKey, gridBagConstraints);
 
         authLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.authLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 1, 5);
+        add(authLabel, gridBagConstraints);
 
         buttonGroup1.add(rbCredentials);
         rbCredentials.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.rbCredentials.text")); // NOI18N
@@ -134,82 +248,48 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
                 rbAuthPerformed(evt);
             }
         });
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(1, 5, 5, 5);
+        add(rbCredentials, gridBagConstraints);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(projectComboBox, gridBagConstraints);
 
-        createNewProjectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
-        createNewProjectButton.setToolTipText(org.openide.util.NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.createNewProjectButton.toolTipText")); // NOI18N
+        createNewProjectButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
+        createNewProjectButton.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.createNewProjectButton.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(createNewProjectButton, gridBagConstraints);
 
+        featuresLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.featuresLabel.text_1")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(featuresLabel, gridBagConstraints);
 
-        GroupLayout layout = new GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(authLabel)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(rbCredentials)
-                            .addComponent(rbAccessKey)
-                            .addComponent(hostLabel)
-                            .addComponent(nameLabel)
-                            .addComponent(projectLabel))
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(urlTextField)
-                            .addComponent(nameTextField)
-                            .addComponent(accessKeyTextField)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(progressPanel, GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(cancelButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                    .addComponent(projectComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(userField, GroupLayout.DEFAULT_SIZE, 140, Short.MAX_VALUE))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(createNewProjectButton, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(connectButton))
-                                    .addComponent(pwdField, GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)))))))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(nameLabel))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(urlTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(hostLabel))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(authLabel)
-                .addGap(5, 5, 5)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(accessKeyTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(rbAccessKey))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(rbCredentials)
-                    .addComponent(pwdField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(userField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(projectLabel)
-                    .addComponent(connectButton)
-                    .addComponent(projectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(createNewProjectButton))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(progressPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(cancelButton))
-                .addContainerGap())
-        );
+        featureWatchers.setSelected(true);
+        featureWatchers.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.featureWatchers.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(featureWatchers, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void rbAuthPerformed(ActionEvent evt) {//GEN-FIRST:event_rbAuthPerformed
@@ -220,17 +300,21 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     JTextField accessKeyTextField;
-    private JLabel authLabel;
-    private ButtonGroup buttonGroup1;
-    JButton cancelButton;
+    JLabel authLabel;
+    ButtonGroup buttonGroup1;
     JButton connectButton;
-    final LinkButton createNewProjectButton = new LinkButton();
-    private JLabel hostLabel;
-    private JLabel nameLabel;
+    protected LinkButton createNewProjectButton;
+    JCheckBox featureWatchers;
+    JLabel featuresLabel;
+    JLabel hostLabel;
+    JLabel nameLabel;
     JTextField nameTextField;
+    JLabel progressIcon;
     JPanel progressPanel;
+    JScrollPane progressScrollPane;
+    JTextPane progressTextPane;
     JComboBox projectComboBox;
-    private JLabel projectLabel;
+    JLabel projectLabel;
     final JPasswordField pwdField = new JPasswordField();
     JRadioButton rbAccessKey;
     JRadioButton rbCredentials;

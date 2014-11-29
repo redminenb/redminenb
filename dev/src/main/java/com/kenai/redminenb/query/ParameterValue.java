@@ -103,16 +103,21 @@ public class ParameterValue {
    }
    
    public static String flattenList(ParameterValue... pvs) {
+       if(pvs == null) {
+           return "";
+       }
        return flattenList(Arrays.asList(pvs));
    }
    
    public static String flattenList(List<ParameterValue> pvs) {
         StringBuilder sb = new StringBuilder();
         for (ParameterValue pv : pvs) {
-            if (sb.length() > 0) {
-                sb.append(",");
+            if (pv != null && pv.getValue() != null) {
+                if (sb.length() > 0) {
+                    sb.append("|");
+                }
+                sb.append(pv.getValue());
             }
-            sb.append(pv.getValue());
         }
         return sb.toString();
     }

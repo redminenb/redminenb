@@ -21,6 +21,7 @@ import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.JournalDetail;
 import java.io.StringWriter;
 import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import org.apache.commons.lang.StringUtils;
 import org.openide.util.NbBundle;
 
@@ -75,18 +76,32 @@ public class JournalDisplay extends javax.swing.JPanel {
                     escapeHTML(detail.getNewValue())
                 };
                 
-                String info;
+                ResourceBundle rb = NbBundle.getBundle(JournalDisplay.class);
+                
+                String key;
+                String alternativeKey;
                 
                 if (detail.getName().equals("description")) {
-                    info = NbBundle.getMessage(JournalDisplay.class, detail.getProperty() + ".baseChanged", formatParams);
+                    key = detail.getProperty() + ".baseChanged";
+                    alternativeKey = "attr.baseChanged";
                 } else if  (detail.getOldValue() != null && detail.getNewValue() != null) {
-                    info = NbBundle.getMessage(JournalDisplay.class, detail.getProperty() + ".detailChanged", formatParams);
+                    key = detail.getProperty() + ".changed";
+                    alternativeKey = "attr.changed";
                 } else if (detail.getOldValue() != null) {
-                    info = NbBundle.getMessage(JournalDisplay.class, detail.getProperty() + ".deleted", formatParams);
+                    key = detail.getProperty() + ".deleted";
+                    alternativeKey = "attr.deleted";
                 } else {
-                    info = NbBundle.getMessage(JournalDisplay.class, detail.getProperty() + ".added", formatParams);
+                    key = detail.getProperty() + ".added";
+                    alternativeKey = "attr.added";
                 }
-
+                
+                String info;
+                if(! rb.containsKey(key)) {
+                    info = NbBundle.getMessage(JournalDisplay.class, alternativeKey, formatParams);
+                } else {
+                    info = NbBundle.getMessage(JournalDisplay.class, key, formatParams);
+                }
+                
                 writer.append(info);
                 writer.append("</li>");
             }

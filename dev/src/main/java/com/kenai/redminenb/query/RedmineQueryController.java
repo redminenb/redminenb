@@ -130,6 +130,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
     private ListParameter categoryParameter;
     private ListParameter priorityParameter;
     private ListParameter assigneeParameter;
+    private ListParameter watcherParameter;
     private Map<String, RedmineQueryParameter> parameters;
     //
     private final Object REFRESH_LOCK = new Object();
@@ -514,6 +515,13 @@ public class RedmineQueryController implements QueryController, ActionListener {
             pvList.add(new ParameterValue(v.getName(), v.getId()));
         }
         versionParameter.setParameterValues(pvList);
+        
+        // Watchers
+        pvList = new ArrayList<>();
+        for (RedmineUser redmineUser : repository.getUsers()) {
+            pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
+        }
+        watcherParameter.setParameterValues(pvList);
     }
 
     private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
@@ -645,6 +653,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             statusParameter = registerQueryParameter(ListParameter.class, queryPanel.statusList, "status_id");
             priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
             assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
+            watcherParameter = registerQueryParameter(ListParameter.class, queryPanel.watcherList, "watcher_id");
             
             registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
             registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");

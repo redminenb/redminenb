@@ -616,7 +616,6 @@ public class RedmineRepository {
             if (authMode == AuthMode.AccessKey) {
                 manager = new RedmineManager(getUrl(), getAccessKey());
             } else {
-                System.err.println("getURL" + getUrl());
                 manager = new RedmineManager(getUrl());
                 manager.setLogin(getUsername());
                 manager.setPassword(getPassword() == null ? "" : String.valueOf(getPassword()));

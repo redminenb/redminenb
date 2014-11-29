@@ -179,6 +179,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         progressScrollPane.setOpaque(false);
         progressScrollPane.setPreferredSize(new Dimension(9, 75));
 
+        progressTextPane.setEditable(false);
         progressTextPane.setOpaque(false);
         progressScrollPane.setViewportView(progressTextPane);
 

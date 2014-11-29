@@ -645,11 +645,10 @@ public class RedmineQueryController implements QueryController, ActionListener {
             statusParameter = registerQueryParameter(ListParameter.class, queryPanel.statusList, "status_id");
             priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
             assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
-
+            
             registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
             registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");
             registerQueryParameter(CheckBoxParameter.class, queryPanel.qDescriptionCheckBox, "is_description");
-            registerQueryParameter(CheckBoxParameter.class, queryPanel.qCommentsCheckBox, "is_comments");
 
             setListeners();
             postPopulate();

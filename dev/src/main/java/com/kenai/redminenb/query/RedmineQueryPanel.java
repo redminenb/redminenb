@@ -83,6 +83,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import org.openide.awt.Mnemonics;
 import org.openide.util.NbBundle;
 
@@ -178,6 +180,37 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       setFocusListener(this);
 
+      ListSelectionListener lsl = new ListSelectionListener() {
+
+          @Override
+          public void valueChanged(ListSelectionEvent e) {
+              if(! e.getValueIsAdjusting()) {
+                  JList list = (JList) e.getSource();
+                  boolean noneSelected = false;
+                  boolean otherSelected = false;
+                  for(Object o: list.getSelectedValues()) {
+                      if(o instanceof ParameterValue) {
+                          if(ParameterValue.NONE_PARAMETERVALUE.equals(o)) {
+                              noneSelected = true;
+                              continue;
+                          }
+                      }
+                      otherSelected = true;
+                  }
+                  if(noneSelected && otherSelected) {
+                      list.setSelectedIndex(0);
+                  }
+              }
+          }
+      };
+      
+      categoryList.addListSelectionListener(lsl);
+      priorityList.addListSelectionListener(lsl);
+      trackerList.addListSelectionListener(lsl);
+      statusList.addListSelectionListener(lsl);
+      versionList.addListSelectionListener(lsl);
+      assigneeList.addListSelectionListener(lsl);
+      
       validate();
       repaint();
    }
@@ -234,9 +267,10 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         versionClear = new LinkButton();
         filler1 = new Box.Filler(new Dimension(0, 0), new Dimension(0, 0), new Dimension(0, 0));
         byTextPanel = new JPanel();
+        queryLabel = new JLabel();
+        queryTextField = new JTextField();
         qSubjectCheckBox = new JCheckBox();
         qDescriptionCheckBox = new JCheckBox();
-        qCommentsCheckBox = new JCheckBox();
         tableFieldsPanel = new JPanel();
         tableHeaderPanel = new JPanel();
         criteriaPanel = new JPanel();
@@ -505,54 +539,48 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         byDetailsPanel.add(filler1, gridBagConstraints);
 
         byTextPanel.setBackground(UIManager.getDefaults().getColor("TextArea.background"));
+        byTextPanel.setLayout(new GridBagLayout());
 
         queryLabel.setFont(queryLabel.getFont().deriveFont(queryLabel.getFont().getStyle() | Font.BOLD, queryLabel.getFont().getSize()-2));
         queryLabel.setLabelFor(queryTextField);
         Mnemonics.setLocalizedText(queryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.queryLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(12, 12, 12, 5);
+        byTextPanel.add(queryLabel, gridBagConstraints);
 
         queryTextField.setColumns(30);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(12, 5, 12, 5);
+        byTextPanel.add(queryTextField, gridBagConstraints);
+        queryTextField.getAccessibleContext().setAccessibleName(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleName")); // NOI18N
+        queryTextField.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleDescription")); // NOI18N
 
         qSubjectCheckBox.setSelected(true);
         Mnemonics.setLocalizedText(qSubjectCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qSubjectCheckBox.text")); // NOI18N
         qSubjectCheckBox.setOpaque(false);
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(12, 5, 12, 5);
+        byTextPanel.add(qSubjectCheckBox, gridBagConstraints);
 
         Mnemonics.setLocalizedText(qDescriptionCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qDescriptionCheckBox.text")); // NOI18N
         qDescriptionCheckBox.setOpaque(false);
-
-        Mnemonics.setLocalizedText(qCommentsCheckBox, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.qCommentsCheckBox.text")); // NOI18N
-        qCommentsCheckBox.setEnabled(false);
-        qCommentsCheckBox.setOpaque(false);
-
-        GroupLayout byTextPanelLayout = new GroupLayout(byTextPanel);
-        byTextPanel.setLayout(byTextPanelLayout);
-        byTextPanelLayout.setHorizontalGroup(byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(byTextPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(queryLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(queryTextField, GroupLayout.DEFAULT_SIZE, 268, Short.MAX_VALUE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(qSubjectCheckBox)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(qDescriptionCheckBox)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(qCommentsCheckBox)
-                .addContainerGap())
-        );
-        byTextPanelLayout.setVerticalGroup(byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(byTextPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(byTextPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(queryLabel)
-                    .addComponent(queryTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(qSubjectCheckBox)
-                    .addComponent(qDescriptionCheckBox)
-                    .addComponent(qCommentsCheckBox))
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        queryTextField.getAccessibleContext().setAccessibleName(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleName")); // NOI18N
-        queryTextField.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.summaryTextField.AccessibleContext.accessibleDescription")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(12, 5, 12, 12);
+        byTextPanel.add(qDescriptionCheckBox, gridBagConstraints);
 
         tableFieldsPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         tableFieldsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
@@ -634,7 +662,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gotoPanel.add(gotoIssueButton, gridBagConstraints);
         gotoIssueButton.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.gotoIssueButton.AccessibleContext.accessibleDescription")); // NOI18N
 
-        issueIdTextField.setHorizontalAlignment(JTextField.CENTER);
+        issueIdTextField.setHorizontalAlignment(JTextField.RIGHT);
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -874,12 +902,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     LinkButton priorityClear;
     final JLabel priorityLabel = new JLabel();
     final JList priorityList = new JList();
-    JCheckBox qCommentsCheckBox;
     JCheckBox qDescriptionCheckBox;
     JCheckBox qSubjectCheckBox;
     JPanel queryHeaderPanel;
-    final JLabel queryLabel = new JLabel();
-    final JTextField queryTextField = new JTextField();
+    JLabel queryLabel;
+    JTextField queryTextField;
     final LinkButton refreshButton = new LinkButton();
     final JCheckBox refreshCheckBox = new JCheckBox();
     final LinkButton refreshConfigurationButton = new LinkButton();

@@ -200,10 +200,11 @@ public final class RedmineQuery {
     private List<Issue> doSearch()
             throws IOException, AuthenticationException, NotFoundException, RedmineException {
 
-        boolean searchSubject = false;
         boolean searchDescription = false;
-        boolean searchComments = false;
+        
         ParameterValue[] queryStringParameter = parameters.get("query");
+        String queryStr = ParameterValue.flattenList(queryStringParameter);
+        
         Map<String,ParameterValue[]> multiValueParameters = new HashMap<>();
 
         Map<String, String> m = new HashMap<>();
@@ -217,18 +218,24 @@ public final class RedmineQuery {
             }
             ParameterValue[] paramValues = p.getValue();
             if (StringUtils.isNotBlank(ParameterValue.flattenList(paramValues))) {
-                if (paramValues.length == 1) {
-                    if ("is_subject".equals(parameter)) {
-                        searchSubject = "1".equals(paramValues[0].getValue());
-                    } else if ("is_description".equals(parameter)) {
-                        searchDescription = "1".equals(paramValues[0].getValue());
-                    } else if ("is_comments".equals(parameter)) {
-                        searchComments = "1".equals(paramValues[0].getValue());
-                    } else {
-                        m.put(parameter, paramValues[0].getValue());
+                if ( "is_subject".equals(parameter) && StringUtils.isNotBlank(queryStr)) {
+                    m.put("subject", "~" + queryStr);
+                } else if ("is_description".equals(parameter)) {
+                    searchDescription = "1".equals(paramValues[0].getValue());
+                } else {
+                    boolean isNone = false;
+                    for (ParameterValue pv : paramValues) {
+                        if (ParameterValue.NONE_VALUE.equals(pv)) {
+                            isNone = true;
+                        }
                     }
-                } else if (paramValues.length > 1) {
-                    multiValueParameters.put(parameter, paramValues);
+                    if (isNone) {
+                        m.put(parameter, "!*");
+                    } else if (paramValues.length == 1) {
+                        m.put(parameter, paramValues[0].getValue());
+                    } else if (paramValues.length > 1) {
+                        m.put(parameter, ParameterValue.flattenList(paramValues));
+                    }
                 }
             }
         }
@@ -236,79 +243,12 @@ public final class RedmineQuery {
         // Perform search
         List<Issue> issueArr = repository.getManager().getIssues(m);
 
-        // Post filtering: Query string
-        if (queryStringParameter != null && queryStringParameter.length != 0
-                && (searchSubject || searchDescription || searchComments)) {
-            String queryStr = ParameterValue.flattenList(queryStringParameter);
-
+        // Post filtering: Query string for description
+        if (searchDescription && StringUtils.isNotBlank(queryStr)) {
             List<Issue> newArr = new ArrayList<>(issueArr.size());
             for (Issue issue : issueArr) {
-                if ((searchSubject && StringUtils.containsIgnoreCase(issue.getSubject(), queryStr))
-                        || (searchDescription && StringUtils.containsIgnoreCase(issue.getDescription(), queryStr))
-                   ) {
+                if (StringUtils.containsIgnoreCase(issue.getDescription(), queryStr)) {
                     newArr.add(issue);
-                }
-            }
-            issueArr = newArr;
-        }
-
-        // Post filtering: Multi-value parameters
-        if (!multiValueParameters.isEmpty()) {
-            List<Issue> newArr = new ArrayList<>(issueArr.size());
-            for (Issue issue : issueArr) {
-                for (Entry<String,ParameterValue[]> p : multiValueParameters.entrySet()) {
-                    // TODO: map FIELD_xxx property to query parameter
-                    String paramName = p.getKey();
-                    ParameterValue[] parameterValues = p.getValue();
-                    if ("tracker_id".equals(paramName)) {
-                        for (ParameterValue pv : parameterValues) {
-                            if (String.valueOf(issue.getTracker().getId()).equals(pv.getValue())) {
-                                newArr.add(issue);
-                                break;
-                            }
-                        }
-                    } else if ("status_id".equals(paramName)) {
-                        for (ParameterValue pv : parameterValues) {
-                            if (String.valueOf(issue.getStatusId()).equals(pv.getValue())) {
-                                newArr.add(issue);
-                                break;
-                            }
-                        }
-                    } else if ("priority_id".equals(paramName)) {
-                        for (ParameterValue pv : parameterValues) {
-                            if (String.valueOf(issue.getPriorityId()).equals(pv.getValue())) {
-                                newArr.add(issue);
-                                break;
-                            }
-                        }
-                    } else if ("assigned_to_id".equals(paramName)) {
-                        for (ParameterValue pv : parameterValues) {
-                            if ((pv.equals(ParameterValue.NONE_PARAMETERVALUE) && issue.getAssignee() == null)
-                                    || (issue.getAssignee() != null && String.valueOf(issue.getAssignee().getId()).equals(pv.getValue()))) {
-                                newArr.add(issue);
-                                break;
-                            }
-                        }
-                    } else if ("category_id".equals(paramName)) {
-                        for (ParameterValue pv : parameterValues) {
-                            if ((pv.equals(ParameterValue.NONE_PARAMETERVALUE) && issue.getCategory() == null)
-                                    || (issue.getCategory() != null && String.valueOf(issue.getCategory().getId()).equals(pv.getValue()))) {
-                                newArr.add(issue);
-                                break;
-                            }
-                        }
-                    } else if ("fixed_version_id".equals(paramName)) {
-                        for (ParameterValue pv : parameterValues) {
-                            if ((pv.equals(ParameterValue.NONE_PARAMETERVALUE) && issue.getTargetVersion() == null)
-                                    || (issue.getTargetVersion() != null && String.valueOf(issue.getTargetVersion().getId()).equals(pv.getValue()))) {
-                                newArr.add(issue);
-                                break;
-                            }
-                        }
-                    } else {
-                        Redmine.LOG.log(Level.WARNING, "Unsupported multi-value parameter ''{0}''", paramName);
-                    }
-
                 }
             }
             issueArr = newArr;

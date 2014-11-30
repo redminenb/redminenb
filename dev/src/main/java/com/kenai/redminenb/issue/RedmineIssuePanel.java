@@ -895,7 +895,7 @@ public class RedmineIssuePanel extends JPanel {
         updateCommentScrollPane1.setMinimumSize(new java.awt.Dimension(22, 80));
         updateCommentScrollPane1.setPreferredSize(new java.awt.Dimension(228, 80));
 
-        updateCommentTextArea.setColumns(20);
+        updateCommentTextArea.setLineWrap(true);
         updateCommentScrollPane1.setViewportView(updateCommentTextArea);
 
         updateCommentTabPanel.addTab(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.updateCommentScrollPane1.TabConstraints.tabTitle"), updateCommentScrollPane1); // NOI18N

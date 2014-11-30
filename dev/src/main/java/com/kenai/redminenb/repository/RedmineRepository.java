@@ -526,7 +526,7 @@ public class RedmineRepository {
         }
         return c;
     }
-
+    
     public Collection<? extends Version> reloadVersions() {
         for (Version v : getLookup().lookupAll(Version.class)) {
             ic.remove(v);

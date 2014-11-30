@@ -230,7 +230,7 @@ public class RedmineIssuePanel extends JPanel {
          journalPane.removeAll();
          List<Journal> journalEntries = issue.getJournals();
          for(int i = 0; i < journalEntries.size(); i++) {
-             JournalDisplay jdisplay = new JournalDisplay(journalEntries.get(i), i);
+             JournalDisplay jdisplay = new JournalDisplay(redmineIssue, journalEntries.get(i), i);
              journalPane.add(jdisplay);
          }
          journalPane.doLayout();

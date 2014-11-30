@@ -16,9 +16,16 @@
 
 package com.kenai.redminenb.issue;
 
+import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.markup.TextileUtil;
+import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.IssuePriority;
+import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.JournalDetail;
+import com.taskadapter.redmineapi.bean.Tracker;
+import com.taskadapter.redmineapi.bean.Version;
 import java.io.StringWriter;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -30,19 +37,11 @@ import org.openide.util.NbBundle;
  * @author matthias
  */
 public class JournalDisplay extends javax.swing.JPanel {
-    /**
-     * Creates new form JournalDisplay
-     */
-    private JournalDisplay() {
+    public JournalDisplay(RedmineIssue ri, Journal jd, int index) {
         initComponents();
-    }
-    
-    public JournalDisplay(Journal jd, int index) {
-        initComponents();
-        setJournalData(jd, index);
-    }
-    
-    public synchronized void setJournalData(Journal jd, int index) {
+        
+        RedmineRepository repo = ri.getRepository();
+        
         Object[] rightParams = new Object[] {jd.getId(), index + 1};
         Object[] leftParams = new Object[]{ jd.getUser().getFullName(), jd.getCreatedOn()};
         leftLabel.setText(NbBundle.getMessage(JournalDisplay.class, 
@@ -69,11 +68,41 @@ public class JournalDisplay extends javax.swing.JPanel {
                     // Ok, was not translated
                 }
                 
+                String oldValue = detail.getOldValue();
+                String newValue = detail.getNewValue();
+                
+                switch(fieldName) {
+                    case "category_id":
+                        oldValue = formatCategory(repo, oldValue);
+                        newValue = formatCategory(repo, newValue);
+                        break;
+                    case "fixed_version_id":
+                        oldValue = formatVersion(repo, oldValue);
+                        newValue = formatVersion(repo, newValue);
+                        break;
+                    case "priority_id":
+                        oldValue = formatPriority(repo, oldValue);
+                        newValue = formatPriority(repo, newValue);
+                        break;
+                    case "status_id":
+                        oldValue = formatStatus(repo, oldValue);
+                        newValue = formatStatus(repo, newValue);
+                        break;
+                    case "tracker_id":
+                        oldValue = formatTracker(repo, oldValue);
+                        newValue = formatTracker(repo, newValue);
+                        break;
+                    case "assigned_to_id":
+                        oldValue = formatAssignee(repo, oldValue);
+                        newValue = formatAssignee(repo, newValue);
+                        break;
+                }
+                
                 Object[] formatParams = new Object[]{
                     escapeHTML(fieldName),
                     escapeHTML(translatedFieldName),
-                    escapeHTML(detail.getOldValue()),
-                    escapeHTML(detail.getNewValue())
+                    escapeHTML(oldValue),
+                    escapeHTML(newValue)
                 };
                 
                 ResourceBundle rb = NbBundle.getBundle(JournalDisplay.class);
@@ -118,6 +147,96 @@ public class JournalDisplay extends javax.swing.JPanel {
         content.setHTMLText(output);
     }
 
+    private String formatCategory(RedmineRepository repo, String value) {
+        if(value == null) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(value);
+            for (IssueCategory ic : repo.getIssueCategories()) {
+                if (ic.getId().equals(id)) {
+                    return ic.getName() + " (ID: " + id.toString() + ")";
+                }
+            }
+        } catch (NumberFormatException ex) {}
+        return "(ID: " + value + ")";
+    }
+    
+    private String formatVersion(RedmineRepository repo, String value) {
+        if(value == null) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(value);
+            for (Version v : repo.getVersions()) {
+                if (v.getId().equals(id)) {
+                    return v.getName() + " (ID: " + id.toString() + ")";
+                }
+            }
+        } catch (NumberFormatException ex) {}
+        return "(ID: " + value + ")";
+    }
+    
+    private String formatPriority(RedmineRepository repo, String value) {
+        if(value == null) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(value);
+            for (IssuePriority ip : repo.getIssuePriorities()) {
+                if (ip.getId().equals(id)) {
+                    return ip.getName() + " (ID: " + id.toString() + ")";
+                }
+            }
+        } catch (NumberFormatException ex) {}
+        return "(ID: " + value + ")";
+    }
+    
+    private String formatStatus(RedmineRepository repo, String value) {
+        if(value == null) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(value);
+            for (IssueStatus is : repo.getStatuses()) {
+                if (is.getId().equals(id)) {
+                    return is.getName() + " (ID: " + id.toString() + ")";
+                }
+            }
+        } catch (NumberFormatException ex) {}
+        return "(ID: " + value + ")";
+    }
+    
+    private String formatTracker(RedmineRepository repo, String value) {
+        if(value == null) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(value);
+            for (Tracker t : repo.getTrackers()) {
+                if (t.getId().equals(id)) {
+                    return t.getName() + " (ID: " + id.toString() + ")";
+                }
+            }
+        } catch (NumberFormatException ex) {}
+        return "(ID: " + value + ")";
+    }
+    
+    private String formatAssignee(RedmineRepository repo, String value) {
+        if(value == null) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(value);
+            for (RedmineUser ru : repo.getUsers()) {
+                if (ru.getId().equals(id)) {
+                    return ru.getUser().getFullName() + " (ID: " + id.toString() + ")";
+                }
+            }
+        } catch (NumberFormatException ex) {}
+        return "(ID: " + value + ")";
+    }
+    
     private String escapeHTML(String input) {
         if(input == null) {
             return "";

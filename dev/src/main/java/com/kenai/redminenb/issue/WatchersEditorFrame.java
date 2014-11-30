@@ -24,6 +24,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -62,7 +64,7 @@ public class WatchersEditorFrame extends javax.swing.JPanel {
                 String filterString = availableFilter.getText();
                 RowFilter rf = null;
                 if(! filterString.isEmpty()) {
-                    rf = RowFilter.regexFilter(Pattern.quote(filterString));
+                    rf = RowFilter.regexFilter("(?i)(?u)" + Pattern.quote(filterString));
                 }
                 availableList.setRowFilter(rf);
             }
@@ -88,8 +90,7 @@ public class WatchersEditorFrame extends javax.swing.JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(Object watcherObject: availableList.getSelectedValues()) {
-                    getAvailableUsersModel().remove((Watcher) watcherObject);
-                    getWatchersModel().add((Watcher) watcherObject);
+                    addWatcher((Watcher) watcherObject);
                 }
             }
         });
@@ -99,8 +100,7 @@ public class WatchersEditorFrame extends javax.swing.JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(Object watcherObject: watchersList.getSelectedValues()) {
-                    getWatchersModel().remove((Watcher) watcherObject);
-                    getAvailableUsersModel().add((Watcher) watcherObject);
+                    removeWatcher((Watcher) watcherObject);
                 }
             }
         });
@@ -120,8 +120,66 @@ public class WatchersEditorFrame extends javax.swing.JPanel {
                 removeButton.setEnabled(watchersList.getSelectedValues().length > 0);
             }
         });
+        
+        watchersList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int clickIdx = watchersList.locationToIndex(e.getPoint());
+                    Watcher w = (Watcher) watchersList.getElementAt(clickIdx);
+                    removeWatcher(w);
+                }
+            }
+        });
+        
+        availableList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int clickIdx = availableList.locationToIndex(e.getPoint());
+                    Watcher w = (Watcher) availableList.getElementAt(clickIdx);
+                    addWatcher(w);
+                }
+            }
+        });
+        
+        watchersList.addKeyListener(new KeyAdapter() {
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    for (Object watcherObject : watchersList.getSelectedValues()) {
+                        removeWatcher((Watcher) watcherObject);
+                    }
+                }
+            }
+            
+        });
+        
+        availableList.addKeyListener(new KeyAdapter() {
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    for (Object watcherObject : availableList.getSelectedValues()) {
+                        addWatcher((Watcher) watcherObject);
+                    }
+                }
+            }
+            
+        });
     }
 
+    private void removeWatcher(Watcher watcherObject) {
+        getWatchersModel().remove((Watcher) watcherObject);
+        getAvailableUsersModel().add((Watcher) watcherObject);
+    }
+    
+    private void addWatcher(Watcher watcherObject) {
+        getWatchersModel().add((Watcher) watcherObject);
+        getAvailableUsersModel().remove((Watcher) watcherObject);
+    }
+    
     private ListListModel<Watcher> getAvailableUsersModel() {
         return (ListListModel<Watcher>) availableList.getModel();
     }

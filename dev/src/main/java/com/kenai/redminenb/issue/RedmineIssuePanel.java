@@ -42,9 +42,11 @@ import javax.swing.JToggleButton;
 import javax.swing.LayoutStyle;
 import org.apache.commons.lang.StringUtils;
 import com.kenai.redminenb.util.LinkButton;
+import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Journal;
+import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import java.awt.Component;
@@ -55,6 +57,7 @@ import java.io.File;
 import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 import javax.swing.Box.Filler;
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
@@ -82,7 +85,7 @@ import org.openide.windows.WindowManager;
     "BTN_AddAttachment=Add attachment"
 })
 public class RedmineIssuePanel extends JPanel {
-
+   private static final Logger LOG = Logger.getLogger(RedmineIssuePanel.class.getName());
    private static final long serialVersionUID = 9011030935877495476L;
    private static File lastDirectory;
    //
@@ -178,7 +181,11 @@ public class RedmineIssuePanel extends JPanel {
       updateButton.setVisible(!redmineIssue.isNew());
       toolbar.setVisible(!redmineIssue.isNew());
 
-      projectNameButton.setText(redmineIssue.getRepository().getProject().getName());
+      try {
+          projectNameButton.setText(redmineIssue.getRepository().getProject().getName());
+      } catch (RedmineException | NullPointerException ex) {
+          LOG.log(Level.WARNING, "Failed to retrieve project", ex);
+      }
 
       if (issue != null) {
          Dimension dim = headerLabel.getPreferredSize();
@@ -1208,9 +1215,9 @@ public class RedmineIssuePanel extends JPanel {
    private void projectNameButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_projectNameButtonActionPerformed
       try {
          URL url = new URL(redmineIssue.getRepository().getUrl() + "/projects/"
-                 + redmineIssue.getRepository().getProject().getId()); // NOI18N
+                 + redmineIssue.getRepository().getProjectID().toString()); // NOI18N
          HtmlBrowser.URLDisplayer.getDefault().showURL(url);
-      } catch (IOException ex) {
+      } catch (IOException | NullPointerException ex) {
          Redmine.LOG.log(Level.INFO, "Unable to show the issue's project in the browser.", ex); // NOI18N
       }
    }//GEN-LAST:event_projectNameButtonActionPerformed
@@ -1219,8 +1226,8 @@ public class RedmineIssuePanel extends JPanel {
       NotifyDescriptor.InputLine d = new NotifyDescriptor.InputLine("New Version Name", "Add a new Version");
       if (DialogDisplayer.getDefault().notify(d) == NotifyDescriptor.OK_OPTION
               && StringUtils.isNotBlank(d.getInputText())) {
-         Version v = new Version(redmineIssue.getRepository().getProject(), d.getInputText());
          try {
+            Version v = new Version(redmineIssue.getRepository().getProject(), d.getInputText());
             redmineIssue.getRepository().getManager().createVersion(v);
             Collection<? extends Version> c = redmineIssue.getRepository().reloadVersions();
             for (Version version : c) {
@@ -1233,7 +1240,7 @@ public class RedmineIssuePanel extends JPanel {
             targetVersionComboBox.setSelectedItem(v);
 
          } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
+            LOG.log(Level.WARNING, "Failed to create Version", ex);
          }
       }
    }//GEN-LAST:event_versionAddButtonActionPerformed
@@ -1242,8 +1249,8 @@ public class RedmineIssuePanel extends JPanel {
       NotifyDescriptor.InputLine d = new NotifyDescriptor.InputLine("New Category label", "Add a new Category");
       if (DialogDisplayer.getDefault().notify(d) == NotifyDescriptor.OK_OPTION
               && StringUtils.isNotBlank(d.getInputText())) {
-         IssueCategory ic = new IssueCategory(redmineIssue.getRepository().getProject(), d.getInputText());
          try {
+            IssueCategory ic = new IssueCategory(redmineIssue.getRepository().getProject(), d.getInputText());
             redmineIssue.getRepository().getManager().createCategory(ic);
             Collection<? extends IssueCategory> c = redmineIssue.getRepository().reloadIssueCategories();
             for (IssueCategory issueCategory : c) {
@@ -1256,7 +1263,7 @@ public class RedmineIssuePanel extends JPanel {
             categoryComboBox.setSelectedItem(ic);
 
          } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
+            LOG.log(Level.WARNING, "Failed to create category", ex);
          }
       }
    }//GEN-LAST:event_categoryAddButtonActionPerformed

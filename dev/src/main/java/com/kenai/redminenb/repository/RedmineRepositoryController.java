@@ -25,8 +25,6 @@ import com.kenai.redminenb.api.AuthMode;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.bean.Project;
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -35,12 +33,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeListener;
@@ -49,13 +47,9 @@ import javax.swing.event.DocumentListener;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
-import org.netbeans.api.progress.ProgressHandle;
-import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
-import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.openide.util.*;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.RequestProcessor.Task;
 
 /**
  * Redmine repository parameter controller.
@@ -73,10 +67,11 @@ import org.openide.util.RequestProcessor.Task;
     "MSG_MissingProject=No Project is selected",
     "MSG_TrackerAlreadyExists=Issue Tracker with the same name already exists",
     "MSG_RepositoryAlreadyExists=The same Issue Tracker already exists",
-    "MSG_AuthSuccessful=Successfully authenticated"
+    "MSG_AuthSuccessful=Successfully authenticated",
+    "MSG_Unchanged=Unchanged"
 })
 public class RedmineRepositoryController implements RepositoryController, DocumentListener, ActionListener, ItemListener {
-
+    
     private final RedmineRepository repository;
     private final RedmineRepositoryPanel panel;
     private String errorMessage;
@@ -132,8 +127,8 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         return panel.accessKeyTextField.getText().trim();
     }
 
-    private Project getProject() {
-        return (Project) panel.projectComboBox.getSelectedItem();
+    private ProjectId getProject() {
+        return (ProjectId) panel.projectComboBox.getSelectedItem();
     }
 
     private boolean isFeatureWatchers() {
@@ -208,7 +203,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                 getPassword(),
                 getAccessKey(),
                 getAuthMode(),
-                getProject(),
+                getProject() == null ? null : getProject().getId(),
                 isFeatureWatchers());
     }
 
@@ -227,10 +222,15 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         panel.accessKeyTextField.setText(repository.getAccessKey());
         panel.userField.setText(repository.getUsername());
         panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
-
-        panel.projectComboBox.setModel(new ListComboBoxModel<>(Collections.singletonList(repository.getProject())));
-        panel.projectComboBox.setSelectedItem(repository.getProject());
         
+        if(repository.getProjectID() != null) {
+            ProjectId project = new ProjectId(repository.getProjectID(), Bundle.MSG_Unchanged());
+            panel.projectComboBox.setModel(new ListComboBoxModel<>(Collections.singletonList(project)));
+            panel.projectComboBox.setSelectedItem(project);
+        } else {
+            panel.projectComboBox.setModel(new ListComboBoxModel<>());
+        }
+
         panel.featureWatchers.setSelected(repository.isFeatureWatchers());
     }
 
@@ -263,13 +263,16 @@ public class RedmineRepositoryController implements RepositoryController, Docume
     private void onConnect() {
         panel.enableFields(false);
         
-        new SwingWorker<List<Project>,Object>() {
+        new SwingWorker<List<ProjectId>,Object>() {
 
             @Override
-            protected List<Project> doInBackground() throws Exception {
+            protected List<ProjectId> doInBackground() throws Exception {
                 RedmineManager manager = RedmineRepositoryController.this.getManager();
-                List<Project> projects = manager.getProjects();
-                Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
+                List<ProjectId> projects = new ArrayList<>();
+                for(Project p: manager.getProjects()) {
+                    projects.add(new ProjectId(p.getId(), p.getName()));
+                }
+                Collections.sort(projects);
                 return projects;
             }
 
@@ -279,7 +282,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                 panel.progressTextPane.setText("");
                 panel.progressPanel.setVisible(true);
                 try {
-                    List<Project> projects = get();
+                    List<ProjectId> projects = get();
                     panel.progressIcon.setIcon(Defaults.getIcon("info.png"));
                     panel.progressTextPane.setText(Bundle.MSG_AuthSuccessful());
                     Object item = panel.projectComboBox.getSelectedItem();
@@ -309,7 +312,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
     }
 
     private void onProjectSelected() {
-        Project project = getProject();
+        ProjectId project = getProject();
         if (project != null && StringUtils.isEmpty(getName())) {
             panel.nameTextField.setText(project.getName());
         }

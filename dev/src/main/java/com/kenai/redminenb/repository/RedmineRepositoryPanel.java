@@ -93,7 +93,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         rbAccessKey = new JRadioButton();
         authLabel = new JLabel();
         rbCredentials = new JRadioButton();
-        projectComboBox = new JComboBox();
+        projectComboBox = new JComboBox<ProjectId>();
         createNewProjectButton = new LinkButton();
         featuresLabel = new JLabel();
         featureWatchers = new JCheckBox();
@@ -314,7 +314,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
     JPanel progressPanel;
     JScrollPane progressScrollPane;
     JTextPane progressTextPane;
-    JComboBox projectComboBox;
+    JComboBox<ProjectId> projectComboBox;
     JLabel projectLabel;
     final JPasswordField pwdField = new JPasswordField();
     JRadioButton rbAccessKey;

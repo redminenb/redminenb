@@ -55,14 +55,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.commons.lang.math.Fraction;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.netbeans.modules.bugtracking.spi.RepositoryProvider;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
@@ -84,7 +82,7 @@ import org.openide.util.lookup.InstanceContent;
 public class RedmineRepository {    
     static final String PROPERTY_AUTH_MODE = "authMode";                // NOI18N  
     static final String PROPERTY_ACCESS_KEY = "accessKey";              // NOI18N  
-    static final String PROPERTY_PROJECT_ID = "projectId";              // NOI18N  
+    static final String PROPERTY_PROJECT_ID = "projectId";              // NOI18N
     static final String PROPERTY_FEATURE_WATCHERS = "featureWatchers";  // NOI18N
     
     private static final List<TimeEntryActivity> fallbackTimeActivityEntries;
@@ -176,14 +174,6 @@ public class RedmineRepository {
     public RedmineRepository(RepositoryInfo info) { 
         this();
         this.info = info;
-        try {
-            String projectId = info.getValue(PROPERTY_PROJECT_ID);
-            if (projectId != null) {
-                setProject(getManager().getProjectByKey(projectId));
-            }
-        } catch (RedmineException ex) {
-            Exceptions.printStackTrace(ex);
-        }
     }
 
     public IssueCache getIssueCache() {
@@ -207,7 +197,7 @@ public class RedmineRepository {
     }
 
     synchronized void setInfoValues(String name, String url, String user, char[] password,
-            String accessKey, AuthMode authMode, Project project, boolean featureWatchers) {
+            String accessKey, AuthMode authMode, Integer project, boolean featureWatchers) {
         String id = info != null ? info.getID() : name + System.currentTimeMillis();
         String httpUser = null;
         char[] httpPassword = null;
@@ -221,10 +211,11 @@ public class RedmineRepository {
                 password,
                 httpPassword);
         ri.putValue(PROPERTY_FEATURE_WATCHERS, Boolean.toString(featureWatchers));
+        ri.putValue(PROPERTY_PROJECT_ID, project == null ? null : String.valueOf(project));
         info = ri;
         setAccessKey(accessKey);
         setAuthMode(authMode);
-        setProject(project);
+        this.project = null;
     }
 
     public String getDisplayName() {
@@ -299,13 +290,26 @@ public class RedmineRepository {
         return info.getUsername();
     }
 
-    public Project getProject() {
+    public Project getProject() throws RedmineException {
+        if(project == null) {
+            if(getProjectID() == null) {
+                return null;
+            }
+            project = getManager().getProjectByKey(getProjectID().toString());
+        }
         return project;
     }
-
-    public final void setProject(Project project) {
-        this.project = project;
-        info.putValue(PROPERTY_PROJECT_ID, project == null ? null : String.valueOf(project.getId()));
+    
+    public Integer getProjectID() {
+        try {
+            String projectString = info.getValue(PROPERTY_PROJECT_ID);
+            return Integer.valueOf(projectString);
+        } catch (NullPointerException | NumberFormatException ex) {
+            // Accept the potential slow path - the assumption is, that
+            // in 99.9...% of all cases a projectId is set - only
+            // while constructing a new repository info, this could be empty
+            return null;
+        }
     }
 
     public RedmineIssue getIssue(String issueId) {
@@ -421,7 +425,7 @@ public class RedmineRepository {
         List<RedmineUser> users = new ArrayList<>();
         try {
             users.add(currentUser);
-            for (Membership m : getManager().getMemberships(project)) {
+            for (Membership m : getManager().getMemberships(getProjectID().toString())) {
                 if (m.getUser() != null && !currentUser.getUser().getId().equals(m.getUser().getId())) {
                     users.add(new RedmineUser(m.getUser()));
                 }
@@ -502,22 +506,16 @@ public class RedmineRepository {
             return c;
         }
         try {
-            c = getManager().getCategories(project.getId());
+            c = getManager().getCategories(getProjectID());
         } catch (NotFoundException ex) {
             DialogDisplayer.getDefault().notify(new NotifyDescriptor.Message(
-                    "Can't get Issue Categories for Redmine Project " + project.getName()
+                    "Can't get Issue Categories for Redmine Project-ID " + getProjectID()
                     + ":\n" + ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE));
-            Redmine.LOG.log(Level.SEVERE, "Can't get Issue Categories for Redmine Project " + project.getName(), ex);
+            Redmine.LOG.log(Level.SEVERE, "Can't get Issue Categories for Redmine Project-ID " + getProjectID(), ex);
         } catch (Exception ex) {
-            Redmine.LOG.log(Level.SEVERE, "Can't get Issue Categories for Redmine Project " + project.getName(), ex);
+            Redmine.LOG.log(Level.SEVERE, "Can't get Issue Categories for Redmine Project-ID " + getProjectID(), ex);
         }
         if (c != null) {
-//      if (c.isEmpty()) {
-//         IssueCategory category = new IssueCategory();
-//         category.setId(-1);
-//         category.setName("[n/a]");
-//         c = Collections.singleton(category);
-//      }
             for (IssueCategory category : c) {
                 category.setProject(null);
                 category.setAssignee(null);
@@ -536,9 +534,9 @@ public class RedmineRepository {
 
     public List<Version> getVersions() {
         try {
-            return getManager().getVersions(project.getId());
+            return getManager().getVersions(getProjectID());
         } catch (Exception ex) {
-            Redmine.LOG.log(Level.SEVERE, "Can't get versions for project " + project.getName(), ex);
+            Redmine.LOG.log(Level.SEVERE, "Can't get versions for project " + getProjectID(), ex);
         }
         // TODO: return a default set of Categories
         return Collections.<Version>emptyList();
@@ -578,7 +576,7 @@ public class RedmineRepository {
             }
 
             resultIssues.addAll(getManager().getIssuesBySummary(
-                    project.getIdentifier(),
+                    getProjectID().toString(),
                     "*" + string + "*"));
 
             List<RedmineIssue> redmineIssues = new LinkedList<>();
@@ -653,8 +651,6 @@ public class RedmineRepository {
                     }
                     Redmine.LOG.log(Level.FINER, "preparing to refresh issue {0} - {1}",
                             new Object[]{getDisplayName(), ids}); // NOI18N
-//               GetMultiTaskDataCommand cmd = new GetMultiTaskDataCommand(RedmineRepository.this, ids, new IssuesCollector());
-//               getExecutor().execute(cmd, false);
                     scheduleIssueRefresh();
                 }
             });
@@ -776,7 +772,7 @@ public class RedmineRepository {
         RedmineRepository other = (RedmineRepository) obj;
         return Is.equals(this.getDisplayName(), other.getDisplayName())
                 && Is.equals(this.getUrl(), other.getUrl())
-                && Is.equals(this.project, other.project);
+                && Is.equals(getProjectID(), other.getProjectID());
     }
 
     @Override
@@ -784,7 +780,7 @@ public class RedmineRepository {
         int hash = 3;
         hash = 97 * hash + (this.getDisplayName() != null ? this.getDisplayName().hashCode() : 0);
         hash = 97 * hash + (this.getUrl() != null ? this.getUrl().hashCode() : 0);
-        hash = 97 * hash + (this.project != null ? this.project.hashCode() : 0);
+        hash = 97 * hash + (getProjectID() != null ? this.getProjectID().hashCode() : 0);
         return hash;
     }
     // 

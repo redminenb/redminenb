@@ -22,7 +22,6 @@ import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.query.RedmineQuery;
 import com.kenai.redminenb.query.RedmineQueryController;
 import com.kenai.redminenb.user.RedmineUser;
-import com.kenai.redminenb.util.Is;
 
 import com.kenai.redminenb.api.AuthMode;
 import com.taskadapter.redmineapi.NotFoundException;
@@ -53,6 +52,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import org.netbeans.api.annotations.common.NonNull;
@@ -255,7 +255,7 @@ public class RedmineRepository {
 
     public void setAuthMode(AuthMode authMode) {
         AuthMode old = getAuthMode();
-        if (!Is.equals(old, authMode)) {
+        if (!Objects.equals(old, authMode)) {
             manager = null;
         }
         info.putValue(PROPERTY_AUTH_MODE, authMode == null ? null : authMode.name());
@@ -270,7 +270,7 @@ public class RedmineRepository {
 
     public void setAccessKey(String accessKey) {
         String old = getAccessKey();
-        if (!Is.equals(old, accessKey)) {
+        if (!Objects.equals(old, accessKey)) {
             manager = null; // force reconnect
         }
         info.putValue(PROPERTY_ACCESS_KEY, accessKey);
@@ -770,9 +770,9 @@ public class RedmineRepository {
             return false;
         }
         RedmineRepository other = (RedmineRepository) obj;
-        return Is.equals(this.getDisplayName(), other.getDisplayName())
-                && Is.equals(this.getUrl(), other.getUrl())
-                && Is.equals(getProjectID(), other.getProjectID());
+        return Objects.equals(this.getDisplayName(), other.getDisplayName())
+                && Objects.equals(this.getUrl(), other.getUrl())
+                && Objects.equals(getProjectID(), other.getProjectID());
     }
 
     @Override

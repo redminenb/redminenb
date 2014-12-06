@@ -24,6 +24,7 @@ import com.taskadapter.redmineapi.bean.Identifiable;
 import com.taskadapter.redmineapi.bean.Project;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
 import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
 import org.openide.DialogDescriptor;
@@ -61,7 +62,7 @@ public final class RedmineUtil {
             }
         } else {
             for (Identifiable identifiable : c) {
-                if (Is.equals(idObject.getId(), identifiable == null ? null : identifiable.getId())) {
+                if (Objects.equals(idObject.getId(), identifiable == null ? null : identifiable.getId())) {
                     return i;
                 }
                 ++i;

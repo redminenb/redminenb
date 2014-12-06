@@ -1,7 +1,7 @@
 package com.kenai.redminenb.user;
 
-import com.kenai.redminenb.util.Is;
 import com.taskadapter.redmineapi.bean.User;
+import java.util.Objects;
 
 /**
  * A Redmine {@link RepositoryUser repository user}.
@@ -53,7 +53,7 @@ public class RedmineUser {
         }
         RedmineUser other = (RedmineUser) obj;
         return (this.user == null && other.user == null)
-                || (this.user != null && other.user != null && Is.equals(this.user.getId(), other.user.getId()))
+                || (this.user != null && other.user != null && Objects.equals(this.user.getId(), other.user.getId()))
                 || false;
     }
 

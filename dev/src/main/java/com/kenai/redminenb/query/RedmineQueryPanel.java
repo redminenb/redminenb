@@ -43,7 +43,9 @@
 package com.kenai.redminenb.query;
 
 import com.kenai.redminenb.ui.Defaults;
+import com.kenai.redminenb.util.BusyPanel;
 import com.kenai.redminenb.util.ExpandablePanel;
+import com.kenai.redminenb.util.FullSizeLayout;
 import java.awt.BorderLayout;
 
 import java.awt.Color;
@@ -83,6 +85,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
+import javax.swing.JLayeredPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.openide.awt.Mnemonics;
@@ -131,6 +134,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
            }
        }
    };
+   
+   JComponent waitPanel = new BusyPanel();
    
    public RedmineQueryPanel(JComponent tableComponent, RedmineQueryController controller) {
       super();
@@ -210,6 +215,9 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       versionList.addListSelectionListener(lsl);
       assigneeList.addListSelectionListener(lsl);
       
+      layerPane.setLayout(new FullSizeLayout());
+      layerPane.add(waitPanel, JLayeredPane.MODAL_LAYER);
+      
       validate();
       repaint();
    }
@@ -269,6 +277,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         byTextPanel = new JPanel();
         qSubjectCheckBox = new JCheckBox();
         qDescriptionCheckBox = new JCheckBox();
+        layerPane = new JLayeredPane();
+        innerPanel = new JPanel();
         tableFieldsPanel = new JPanel();
         tableHeaderPanel = new JPanel();
         criteriaPanel = new JPanel();
@@ -627,6 +637,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.insets = new Insets(12, 5, 12, 12);
         byTextPanel.add(qDescriptionCheckBox, gridBagConstraints);
 
+        setLayout(new BorderLayout());
+
         tableFieldsPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
         tableFieldsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
         tableFieldsPanel.setOpaque(false);
@@ -882,33 +894,57 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         Mnemonics.setLocalizedText(noContentLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.noContentLabel.text")); // NOI18N
         noContentPanel.add(noContentLabel, new GridBagConstraints());
 
-        GroupLayout layout = new GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(queryHeaderPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(searchPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(noContentPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+        GroupLayout innerPanelLayout = new GroupLayout(innerPanel);
+        innerPanel.setLayout(innerPanelLayout);
+        innerPanelLayout.setHorizontalGroup(innerPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(innerPanelLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(innerPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(queryHeaderPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(searchPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(innerPanelLayout.createSequentialGroup()
+                        .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(noContentPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 0, 0))
         );
-        layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+        innerPanelLayout.setVerticalGroup(innerPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(innerPanelLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
                 .addComponent(queryHeaderPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(topButtonPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(searchPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
+                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 450, Short.MAX_VALUE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(noContentPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(0, 0, 0))
         );
+
+        GroupLayout layerPaneLayout = new GroupLayout(layerPane);
+        layerPane.setLayout(layerPaneLayout);
+        layerPaneLayout.setHorizontalGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGap(0, 705, Short.MAX_VALUE)
+            .addGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layerPaneLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(innerPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        layerPaneLayout.setVerticalGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGap(0, 652, Short.MAX_VALUE)
+            .addGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layerPaneLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(innerPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        layerPane.setLayer(innerPanel, JLayeredPane.DEFAULT_LAYER);
+
+        add(layerPane, BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -930,6 +966,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     Box.Filler filler1;
     final JButton gotoIssueButton = new JButton();
     final JPanel gotoPanel = new JPanel();
+    JPanel innerPanel;
     JFormattedTextField issueIdTextField;
     final JScrollPane issueTypeScrollPane = new HackedScrollPane();
     JLabel jLabel5;
@@ -941,6 +978,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JScrollPane jScrollPane6 = new HackedScrollPane();
     final JLabel lastRefreshDateLabel = new JLabel();
     JLabel lastRefreshLabel;
+    JLayeredPane layerPane;
     public final LinkButton modifyButton = new LinkButton();
     final JLabel nameLabel = new JLabel();
     JLabel noContentLabel;

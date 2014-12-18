@@ -8,7 +8,9 @@ import com.kenai.redminenb.util.RedmineUtil;
 
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.AttachmentDisplay;
+import com.kenai.redminenb.util.BusyPanel;
 import com.kenai.redminenb.util.ExpandablePanel;
+import com.kenai.redminenb.util.FullSizeLayout;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
@@ -42,11 +44,11 @@ import javax.swing.JToggleButton;
 import javax.swing.LayoutStyle;
 import org.apache.commons.lang.StringUtils;
 import com.kenai.redminenb.util.LinkButton;
+import com.kenai.redminenb.util.VerticalScrollPane;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Journal;
-import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import java.awt.Component;
@@ -59,7 +61,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 import javax.swing.Box.Filler;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JLayeredPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -91,16 +95,16 @@ public class RedmineIssuePanel extends JPanel {
    //
    static final RequestProcessor RP = new RequestProcessor("Redmine Issue Panel", 5, false); // NOI18N
    //
-   private RedmineIssue redmineIssue;
+   private final RedmineIssue redmineIssue;
    //
    private JButton toolbarPopupButton;
    private JPopupMenu toolbarPopup;
-   private ExpandablePanel commentPanel;
-   private ExpandablePanel logtimePanel;
+   private final ExpandablePanel commentPanel;
+   private final ExpandablePanel logtimePanel;
+   JComponent waitPanel = new BusyPanel();
    
    public RedmineIssuePanel(RedmineIssue redmineIssue) {
       this.redmineIssue = redmineIssue;
-
       initComponents();
       updateCommentTabPanel.setVisible(false);
       commentPanel = new ExpandablePanel(updateCommentLabel, updateCommentTabPanel);
@@ -109,6 +113,8 @@ public class RedmineIssuePanel extends JPanel {
       initValues();
       init();
       initIssue();
+      layerPane.setLayout(new FullSizeLayout());
+      layerPane.add(waitPanel, JLayeredPane.MODAL_LAYER);
     }
  
    private void init() {
@@ -627,6 +633,8 @@ public class RedmineIssuePanel extends JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        layerPane = new javax.swing.JLayeredPane();
+        innerPanel = new VerticalScrollPane();
         headPane = new javax.swing.JPanel();
         headerLabel = new javax.swing.JLabel();
         parentHeaderPanel = new javax.swing.JPanel();
@@ -691,6 +699,10 @@ public class RedmineIssuePanel extends JPanel {
         dueDateChooser = new com.kenai.redminenb.util.DatePicker();
         journalOuterPane = new javax.swing.JPanel();
         journalPane = new javax.swing.JPanel();
+
+        setLayout(new java.awt.BorderLayout());
+
+        innerPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         headerLabel.setText(org.openide.util.NbBundle.getMessage(RedmineIssuePanel.class, "RedmineIssuePanel.headerLabel.text")); // NOI18N
 
@@ -1164,27 +1176,27 @@ public class RedmineIssuePanel extends JPanel {
         journalPane.setLayout(new javax.swing.BoxLayout(journalPane, javax.swing.BoxLayout.PAGE_AXIS));
         journalOuterPane.add(journalPane, java.awt.BorderLayout.CENTER);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout innerPanelLayout = new javax.swing.GroupLayout(innerPanel);
+        innerPanel.setLayout(innerPanelLayout);
+        innerPanelLayout.setHorizontalGroup(
+            innerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(headPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+            .addGroup(innerPanelLayout.createSequentialGroup()
+                .addGroup(innerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(innerPanelLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(buttonPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(innerPanelLayout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(journalOuterPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(innerPanelLayout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(issuePane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+        innerPanelLayout.setVerticalGroup(
+            innerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(innerPanelLayout.createSequentialGroup()
                 .addComponent(headPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1194,6 +1206,11 @@ public class RedmineIssuePanel extends JPanel {
                 .addComponent(journalOuterPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
+
+        layerPane.add(innerPanel);
+        innerPanel.setBounds(0, 0, 751, 757);
+
+        add(layerPane, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     private void createButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
@@ -1354,9 +1371,11 @@ public class RedmineIssuePanel extends JPanel {
     javax.swing.JLabel headerLabel;
     com.kenai.redminenb.util.markup.TextilePreview htmlOutputLabel;
     final javax.swing.JLabel infoLabel = new javax.swing.JLabel();
+    javax.swing.JPanel innerPanel;
     javax.swing.JPanel issuePane;
     javax.swing.JPanel journalOuterPane;
     javax.swing.JPanel journalPane;
+    javax.swing.JLayeredPane layerPane;
     javax.swing.JComboBox logtimeActivityComboBox;
     javax.swing.JLabel logtimeActivityLabel;
     javax.swing.JLabel logtimeCommentLabel;

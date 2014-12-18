@@ -126,7 +126,7 @@ public class RedmineRepository {
     private final Set<RedmineQuery> queriesToRefresh = new HashSet<>(3);
     private RequestProcessor.Task refreshIssuesTask;
     private RequestProcessor.Task refreshQueryTask;
-    private RequestProcessor refreshProcessor;
+    private RequestProcessor requestProcessor;
 
     private final IssueCache issueCache = new IssueCache(this);
 
@@ -628,16 +628,16 @@ public class RedmineRepository {
         return currentUser;
     }
 
-    private RequestProcessor getRefreshProcessor() {
-        if (refreshProcessor == null) {
-            refreshProcessor = new RequestProcessor("Redmine refresh - " + getDisplayName()); // NOI18N
+    public RequestProcessor getRequestProcessor() {
+        if (requestProcessor == null) {
+            requestProcessor = new RequestProcessor("Redmine repository processor - " + getDisplayName(), 5, true); // NOI18N
         }
-        return refreshProcessor;
+        return requestProcessor;
     }
 
     private void setupIssueRefreshTask() {
         if (refreshIssuesTask == null) {
-            refreshIssuesTask = getRefreshProcessor().create(new Runnable() {
+            refreshIssuesTask = getRequestProcessor().create(new Runnable() {
                 @Override
                 public void run() {
                     Set<String> ids;
@@ -660,7 +660,7 @@ public class RedmineRepository {
 
     private void setupQueryRefreshTask() {
         if (refreshQueryTask == null) {
-            refreshQueryTask = getRefreshProcessor().create(new Runnable() {
+            refreshQueryTask = getRequestProcessor().create(new Runnable() {
                 @Override
                 public void run() {
                     try {

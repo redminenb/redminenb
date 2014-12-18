@@ -118,7 +118,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
     private final QueryListModel queryListModel = new QueryListModel();
     private JTable issueTable;
     //
-    private final RequestProcessor rp = new RequestProcessor("Redmine query", 1, true);  // NOI18N
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
     private final RedmineRepository repository;
     //
@@ -221,7 +220,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
     /////////////////////////////////////////////////////////////////////////////
 
     private void onSave(final boolean refresh) {
-        Redmine.getInstance().getRequestProcessor().post(new Runnable() {
+        query.getRepository().getRequestProcessor().post(new Runnable() {
             @Override
             public void run() {
                 Redmine.LOG.fine("on save start");
@@ -284,7 +283,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             }
         };
         final ProgressHandle handle = ProgressHandleFactory.createHandle(Bundle.MSG_Opening(issueId), c); // NOI18N
-        t[0] = Redmine.getInstance().getRequestProcessor().create(new Runnable() {
+        t[0] = query.getRepository().getRequestProcessor().create(new Runnable() {
             @Override
             public void run() {
                 handle.start();
@@ -311,7 +310,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
         String repoURL = repository.getUrl();
         final String urlString = repoURL + (StringUtils.isNotBlank(params) ? params : ""); // NOI18N
 
-        Redmine.getInstance().getRequestProcessor().post(new Runnable() {
+        query.getRepository().getRequestProcessor().post(new Runnable() {
             @Override
             public void run() {
                 URL url;
@@ -372,7 +371,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 Bundle.CTL_RemoveQuery(),
                 NotifyDescriptor.OK_CANCEL_OPTION);
         if (DialogDisplayer.getDefault().notify(nd) == NotifyDescriptor.OK_OPTION) {
-            Redmine.getInstance().getRequestProcessor().post(new Runnable() {
+            query.getRepository().getRequestProcessor().post(new Runnable() {
                 @Override
                 public void run() {
                     remove();
@@ -424,7 +423,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             }
         });
 
-        t[0] = rp.post(new Runnable() {
+        t[0] = query.getRepository().getRequestProcessor().post(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -791,7 +790,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             if (task != null) {
                 task.cancel();
             }
-            task = rp.create(this);
+            task = query.getRepository().getRequestProcessor().create(this);
             this.autoRefresh = autoRefresh;
             task.schedule(0);
             return task;

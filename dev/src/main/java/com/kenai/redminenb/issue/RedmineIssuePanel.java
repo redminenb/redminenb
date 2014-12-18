@@ -76,7 +76,6 @@ import org.openide.awt.HtmlBrowser;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
-import org.openide.util.RequestProcessor;
 import org.openide.windows.WindowManager;
 
 /**
@@ -92,8 +91,6 @@ public class RedmineIssuePanel extends JPanel {
    private static final Logger LOG = Logger.getLogger(RedmineIssuePanel.class.getName());
    private static final long serialVersionUID = 9011030935877495476L;
    private static File lastDirectory;
-   //
-   static final RequestProcessor RP = new RequestProcessor("Redmine Issue Panel", 5, false); // NOI18N
    //
    private final RedmineIssue redmineIssue;
    //
@@ -324,7 +321,7 @@ public class RedmineIssuePanel extends JPanel {
           
          if (redmineIssue.hasParent()) {
             final String parentKey = String.valueOf(issue.getParentId());
-            RP.post(new Runnable() {
+            redmineIssue.getRepository().getRequestProcessor().post(new Runnable() {
                @Override
                public void run() {
                   RedmineIssue parentIssue = RedmineUtil.getIssue(redmineIssue.getRepository(), parentKey);
@@ -425,7 +422,7 @@ public class RedmineIssuePanel extends JPanel {
    }
 
    private void autoHide() {
-      RP.post(new Runnable() {
+      redmineIssue.getRepository().getRequestProcessor().post(new Runnable() {
          @Override
          public void run() {
             EventQueue.invokeLater(new Runnable() {

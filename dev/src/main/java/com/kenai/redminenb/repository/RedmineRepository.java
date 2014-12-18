@@ -184,14 +184,6 @@ public class RedmineRepository {
         return Redmine.getIconImage();
     }
 
-    public boolean isReachable() throws IOException {
-        URL url = new URL(getUrl());
-        //URLConnection conn = url.openConnection();
-        //return InetAddress.getByName(url.getHost()).isReachable(1000);
-        // TODO InetAddress#isReachable does not work with some systems
-        return true;
-    }
-
     public RepositoryInfo getInfo() {
         return info;
     }
@@ -222,13 +214,7 @@ public class RedmineRepository {
         if (info == null) {
             return "";
         }
-        try {
-            if (isReachable()) {
-                return info.getDisplayName();
-            }
-        } catch (IOException ex) {
-        }
-        return info.getDisplayName() + " (offline)";
+        return info.getDisplayName();
     }
 
     private String getTooltip(String repoName, String user, String url) {
@@ -557,14 +543,6 @@ public class RedmineRepository {
         return issuePriorities;
     }
 
-    /*public IssueCache<RedmineIssue> getIssueCache() {
-     synchronized (CACHE_LOCK) {
-     if (cache == null) {
-     cache = new RedmineIssueCache();
-     }
-     return cache;
-     }
-     }*/
     public Collection<RedmineIssue> simpleSearch(String string) {
         try {
             List<Issue> resultIssues = new LinkedList<>();
@@ -598,9 +576,7 @@ public class RedmineRepository {
 
     public Lookup getLookup() {
         if (lookup == null) {
-//         ic.add(getIssueCache());
             lookup = new AbstractLookup(ic);
-            //lookup = Lookups.fixed(getIssueCache());
         }
         return lookup;
     }

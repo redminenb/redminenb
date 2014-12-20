@@ -38,7 +38,6 @@ import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssuePriorityFactory;
 import com.taskadapter.redmineapi.bean.IssueStatus;
-import com.taskadapter.redmineapi.bean.IssueStatusFactory;
 import com.taskadapter.redmineapi.bean.Membership;
 import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
@@ -116,11 +115,9 @@ public class RedmineRepository {
                 createIssuePriority(3, "Low", false)));
     }
                     
-    
     private RepositoryInfo info;
     private transient RepositoryController controller;
     private Map<String, RedmineQuery> queries = null;
-    // TODO Create manager wrapping class to handle Redmine related errors
     private transient RedmineManager manager;
     private transient RedmineUser currentUser;
     private transient Lookup lookup;
@@ -139,6 +136,9 @@ public class RedmineRepository {
     private final Map<Integer, List<RedmineUser>> userCache = Collections.synchronizedMap(new HashMap<Integer,List<RedmineUser>>());
     private final Map<Integer, List<IssueCategory>> categoryCache = Collections.synchronizedMap(new HashMap<Integer, List<IssueCategory>>());
     private final Map<Integer, List<Version>> versionCache = Collections.synchronizedMap(new HashMap<Integer, List<Version>>());
+    private List<IssueStatus> statusCache = null;
+    private List<TimeEntryActivity> timeEntryActivityCache = null;
+    private List<Tracker> trackerCache = null;
     
     // Make sure we know all instances we created - a crude hack, but API does
     // not allow ourselfes ....
@@ -185,10 +185,6 @@ public class RedmineRepository {
 
     public IssueCache getIssueCache() {
         return issueCache;
-    }
- 
-    public Image getIcon() {
-        return Redmine.getIconImage();
     }
 
     public RepositoryInfo getInfo() {
@@ -437,11 +433,6 @@ public class RedmineRepository {
         return getQueryMap().values();
     }
 
-    /**
-     * Get this {@link #project}'s users.
-     *
-     * @return
-     */
     public Collection<RedmineUser> getUsers(Project p) {
         if (p != null && (!userCache.containsKey(p.getId()))) {
             ArrayList<RedmineUser> users = new ArrayList<>();
@@ -466,27 +457,33 @@ public class RedmineRepository {
     }
 
     public List<Tracker> getTrackers() {
-        try {
-            return getIssueManager().getTrackers();
-        } catch (NotFoundException ex) {
-            // TODO Notify user that the issue no longer exists
-            Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
-        } catch (RedmineException ex) {
-            // TODO Notify user that Redmine internal error has happened
-            Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
+        if(trackerCache == null) {
+            try {
+                trackerCache = getIssueManager().getTrackers();
+            } catch (NotFoundException ex) {
+                // TODO Notify user that the issue no longer exists
+                trackerCache = Collections.<Tracker>emptyList();
+                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
+            } catch (RedmineException ex) {
+                // TODO Notify user that Redmine internal error has happened
+                trackerCache = Collections.<Tracker>emptyList();
+                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
+            }
         }
-        return Collections.<Tracker>emptyList();
+        return trackerCache;
     }
     
     public List<TimeEntryActivity> getTimeEntryActivities() {
-        // @todo: Check if caching is sensible
-        try {
-            return getIssueManager().getTimeEntryActivities();
-        } catch (RedmineException ex) {
-            // TODO Notify user that Redmine internal error has happened
-            Redmine.LOG.log(Level.INFO, "Failed to Redmine Time Entry Activities (either API is missing or no permission)", ex);
+        if (timeEntryActivityCache == null) {
+            try {
+                timeEntryActivityCache = getIssueManager().getTimeEntryActivities();
+            } catch (RedmineException ex) {
+                // TODO Notify user that Redmine internal error has happened
+                Redmine.LOG.log(Level.INFO, "Failed to Redmine Time Entry Activities (either API is missing or no permission)", ex);
+                timeEntryActivityCache = fallbackTimeActivityEntries;
+            }
         }
-        return fallbackTimeActivityEntries;
+        return timeEntryActivityCache;
     }
 
     public IssueStatus getStatus(int id) {
@@ -499,26 +496,20 @@ public class RedmineRepository {
     }
 
     public Collection<? extends IssueStatus> getStatuses() {
-        Collection<? extends IssueStatus> c = getLookup().lookupAll(IssueStatus.class);
-        if (!c.isEmpty()) {
-            return c;
+        if (statusCache == null) {
+            try {
+                statusCache = getIssueManager().getStatuses();
+            } catch (NotFoundException ex) {
+                DialogDisplayer.getDefault().notify(new NotifyDescriptor.Message(
+                        "Can't get Issue Statuses from Redmine:\n"
+                        + ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                Redmine.LOG.log(Level.SEVERE, "Can't get Issue Statuses from Redmine", ex);
+            } catch (Exception ex) {
+                Redmine.LOG.log(Level.SEVERE, "Can't get Issue Statuses from Redmine", ex);
+            }
         }
-        try {
-            c = getIssueManager().getStatuses();
-        } catch (NotFoundException ex) {
-            DialogDisplayer.getDefault().notify(new NotifyDescriptor.Message(
-                    "Can't get Issue Statuses from Redmine:\n" + ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE));
-            Redmine.LOG.log(Level.SEVERE, "Can't get Issue Statuses from Redmine", ex);
-        } catch (Exception ex) {
-            Redmine.LOG.log(Level.SEVERE, "Can't get Issue Statuses from Redmine", ex);
-        }
-        if (c.isEmpty()) {
-            c = Collections.singleton(IssueStatusFactory.create(-1, "[n/a]"));
-        }
-        for (IssueStatus issueStatus : c) {
-            ic.add(issueStatus);
-        }
-        return c;
+
+        return statusCache;
     }
 
     public Collection<? extends IssueCategory> reloadIssueCategories(Project p) {

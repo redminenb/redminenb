@@ -254,7 +254,7 @@ public final class RedmineQuery {
         }
         
         // Perform search
-        List<Issue> issueArr = repository.getManager().getIssues(m);
+        List<Issue> issueArr = repository.getIssueManager().getIssues(m);
 
         // Post filtering: Query string for description
         if (searchDescription && StringUtils.isNotBlank(queryStr)) {

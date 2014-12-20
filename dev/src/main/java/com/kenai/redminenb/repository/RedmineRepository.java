@@ -25,16 +25,24 @@ import com.kenai.redminenb.user.RedmineUser;
 
 import com.kenai.redminenb.api.AuthMode;
 import com.kenai.redminenb.util.NestedProject;
+import com.taskadapter.redmineapi.AttachmentManager;
+import com.taskadapter.redmineapi.IssueManager;
+import com.taskadapter.redmineapi.MembershipManager;
 import com.taskadapter.redmineapi.NotFoundException;
+import com.taskadapter.redmineapi.ProjectManager;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.RedmineManagerFactory;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
+import com.taskadapter.redmineapi.bean.IssuePriorityFactory;
 import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.IssueStatusFactory;
 import com.taskadapter.redmineapi.bean.Membership;
 import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
+import com.taskadapter.redmineapi.bean.TimeEntryActivityFactory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.awt.Image;
@@ -87,13 +95,11 @@ public class RedmineRepository {
     private static final List<TimeEntryActivity> fallbackTimeActivityEntries;
     
     static {
-        TimeEntryActivity design = new TimeEntryActivity();
+        TimeEntryActivity design = TimeEntryActivityFactory.create(8);
         design.setDefault(false);
-        design.setId(8);
         design.setName("Design");
-        TimeEntryActivity development = new TimeEntryActivity();
+        TimeEntryActivity development = TimeEntryActivityFactory.create(9);
         development.setDefault(false);
-        development.setId(9);
         development.setName("Development");
         fallbackTimeActivityEntries = Collections.unmodifiableList(
                 Arrays.asList(design, development));
@@ -215,7 +221,7 @@ public class RedmineRepository {
         try {
             if (projects == null) {
                 Map<Integer, NestedProject> projectMap = 
-                        convertProjectList(getManager().getProjects());
+                        convertProjectList(getProjectManager().getProjects());
                 projects = Collections.unmodifiableMap(projectMap);
             }
         } catch (Exception ex) {
@@ -333,7 +339,7 @@ public class RedmineRepository {
             redmineIssue = issueCache.get(issueId);
             if (redmineIssue == null) {
                 try {
-                    Issue issue = getManager().getIssueById(Integer.valueOf(issueId));
+                    Issue issue = getIssueManager().getIssueById(Integer.valueOf(issueId));
                     redmineIssue = issueCache.cachedRedmineIssue(issue);
                 } catch (NotFoundException ex) {
                     // do nothing
@@ -441,7 +447,7 @@ public class RedmineRepository {
             ArrayList<RedmineUser> users = new ArrayList<>();
             try {
                 users.add(currentUser);
-                for (Membership m : getManager().getMemberships(p)) {
+                for (Membership m : getMembershipManager().getMemberships(p.getId().toString())) {
                     if (m.getUser() != null
                             && !currentUser.getUser().getId().equals(m.getUser().getId())) {
                         users.add(new RedmineUser(m.getUser()));
@@ -461,7 +467,7 @@ public class RedmineRepository {
 
     public List<Tracker> getTrackers() {
         try {
-            return getManager().getTrackers();
+            return getIssueManager().getTrackers();
         } catch (NotFoundException ex) {
             // TODO Notify user that the issue no longer exists
             Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
@@ -475,7 +481,7 @@ public class RedmineRepository {
     public List<TimeEntryActivity> getTimeEntryActivities() {
         // @todo: Check if caching is sensible
         try {
-            return getManager().getTimeEntryActivities();
+            return getIssueManager().getTimeEntryActivities();
         } catch (RedmineException ex) {
             // TODO Notify user that Redmine internal error has happened
             Redmine.LOG.log(Level.INFO, "Failed to Redmine Time Entry Activities (either API is missing or no permission)", ex);
@@ -498,7 +504,7 @@ public class RedmineRepository {
             return c;
         }
         try {
-            c = getManager().getStatuses();
+            c = getIssueManager().getStatuses();
         } catch (NotFoundException ex) {
             DialogDisplayer.getDefault().notify(new NotifyDescriptor.Message(
                     "Can't get Issue Statuses from Redmine:\n" + ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE));
@@ -507,7 +513,7 @@ public class RedmineRepository {
             Redmine.LOG.log(Level.SEVERE, "Can't get Issue Statuses from Redmine", ex);
         }
         if (c.isEmpty()) {
-            c = Collections.singleton(new IssueStatus(-1, "[n/a]"));
+            c = Collections.singleton(IssueStatusFactory.create(-1, "[n/a]"));
         }
         for (IssueStatus issueStatus : c) {
             ic.add(issueStatus);
@@ -523,7 +529,7 @@ public class RedmineRepository {
     public Collection<? extends IssueCategory> getIssueCategories(Project p) {
         if (p != null && (!categoryCache.containsKey(p.getId()))) {
             try {
-                List<IssueCategory> cats = getManager().getCategories(p.getId());
+                List<IssueCategory> cats = getIssueManager().getCategories(p.getId());
                 for(IssueCategory ic: cats) {
                     ic.setProject(null);
                     ic.setAssignee(null);
@@ -555,7 +561,7 @@ public class RedmineRepository {
     public List<Version> getVersions(Project p) {      
         if (p != null && (!versionCache.containsKey(p.getId()))) {
             try {
-                versionCache.put(p.getId(), getManager().getVersions(p.getId()));
+                versionCache.put(p.getId(), getProjectManager().getVersions(p.getId()));
             } catch (Exception ex) {
                 Redmine.LOG.log(Level.SEVERE, "Can't get versions for project " + p.getName(), ex);
             }
@@ -570,7 +576,7 @@ public class RedmineRepository {
         if (issuePriorities == null) {
             try {
                 // since Redmine V2.2.0
-                issuePriorities = getManager().getIssuePriorities();
+                issuePriorities = getIssueManager().getIssuePriorities();
                 Collections.reverse(issuePriorities);
             } catch (Exception ex) {
                 // LOG on info level, as SEVERE causes 
@@ -583,15 +589,16 @@ public class RedmineRepository {
 
     public Collection<RedmineIssue> simpleSearch(String string) {
         try {
+            IssueManager issueManager = getIssueManager();
             List<Issue> resultIssues = new LinkedList<>();
 
             try {
-                resultIssues.add(getManager().getIssueById(Integer.parseInt(string)));
+                resultIssues.add(issueManager.getIssueById(Integer.parseInt(string)));
             } catch (NumberFormatException ex) {
             } catch (NotFoundException ex) {
             }
 
-            resultIssues.addAll(getManager().getIssuesBySummary(
+            resultIssues.addAll(issueManager.getIssuesBySummary(
                     null,
                     "*" + string + "*"));
 
@@ -626,18 +633,35 @@ public class RedmineRepository {
                 throw new IllegalArgumentException("authMode must be set");
             }
             if (authMode == AuthMode.AccessKey) {
-                manager = new RedmineManager(getUrl(), getAccessKey());
+                manager = RedmineManagerFactory.createWithApiKey(
+                        getUrl(), getAccessKey());
             } else {
-                manager = new RedmineManager(getUrl());
-                manager.setLogin(getUsername());
-                manager.setPassword(getPassword() == null ? "" : String.valueOf(getPassword()));
+                manager = RedmineManagerFactory.createWithUserAuth(
+                        getUrl(), getUsername(),
+                        getPassword() == null ? "" : String.valueOf(getPassword()));
             }
-            currentUser = new RedmineUser(manager.getCurrentUser(), true);
+            currentUser = new RedmineUser(manager.getUserManager().getCurrentUser(), true);
             manager.setObjectsPerPage(100);
         }
         return manager;
     }
 
+    public IssueManager getIssueManager() throws RedmineException {
+        return getManager().getIssueManager();
+    }
+
+    public AttachmentManager getAttachmentManager() throws RedmineException {
+        return getManager().getAttachmentManager();
+    }
+
+    public ProjectManager getProjectManager() throws RedmineException {
+        return getManager().getProjectManager();
+    }
+
+    public MembershipManager getMembershipManager() throws RedmineException {
+        return getManager().getMembershipManager();
+    }
+    
     public RedmineUser getCurrentUser() {
         return currentUser;
     }
@@ -832,8 +856,7 @@ public class RedmineRepository {
     }
     
     public static IssuePriority createIssuePriority(Integer id, String name, boolean isDefault) {
-        IssuePriority ip = new IssuePriority();
-        ip.setId(id);
+        IssuePriority ip = IssuePriorityFactory.create(id);;
         ip.setName(name);
         ip.setDefault(isDefault);
         return ip;

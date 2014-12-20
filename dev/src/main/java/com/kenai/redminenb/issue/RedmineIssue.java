@@ -17,9 +17,9 @@ package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.taskadapter.redmineapi.Include;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
-import com.taskadapter.redmineapi.RedmineManager.INCLUDE;
 import com.taskadapter.redmineapi.bean.Attachment;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -223,7 +223,8 @@ public final class RedmineIssue {
 
         try {
             if (issue.getId() != null) {
-                setIssue(getRepository().getManager().getIssueById(issue.getId(), INCLUDE.journals, INCLUDE.attachments, INCLUDE.watchers));
+                setIssue(getRepository().getIssueManager().getIssueById(
+                        issue.getId(), Include.journals, Include.attachments, Include.watchers));
             }
             return true;
         } catch (NotFoundException ex) {
@@ -246,7 +247,7 @@ public final class RedmineIssue {
                 // TODO This works for default Redmine Settings only. Add resolved status ID configuration to Redmine Option.
                 issue.setStatusId(3);
                 //issue.setStatusName("Resolved"); // not needed
-                getRepository().getManager().update(issue);
+                getRepository().getIssueManager().update(issue);
             }
             return;
 
@@ -263,13 +264,13 @@ public final class RedmineIssue {
 
     public void attachFile(File file, String description, String comment, boolean patch) {
         try {
-            Attachment a = getRepository().getManager().uploadAttachment("application/octed-stream", file);
+            Attachment a = getRepository().getAttachmentManager().uploadAttachment("application/octed-stream", file);
             a.setDescription(description);
             issue.getAttachments().add(a);
             if(! StringUtils.isBlank(comment)) {
                 issue.setNotes(comment);
             }
-            getRepository().getManager().update(issue);
+            getRepository().getIssueManager().update(issue);
         } catch (RedmineException | IOException ex) {
             // TODO Notify user that Redmine internal error has happened
             Redmine.LOG.log(Level.SEVERE, "Can't attach file to a Redmine issue", ex);
@@ -388,7 +389,7 @@ public final class RedmineIssue {
         }
         issue.setStartDate(scheduleInfo.getDate());
         try {
-            getRepository().getManager().update(issue);
+            getRepository().getIssueManager().update(issue);
         } catch (RedmineException ex) {
             LOG.log(Level.WARNING, "Failed to update start date for issue", ex);
         }

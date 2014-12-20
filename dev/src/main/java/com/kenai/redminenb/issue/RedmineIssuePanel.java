@@ -48,10 +48,16 @@ import com.kenai.redminenb.util.VerticalScrollPane;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.IssueCategoryFactory;
 import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.ProjectFactory;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
+import com.taskadapter.redmineapi.bean.TimeEntryFactory;
+import com.taskadapter.redmineapi.bean.TrackerFactory;
+import com.taskadapter.redmineapi.bean.UserFactory;
+import com.taskadapter.redmineapi.bean.VersionFactory;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -244,7 +250,7 @@ public class RedmineIssuePanel extends JPanel {
              journalOuterPane.setVisible(false);
          }
          journalPane.removeAll();
-         List<Journal> journalEntries = issue.getJournals();
+         List<Journal> journalEntries = new ArrayList<>(issue.getJournals());
          for(int i = 0; i < journalEntries.size(); i++) {
              JournalDisplay jdisplay = new JournalDisplay(redmineIssue, journalEntries.get(i), i);
              journalPane.add(jdisplay);
@@ -509,8 +515,7 @@ public class RedmineIssuePanel extends JPanel {
       issue.setDoneRatio(doneComboBox.getSelectedIndex() * 10);
       // Workaround for https://github.com/taskadapter/redmine-java-api/pull/163
       Project p = ((NestedProject)projectComboBox.getSelectedItem()).getProject();
-      Project transfer = new Project();
-      transfer.setId(p.getId());
+      Project transfer = ProjectFactory.create(p.getId());
       transfer.setIdentifier(p.getId().toString());
       issue.setProject(transfer);
 
@@ -554,7 +559,7 @@ public class RedmineIssuePanel extends JPanel {
            protected Object doInBackground() throws Exception {
                RedmineRepository rr = redmineIssue.getRepository();
                String projektId = ((NestedProject) projectComboBox.getSelectedItem()).getProject().getIdentifier();
-               Issue issue =  rr.getManager().createIssue(projektId, inputIssue);
+               Issue issue = rr.getIssueManager().createIssue(projektId, inputIssue);
                redmineIssue.setIssue(issue);
                redmineIssue.getRepository().getIssueCache().put(redmineIssue);
                return null;
@@ -593,7 +598,7 @@ public class RedmineIssuePanel extends JPanel {
 
            @Override
            protected Object doInBackground() throws Exception {
-                redmineIssue.getRepository().getManager().update(issue);
+                redmineIssue.getRepository().getIssueManager().update(issue);
                 redmineIssue.refresh();
                 return null;
            }
@@ -633,7 +638,7 @@ public class RedmineIssuePanel extends JPanel {
       priorityComboBox.setModel(new DefaultComboBoxModel(redmineIssue.getRepository().getIssuePriorities().toArray()));
 
       assigneeComboBox.setRenderer(new Defaults.RepositoryUserLCR());
-      User prototypeUser = new User();
+      User prototypeUser = UserFactory.create();
       prototypeUser.setFirstName("John, some more space,");
       prototypeUser.setLastName("Doe, and some...");
       assigneeComboBox.setPrototypeDisplayValue(new RedmineUser(prototypeUser));
@@ -723,17 +728,13 @@ public class RedmineIssuePanel extends JPanel {
         priorityComboBox = new javax.swing.JComboBox();
         doneComboBox = new javax.swing.JComboBox();
         subjectTextField = new javax.swing.JTextField();
-        wikiSyntaxButton = new com.kenai.redminenb.util.LinkButton();
         categoryLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
         parentTaskTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
-        categoryAddButton = new com.kenai.redminenb.util.LinkButton();
         targetVersionComboBox = new javax.swing.JComboBox();
         targetVersionLabel = new javax.swing.JLabel();
-        versionAddButton = new com.kenai.redminenb.util.LinkButton();
         assigneeLabel = new javax.swing.JLabel();
         subjectLabel2 = new javax.swing.JLabel();
-        assignToMeButton = new com.kenai.redminenb.util.LinkButton();
         assigneeComboBox = new javax.swing.JComboBox();
         privateCheckBox = new javax.swing.JCheckBox();
         descriptionPanel = new javax.swing.JTabbedPane();
@@ -952,7 +953,7 @@ public class RedmineIssuePanel extends JPanel {
         issuePane.add(doneLabel, gridBagConstraints);
 
         trackerComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Bug", "Feature", "Support" }));
-        trackerComboBox.setPrototypeDisplayValue(new Tracker(-1, "A really long tracker prototype"));
+        trackerComboBox.setPrototypeDisplayValue(TrackerFactory.create(-1, "A really long tracker prototype"));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
@@ -1389,7 +1390,7 @@ public class RedmineIssuePanel extends JPanel {
         );
 
         layerPane.add(innerPanel);
-        innerPanel.setBounds(0, 0, 763, 738);
+        innerPanel.setBounds(0, 0, 689, 784);
 
         add(layerPane, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
@@ -1416,7 +1417,7 @@ public class RedmineIssuePanel extends JPanel {
             setErrorMessage("Failed to parse '" + hoursString + "' as a float value");
             return;
         }
-        final TimeEntry te = new TimeEntry();
+        final TimeEntry te = TimeEntryFactory.create();
         TimeEntryActivity tea = (TimeEntryActivity) logtimeActivityComboBox.getSelectedItem();
         te.setActivityId(tea.getId());
         te.setComment(logtimeCommentTextField.getText());
@@ -1427,7 +1428,7 @@ public class RedmineIssuePanel extends JPanel {
 
             @Override
             protected Object doInBackground() throws Exception {
-                redmineIssue.getRepository().getManager().createTimeEntry(te);
+                redmineIssue.getRepository().getIssueManager().createTimeEntry(te);
                 redmineIssue.refresh();
                 return null;
             }
@@ -1466,8 +1467,8 @@ public class RedmineIssuePanel extends JPanel {
             NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
             assert np != null;
             try {
-                Version v = new Version(np.getProject(), d.getInputText());
-                redmineIssue.getRepository().getManager().createVersion(v);
+                Version v = VersionFactory.create(np.getProject(), d.getInputText());
+                redmineIssue.getRepository().getProjectManager().createVersion(v);
                 Collection<? extends Version> c = redmineIssue.getRepository().reloadVersions(np.getProject());
                 for (Version version : c) {
                     if (v.getName().equals(version.getName())) {
@@ -1491,8 +1492,8 @@ public class RedmineIssuePanel extends JPanel {
             NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
             assert np != null;
             try {
-                IssueCategory ic = new IssueCategory(np.getProject(), d.getInputText());
-                redmineIssue.getRepository().getManager().createCategory(ic);
+                IssueCategory ic = IssueCategoryFactory.create(np.getProject(), d.getInputText());
+                redmineIssue.getRepository().getIssueManager().createCategory(ic);
                 Collection<? extends IssueCategory> c = redmineIssue.getRepository().reloadIssueCategories(np.getProject());
                 for (IssueCategory issueCategory : c) {
                     if (ic.getName().equals(issueCategory.getName())) {
@@ -1519,13 +1520,13 @@ public class RedmineIssuePanel extends JPanel {
     }//GEN-LAST:event_wikiSyntaxButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    com.kenai.redminenb.util.LinkButton assignToMeButton;
+    final com.kenai.redminenb.util.LinkButton assignToMeButton = new com.kenai.redminenb.util.LinkButton();
     javax.swing.JComboBox assigneeComboBox;
     javax.swing.JLabel assigneeLabel;
     javax.swing.JLabel attachmentLabel;
     com.kenai.redminenb.util.DelegatingBaseLineJPanel attachmentPanel;
     javax.swing.JPanel buttonPane;
-    com.kenai.redminenb.util.LinkButton categoryAddButton;
+    final com.kenai.redminenb.util.LinkButton categoryAddButton = new com.kenai.redminenb.util.LinkButton();
     javax.swing.JComboBox categoryComboBox;
     javax.swing.JLabel categoryLabel;
     javax.swing.JButton createButton;
@@ -1589,7 +1590,7 @@ public class RedmineIssuePanel extends JPanel {
     javax.swing.JTextArea updateCommentTextArea;
     javax.swing.JLabel updatedLabel;
     javax.swing.JLabel updatedValueLabel;
-    com.kenai.redminenb.util.LinkButton versionAddButton;
-    com.kenai.redminenb.util.LinkButton wikiSyntaxButton;
+    final com.kenai.redminenb.util.LinkButton versionAddButton = new com.kenai.redminenb.util.LinkButton();
+    final com.kenai.redminenb.util.LinkButton wikiSyntaxButton = new com.kenai.redminenb.util.LinkButton();
     // End of variables declaration//GEN-END:variables
 }

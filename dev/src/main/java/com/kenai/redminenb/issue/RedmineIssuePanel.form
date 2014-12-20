@@ -415,7 +415,7 @@
                       </StringArray>
                     </Property>
                     <Property name="prototypeDisplayValue" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="new Tracker(-1, &quot;A really long tracker prototype&quot;)" type="code"/>
+                      <Connection code="TrackerFactory.create(-1, &quot;A really long tracker prototype&quot;)" type="code"/>
                     </Property>
                   </Properties>
                   <Constraints>

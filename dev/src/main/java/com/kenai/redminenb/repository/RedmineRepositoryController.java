@@ -25,6 +25,7 @@ import com.kenai.redminenb.api.AuthMode;
 import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.RedmineManagerFactory;
 import com.taskadapter.redmineapi.bean.Project;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -266,17 +267,26 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
             @Override
             protected List<ProjectId> doInBackground() throws Exception {
-                List<NestedProject> projectList = new ArrayList<>(
-                        RedmineRepository
-                        .convertProjectList(repository.getManager().getProjects())
-                        .values());
-                Collections.sort(projectList);
-                List<ProjectId> result = new ArrayList<>(projectList.size() + 1);
-                result.add(null);
-                for (NestedProject np : projectList) {
-                    result.add(new ProjectId(np.getProject().getId(), np.toString()));
+                RedmineManager rm = null;
+                try {
+                    rm = getManager();
+                    List<NestedProject> projectList = new ArrayList<>(
+                            RedmineRepository
+                            .convertProjectList(rm.getProjectManager().getProjects())
+                            .values());
+                    Collections.sort(projectList);
+                    List<ProjectId> result = new ArrayList<>(projectList.size()
+                            + 1);
+                    result.add(null);
+                    for (NestedProject np : projectList) {
+                        result.add(new ProjectId(np.getProject().getId(), np.toString()));
+                    }
+                    return result;
+                } finally {
+                    if (rm != null) {
+                        rm.shutdown();
+                    }
                 }
-                return result;
             }
 
             @Override
@@ -323,15 +333,18 @@ public class RedmineRepositoryController implements RepositoryController, Docume
     }
 
     private void onCreateNewProject() {
-        ProjectId selectedProject = (ProjectId) panel.projectComboBox.getSelectedItem();
+        RedmineManager rm = null;
+        try {
+            rm = getManager();
+            ProjectId selectedProject = (ProjectId) panel.projectComboBox.getSelectedItem();
 
-        RedmineProjectPanel projectPanel = new RedmineProjectPanel(repository);
+            RedmineProjectPanel projectPanel = new RedmineProjectPanel(rm);
 
-        if (RedmineUtil.show(projectPanel, "New Redmine project", "OK")) {
-            try {
+            if (RedmineUtil.show(projectPanel, "New Redmine project", "OK")) {
+
                 List<NestedProject> projectList = new ArrayList<>(
                         RedmineRepository
-                        .convertProjectList(repository.getManager().getProjects())
+                        .convertProjectList(rm.getProjectManager().getProjects())
                         .values());
                 List<ProjectId> projectIdList = new ArrayList<>(projectList.size());
                 Collections.sort(projectList);
@@ -348,14 +361,18 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                 panel.projectComboBox.setModel(new ListComboBoxModel<>(projectIdList));
                 panel.projectComboBox.setSelectedItem(selectedProject);
 
-            } catch (RedmineException ex) {
-                errorMessage = NbBundle.getMessage(Redmine.class,
-                        "MSG_REDMINE_ERROR",
-                        Jsoup.parse(ex.getLocalizedMessage()).text());
-                Redmine.LOG.log(Level.INFO, errorMessage, ex);
+            }
+            fireChange();
+        } catch (RedmineException ex) {
+            errorMessage = NbBundle.getMessage(Redmine.class,
+                    "MSG_REDMINE_ERROR",
+                    Jsoup.parse(ex.getLocalizedMessage()).text());
+            Redmine.LOG.log(Level.INFO, errorMessage, ex);
+        } finally {
+            if (rm != null) {
+                rm.shutdown();
             }
         }
-        fireChange();
     }
 
     @Override
@@ -384,11 +401,14 @@ public class RedmineRepositoryController implements RepositoryController, Docume
     private RedmineManager getManager() {
         RedmineManager manager;
         if (getAuthMode() == AuthMode.AccessKey) {
-            manager = new RedmineManager(getUrl(), getAccessKey());
+            manager = RedmineManagerFactory.createWithApiKey(
+                    getUrl()
+                    , getAccessKey());
         } else {
-            manager = new RedmineManager(getUrl());
-            manager.setLogin(getUser());
-            manager.setPassword(new String(getPassword()));
+            manager = RedmineManagerFactory.createWithUserAuth(
+                    getUrl()
+                    , getUser()
+                    , new String(getPassword()));
         }
         return manager;
     }

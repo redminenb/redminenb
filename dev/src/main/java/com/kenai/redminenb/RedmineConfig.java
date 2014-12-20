@@ -1,9 +1,12 @@
 package com.kenai.redminenb;
 
+import com.kenai.redminenb.query.ParameterValue;
 import com.kenai.redminenb.query.RedmineQuery;
 import com.kenai.redminenb.query.serialization.RedmineQueryXml;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.ui.Defaults;
+import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.bean.Project;
 import java.awt.Image;
 
 import java.io.BufferedInputStream;
@@ -34,6 +37,7 @@ import javax.xml.bind.Unmarshaller;
 import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 
 /**
@@ -117,11 +121,15 @@ public class RedmineConfig {
     }
 
     public void putQuery(RedmineRepository repository, RedmineQuery query) {
+        putQuery(repository, new RedmineQueryXml(query), query.getDisplayName());
+    }
+    
+    private void putQuery(RedmineRepository repository, RedmineQueryXml xml, String name) {
         try (StringWriter sw = new StringWriter()) {
             Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(new RedmineQueryXml(query), sw);
-            getPreferences().put(getQueryKey(repository.getID(), query.getDisplayName()),
-                sw.toString());
+            marshaller.marshal(xml, sw);
+            getPreferences().put(getQueryKey(repository.getID(), name),
+                    sw.toString());
         } catch (JAXBException ex) {
             LOG.log(Level.WARNING, "Failed to serialize data", ex);
         } catch (IOException ex) {
@@ -174,6 +182,25 @@ public class RedmineConfig {
             Object o = unmarshaller.unmarshal(new StringReader(value));
             if (o instanceof RedmineQueryXml) {
                 RedmineQueryXml rqx = (RedmineQueryXml) o;
+                boolean modified = false;
+                // Version 2 of the serialization format introduced the project
+                // parameter, that was previously taken from the project settings
+                // this conversion sets the project based on the 
+                if(rqx.getVersion() == 1) {
+                    Project p = null;
+                    try {
+                        p = repository.getProject();
+                    } catch (RedmineException ex) {}
+                    if((! rqx.getParameters().containsKey("project_id"))) {
+                        rqx.getParameters().put("project_id", new ParameterValue[]{
+                            new ParameterValue(p.getName(), p.getId())
+                        });
+                        modified = true;
+                    }
+                }
+                if(modified) {
+                    putQuery(repository, rqx, queryName);
+                }
                 return rqx;
             }
         } catch (JAXBException ex) {

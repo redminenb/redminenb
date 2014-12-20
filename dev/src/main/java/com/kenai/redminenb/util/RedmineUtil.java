@@ -18,7 +18,9 @@ package com.kenai.redminenb.util;
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.query.RedmineQuery;
+import com.kenai.redminenb.repository.ProjectId;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.user.RedmineUser;
 
 import com.taskadapter.redmineapi.bean.Identifiable;
 import com.taskadapter.redmineapi.bean.Project;
@@ -109,6 +111,34 @@ public final class RedmineUtil {
         }
     }
 
+    public static class ProjectIdComparator implements Comparator<ProjectId> {
+
+        public static ProjectIdComparator SINGLETON = new ProjectIdComparator();
+
+        private ProjectIdComparator() {
+            // suppressed to enforce using the SINGLETON
+        }
+
+        @Override
+        public int compare(ProjectId a, ProjectId b) {
+            return a.getName().compareTo(b.getName());
+        }
+    }
+    
+    public static class RedmineUserComparator implements Comparator<RedmineUser> {
+
+        public static RedmineUserComparator SINGLETON = new RedmineUserComparator();
+
+        private RedmineUserComparator() {
+            // suppressed to enforce using the SINGLETON
+        }
+
+        @Override
+        public int compare(RedmineUser a, RedmineUser b) {
+            return a.getUser().getFullName().compareTo(b.getUser().getFullName());
+        }
+    }
+    
     /**
      * Get the RedmineIssue from the cache or from the Redmine application.
      *

@@ -3,11 +3,19 @@ package com.kenai.redminenb.issue;
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.ui.Defaults;
+import com.kenai.redminenb.user.RedmineUser;
+import com.kenai.redminenb.util.ListComboBoxModel;
+import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.RedmineUtil;
 
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.Version;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -15,6 +23,7 @@ import java.net.URL;
 import java.util.logging.Level;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -55,7 +64,7 @@ public class RedmineIssueController implements IssueController {
         pane.setBorder(null);
         pane.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
 
-        pane.add(scrollPane, BorderLayout.CENTER);
+        pane.add(scrollPane, BorderLayout.CENTER);        
         component = pane;
     }
 

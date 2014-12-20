@@ -22,6 +22,7 @@ import com.kenai.redminenb.util.ListComboBoxModel;
 import com.kenai.redminenb.util.RedmineUtil;
 
 import com.kenai.redminenb.api.AuthMode;
+import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.bean.Project;
@@ -177,11 +178,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
             return false;
         }
 
-        if (panel.projectComboBox.getSelectedIndex() == -1) {
-            errorMessage = Bundle.MSG_MissingProject();
-            return false;
-        }
-
         return true;
     }
 
@@ -223,14 +219,17 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         panel.userField.setText(repository.getUsername());
         panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
         
+        List<ProjectId> initList = new ArrayList<>();
+        initList.add(null);
         if(repository.getProjectID() != null) {
             ProjectId project = new ProjectId(repository.getProjectID(), Bundle.MSG_Unchanged());
-            panel.projectComboBox.setModel(new ListComboBoxModel<>(Collections.singletonList(project)));
+            initList.add(project);
+            panel.projectComboBox.setModel(new ListComboBoxModel<>(initList));
             panel.projectComboBox.setSelectedItem(project);
         } else {
-            panel.projectComboBox.setModel(new ListComboBoxModel<>());
+            panel.projectComboBox.setModel(new ListComboBoxModel<>(initList));
         }
-
+        
         panel.featureWatchers.setSelected(repository.isFeatureWatchers());
     }
 
@@ -267,13 +266,17 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
             @Override
             protected List<ProjectId> doInBackground() throws Exception {
-                RedmineManager manager = RedmineRepositoryController.this.getManager();
-                List<ProjectId> projects = new ArrayList<>();
-                for(Project p: manager.getProjects()) {
-                    projects.add(new ProjectId(p.getId(), p.getName()));
+                List<NestedProject> projectList = new ArrayList<>(
+                        RedmineRepository
+                        .convertProjectList(repository.getManager().getProjects())
+                        .values());
+                Collections.sort(projectList);
+                List<ProjectId> result = new ArrayList<>(projectList.size() + 1);
+                result.add(null);
+                for (NestedProject np : projectList) {
+                    result.add(new ProjectId(np.getProject().getId(), np.toString()));
                 }
-                Collections.sort(projects);
-                return projects;
+                return result;
             }
 
             @Override
@@ -320,22 +323,29 @@ public class RedmineRepositoryController implements RepositoryController, Docume
     }
 
     private void onCreateNewProject() {
-        Object selectedProject = panel.projectComboBox.getSelectedItem();
+        ProjectId selectedProject = (ProjectId) panel.projectComboBox.getSelectedItem();
 
         RedmineProjectPanel projectPanel = new RedmineProjectPanel(repository);
 
         if (RedmineUtil.show(projectPanel, "New Redmine project", "OK")) {
             try {
-                List<Project> projects = repository.getManager().getProjects();
-                Collections.sort(projects, RedmineUtil.ProjectComparator.SINGLETON);
-
-                panel.projectComboBox.setModel(new ListComboBoxModel<>(projects));
-                for (Project p : projects) {
+                List<NestedProject> projectList = new ArrayList<>(
+                        RedmineRepository
+                        .convertProjectList(repository.getManager().getProjects())
+                        .values());
+                List<ProjectId> projectIdList = new ArrayList<>(projectList.size());
+                Collections.sort(projectList);
+                projectIdList.add(null);
+                for (NestedProject np : projectList) {
+                    Project p = np.getProject();
+                    ProjectId id = new ProjectId(p.getId(), np.toString());
+                    projectIdList.add(id);
                     if (p.getIdentifier().equals(projectPanel.getIdentifier())) {
-                        selectedProject = p;
+                        selectedProject = id;
                         break;
                     }
                 }
+                panel.projectComboBox.setModel(new ListComboBoxModel<>(projectIdList));
                 panel.projectComboBox.setSelectedItem(selectedProject);
 
             } catch (RedmineException ex) {

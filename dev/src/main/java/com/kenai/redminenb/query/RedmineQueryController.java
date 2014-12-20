@@ -25,15 +25,19 @@ import com.kenai.redminenb.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.user.RedmineUser;
+import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.RedmineUtil;
+import com.kenai.redminenb.util.RedmineUtil.RedmineUserComparator;
 import com.kenai.redminenb.util.TableCellRendererCategory;
 import com.kenai.redminenb.util.TableCellRendererPriority;
+import com.kenai.redminenb.util.TableCellRendererProject;
 import com.kenai.redminenb.util.TableCellRendererTracker;
 import com.kenai.redminenb.util.TableCellRendererUser;
 import com.kenai.redminenb.util.TableCellRendererVersion;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
+import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.awt.Component;
@@ -59,6 +63,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.MissingResourceException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -68,6 +74,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import org.apache.commons.lang.StringUtils;
@@ -78,7 +87,6 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.HtmlBrowser;
 import org.openide.util.Cancellable;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
@@ -130,6 +138,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
     private ListParameter priorityParameter;
     private ListParameter assigneeParameter;
     private ListParameter watcherParameter;
+    private ListParameter projectParameter;
     private Map<String, RedmineQueryParameter> parameters;
     //
     private final Object REFRESH_LOCK = new Object();
@@ -154,16 +163,73 @@ public class RedmineQueryController implements QueryController, ActionListener {
         queryPanel.refreshConfigurationButton.addActionListener(this);
         queryPanel.issueIdTextField.addActionListener(this);
         queryPanel.queryTextField.addActionListener(this);
+        queryPanel.projectList.addListSelectionListener(new ListSelectionListener() {
+
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+              updateProjectValues();
+            }
+        });
     }
 
+    private void updateProjectValues() {
+        ParameterValue pv = (ParameterValue) queryPanel.projectList.getSelectedValue();
+        NestedProject np = null;
+        Project p = null;
+        
+        if (pv != null) {
+            np = repository.getProjects().get(Integer.valueOf(pv.getValue()));
+        }
+        if(np != null) {
+            p = np.getProject();
+        }
+        
+        if (p != null) {
+            List<ParameterValue> pvList = new ArrayList<>();
+
+            pvList.add(ParameterValue.NONE_PARAMETERVALUE);
+            for (IssueCategory c : repository.getIssueCategories(p)) {
+                pvList.add(new ParameterValue(c.getName(), c.getId()));
+            }
+            categoryParameter.setParameterValues(pvList);
+            
+            pvList = new ArrayList<>();
+            pvList.add(ParameterValue.NONE_PARAMETERVALUE);
+            for (Version v : repository.getVersions(p)) {
+                pvList.add(new ParameterValue(v.getName(), v.getId()));
+            }
+            versionParameter.setParameterValues(pvList);
+            
+            pvList = new ArrayList<>();
+            pvList.add(new ParameterValue("(me)", "me"));
+            for (RedmineUser redmineUser : repository.getUsers(p)) {
+                pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
+            }
+            watcherParameter.setParameterValues(pvList);
+        } else {
+            categoryParameter.setParameterValues(Collections.EMPTY_LIST);
+            versionParameter.setParameterValues(Collections.EMPTY_LIST);
+            watcherParameter.setParameterValues(Collections.singletonList(
+                new ParameterValue("(me)", "me")
+            ));
+        }
+        enableFields(true);
+    }
+    
     @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }
 
     private void modelToGUI() {
+        assert SwingUtilities.isEventDispatchThread();
+        Map<String,ParameterValue[]> queryParams = query.getParameters();
+        // Initalize project first, as other values depend on selected project
+        if(queryParams.containsKey("project_id")) {
+            parameters.get("project_id").setValues(queryParams.get("project_id"));
+        }
         for(Entry<String,ParameterValue[]> e: query.getParameters().entrySet()) {
-            if(parameters.containsKey(e.getKey())) {
+            if((! "project_id".equals(e.getKey())) && parameters.containsKey(e.getKey())) {
                 parameters.get(e.getKey()).setValues(e.getValue());
             }
         }
@@ -491,36 +557,40 @@ public class RedmineQueryController implements QueryController, ActionListener {
         }
         priorityParameter.setParameterValues(pvList);
 
+        SortedSet<RedmineUser> userList = new TreeSet<>(RedmineUserComparator.SINGLETON);
+        for(Entry<Integer, NestedProject> entry: repository.getProjects().entrySet()) {
+            userList.addAll(repository.getUsers(entry.getValue().getProject()));
+        }
+        
         // Assignee (assigned to)
         pvList = new ArrayList<>();
         pvList.add(ParameterValue.NONE_PARAMETERVALUE);
-        for (RedmineUser redmineUser : repository.getUsers()) {
+        for (RedmineUser redmineUser : userList) {
             pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
         }
         assigneeParameter.setParameterValues(pvList);
 
         // Category
         pvList = new ArrayList<>();
-        pvList.add(ParameterValue.NONE_PARAMETERVALUE);
-        for (IssueCategory c : repository.getIssueCategories()) {
-            pvList.add(new ParameterValue(c.getName(), c.getId()));
-        }
         categoryParameter.setParameterValues(pvList);
 
         // Target Version
         pvList = new ArrayList<>();
-        pvList.add(ParameterValue.NONE_PARAMETERVALUE);
-        for (Version v : repository.getVersions()) {
-            pvList.add(new ParameterValue(v.getName(), v.getId()));
-        }
         versionParameter.setParameterValues(pvList);
         
         // Watchers
         pvList = new ArrayList<>();
-        for (RedmineUser redmineUser : repository.getUsers()) {
-            pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
-        }
         watcherParameter.setParameterValues(pvList);
+        
+        List<NestedProject> projectList = new ArrayList<>(repository.getProjects().values());
+        Collections.sort(projectList);
+        pvList = new ArrayList<>();
+        for(NestedProject np: projectList) {
+            pvList.add(new ParameterValue(np.toString(), np.getProject().getId()));
+        }
+        projectParameter.setParameterValues(pvList);
+        
+        updateProjectValues();
     }
 
     private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
@@ -584,6 +654,14 @@ public class RedmineQueryController implements QueryController, ActionListener {
             tce = new TableColumn(1);
             tce.setHeaderValue("Summary");
             tce.setPreferredWidth(250);
+            tcm.addColumn(tce);
+            
+            tce = new TableColumn(8);
+            tce.setHeaderValue("Project");
+            tce.setCellRenderer(new TableCellRendererProject());
+            tce.setMinWidth(0);
+            tce.setPreferredWidth(80);
+            tce.setMaxWidth(80);
             tcm.addColumn(tce);
             
             tce = new TableColumn(2);
@@ -653,6 +731,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             priorityParameter = registerQueryParameter(ListParameter.class, queryPanel.priorityList, "priority_id");
             assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
             watcherParameter = registerQueryParameter(ListParameter.class, queryPanel.watcherList, "watcher_id");
+            projectParameter = registerQueryParameter(ListParameter.class, queryPanel.projectList, "project_id");
             
             registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
             registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");

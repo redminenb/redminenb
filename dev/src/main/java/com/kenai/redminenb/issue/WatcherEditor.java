@@ -47,7 +47,7 @@ public class WatcherEditor {
             @Override
             protected Object doInBackground() throws Exception {
                 originalWatchers = redmineIssue.getIssue().getWatchers();
-                users = redmineIssue.getRepository().getUsers();
+                users = redmineIssue.getRepository().getUsers(redmineIssue.getIssue().getProject());
                 return null;
             }
 

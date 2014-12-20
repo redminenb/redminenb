@@ -20,10 +20,12 @@ import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.repository.IssueCache;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.Project;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -61,7 +63,7 @@ public final class RedmineQuery {
     protected long lastRefresh;
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
     //
-    private Map<String, ParameterValue[]> parameters = Collections.EMPTY_MAP;
+    private Map<String, ParameterValue[]> parameters = new HashMap<>();
     private RedmineQueryController queryController;
     
     public synchronized RedmineQueryController getController() {
@@ -73,6 +75,13 @@ public final class RedmineQuery {
     
     public RedmineQuery(RedmineRepository repository) {
         this.repository = repository;
+        try {
+            Project p = repository.getProject();
+            NestedProject np = repository.getProjects().get(p.getId());
+            parameters.put("project_id", new ParameterValue[]{
+                new ParameterValue(np.toString(), p.getId())});
+        } catch (RedmineException | NullPointerException ex) {
+        }
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -204,11 +213,8 @@ public final class RedmineQuery {
         
         ParameterValue[] queryStringParameter = parameters.get("query");
         String queryStr = ParameterValue.flattenList(queryStringParameter);
-        
-        Map<String,ParameterValue[]> multiValueParameters = new HashMap<>();
 
         Map<String, String> m = new HashMap<>();
-        m.put("project_id", String.valueOf(repository.getProject().getId()));
 
         for (Entry<String,ParameterValue[]> p : parameters.entrySet()) {
             String parameter = p.getKey();
@@ -218,8 +224,10 @@ public final class RedmineQuery {
             }
             ParameterValue[] paramValues = p.getValue();
             if (StringUtils.isNotBlank(ParameterValue.flattenList(paramValues))) {
-                if ( "is_subject".equals(parameter) && StringUtils.isNotBlank(queryStr)) {
-                    m.put("subject", "~" + queryStr);
+                if ( "is_subject".equals(parameter) ) {
+                    if( StringUtils.isNotBlank(queryStr) ) {
+                        m.put("subject", "~" + queryStr);
+                    }
                 } else if ("is_description".equals(parameter)) {
                     searchDescription = "1".equals(paramValues[0].getValue());
                 } else {
@@ -234,12 +242,17 @@ public final class RedmineQuery {
                     } else if (paramValues.length == 1) {
                         m.put(parameter, paramValues[0].getValue());
                     } else if (paramValues.length > 1) {
-                        m.put(parameter, ParameterValue.flattenList(paramValues));
+                        if("project_id".equals(parameter)) {
+                            m.put(parameter, paramValues[0].getValue());
+                            LOG.warning("Redmine currently (2.6.0) does not allow multiple projects for querying - only using first project");
+                        } else {
+                            m.put(parameter, ParameterValue.flattenList(paramValues));
+                        }
                     }
                 }
             }
         }
-
+        
         // Perform search
         List<Issue> issueArr = repository.getManager().getIssues(m);
 

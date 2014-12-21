@@ -23,6 +23,7 @@ import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.user.RedmineUser;
 
 import com.taskadapter.redmineapi.bean.Identifiable;
+import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.Project;
 import java.util.Collection;
 import java.util.Comparator;
@@ -136,6 +137,20 @@ public final class RedmineUtil {
         @Override
         public int compare(RedmineUser a, RedmineUser b) {
             return a.getUser().getFullName().compareTo(b.getUser().getFullName());
+        }
+    }
+    
+    public static class JournalComparator implements Comparator<Journal> {
+
+        public static JournalComparator SINGLETON = new JournalComparator();
+
+        private JournalComparator() {
+            // suppressed to enforce using the SINGLETON
+        }
+
+        @Override
+        public int compare(Journal a, Journal b) {
+            return a.getCreatedOn().compareTo(b.getCreatedOn());
         }
     }
     

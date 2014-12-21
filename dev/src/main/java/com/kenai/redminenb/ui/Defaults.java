@@ -239,4 +239,11 @@ public class Defaults {
             return c;
         }
     }
+    
+    public static class PercentLCR extends DefaultListCellRenderer {
+
+        public PercentLCR() {
+            ((JLabel) this).setHorizontalAlignment(JLabel.RIGHT);
+        }
+    }
 }

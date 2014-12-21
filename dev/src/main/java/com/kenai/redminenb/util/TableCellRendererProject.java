@@ -29,7 +29,8 @@ public class TableCellRendererProject extends DefaultTableCellRenderer{
         if (value instanceof NestedProject) {
             value = ((NestedProject) value).toString();
         } else if (value instanceof Project) {
-            value = ((Project) value).getName();
+            Project p = (Project) value;
+            value = p.getName() + "(ID: " + p.getId() + ")";
         } else if (value == null) {
             value = " ";
         } else {

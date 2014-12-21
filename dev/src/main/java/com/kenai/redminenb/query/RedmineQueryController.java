@@ -25,9 +25,11 @@ import com.kenai.redminenb.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.user.RedmineUser;
+import com.kenai.redminenb.util.CancelableRunnable;
 import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.RedmineUtil;
 import com.kenai.redminenb.util.RedmineUtil.RedmineUserComparator;
+import com.kenai.redminenb.util.SafeAutoCloseable;
 import com.kenai.redminenb.util.TableCellRendererCategory;
 import com.kenai.redminenb.util.TableCellRendererPriority;
 import com.kenai.redminenb.util.TableCellRendererProject;
@@ -48,6 +50,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.lang.reflect.Constructor;
@@ -79,6 +82,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
+import javax.xml.ws.Holder;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
@@ -87,7 +91,10 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.HtmlBrowser;
 import org.openide.util.Cancellable;
+import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
+import org.openide.util.Mutex;
+import org.openide.util.MutexException;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
@@ -120,8 +127,9 @@ import org.openide.util.RequestProcessor;
     "MNU_OpenIssueForTimeTracking=Open Timetracker with Issue"
 })
 public class RedmineQueryController implements QueryController, ActionListener {
+
     private static final Logger LOG = Logger.getLogger(RedmineQueryController.class.getName());
-    
+
     private RedmineQueryPanel queryPanel;
     private final QueryListModel queryListModel = new QueryListModel();
     private JTable issueTable;
@@ -164,58 +172,74 @@ public class RedmineQueryController implements QueryController, ActionListener {
         queryPanel.issueIdTextField.addActionListener(this);
         queryPanel.queryTextField.addActionListener(this);
         queryPanel.projectList.addListSelectionListener(new ListSelectionListener() {
-
             @Override
             public void valueChanged(ListSelectionEvent e) {
-              updateProjectValues();
+                if (!e.getValueIsAdjusting()) {
+                    repository.getRequestProcessor().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateProjectValues();
+                        }
+                    });
+                }
             }
         });
     }
 
     private void updateProjectValues() {
-        ParameterValue pv = (ParameterValue) queryPanel.projectList.getSelectedValue();
-        NestedProject np = null;
-        Project p = null;
-        
-        if (pv != null) {
-            np = repository.getProjects().get(Integer.valueOf(pv.getValue()));
-        }
-        if(np != null) {
-            p = np.getProject();
-        }
-        
-        if (p != null) {
-            List<ParameterValue> pvList = new ArrayList<>();
+        assert (!SwingUtilities.isEventDispatchThread()) : "Must be called off the EDT";
 
-            pvList.add(ParameterValue.NONE_PARAMETERVALUE);
-            for (IssueCategory c : repository.getIssueCategories(p)) {
-                pvList.add(new ParameterValue(c.getName(), c.getId()));
+        try (SafeAutoCloseable sac = query.busy()) {
+            ParameterValue pv = Mutex.EVENT.writeAccess(new Mutex.Action<ParameterValue>() {
+                @Override
+                public ParameterValue run() {
+                    return (ParameterValue) queryPanel.projectList.getSelectedValue();
+                }
+            });
+
+            NestedProject np = null;
+            Project p = null;
+
+            if (pv != null) {
+                np = repository.getProjects().get(Integer.valueOf(pv.getValue()));
             }
-            categoryParameter.setParameterValues(pvList);
-            
-            pvList = new ArrayList<>();
-            pvList.add(ParameterValue.NONE_PARAMETERVALUE);
-            for (Version v : repository.getVersions(p)) {
-                pvList.add(new ParameterValue(v.getName(), v.getId()));
+            if (np != null) {
+                p = np.getProject();
             }
-            versionParameter.setParameterValues(pvList);
-            
-            pvList = new ArrayList<>();
-            pvList.add(new ParameterValue("(me)", "me"));
-            for (RedmineUser redmineUser : repository.getUsers(p)) {
-                pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
+
+            final List<ParameterValue> categoryList = new ArrayList<>();
+            final List<ParameterValue> versionList = new ArrayList<>();
+            final List<ParameterValue> watcherList = new ArrayList<>();
+            watcherList.add(new ParameterValue("(me)", "me"));
+
+            if (p != null) {
+                categoryList.add(ParameterValue.NONE_PARAMETERVALUE);
+                for (IssueCategory c : repository.getIssueCategories(p)) {
+                    categoryList.add(new ParameterValue(c.getName(), c.getId()));
+                }
+
+                versionList.add(ParameterValue.NONE_PARAMETERVALUE);
+                for (Version v : repository.getVersions(p)) {
+                    versionList.add(new ParameterValue(v.getName(), v.getId()));
+                }
+
+                for (RedmineUser redmineUser : repository.getUsers(p)) {
+                    watcherList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
+                }
             }
-            watcherParameter.setParameterValues(pvList);
-        } else {
-            categoryParameter.setParameterValues(Collections.EMPTY_LIST);
-            versionParameter.setParameterValues(Collections.EMPTY_LIST);
-            watcherParameter.setParameterValues(Collections.singletonList(
-                new ParameterValue("(me)", "me")
-            ));
+
+            Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
+                @Override
+                public Void run() {
+                    categoryParameter.setParameterValues(categoryList);
+                    versionParameter.setParameterValues(versionList);
+                    watcherParameter.setParameterValues(watcherList);
+                    return null;
+                }
+            });
         }
-        enableFields(true);
     }
-    
+
     @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
@@ -223,13 +247,14 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
     private void modelToGUI() {
         assert SwingUtilities.isEventDispatchThread();
-        Map<String,ParameterValue[]> queryParams = query.getParameters();
+        Map<String, ParameterValue[]> queryParams = query.getParameters();
         // Initalize project first, as other values depend on selected project
-        if(queryParams.containsKey("project_id")) {
+        if (queryParams.containsKey("project_id")) {
             parameters.get("project_id").setValues(queryParams.get("project_id"));
         }
-        for(Entry<String,ParameterValue[]> e: query.getParameters().entrySet()) {
-            if((! "project_id".equals(e.getKey())) && parameters.containsKey(e.getKey())) {
+        for (Entry<String, ParameterValue[]> e : query.getParameters().entrySet()) {
+            if ((!"project_id".equals(e.getKey()))
+                    && parameters.containsKey(e.getKey())) {
                 parameters.get(e.getKey()).setValues(e.getValue());
             }
         }
@@ -237,15 +262,15 @@ public class RedmineQueryController implements QueryController, ActionListener {
         queryPanel.cancelChangesButton.setVisible(query.getDisplayName() != null);
         queryPanel.setLastRefresh(getLastRefresh());
     }
-    
+
     private void guiToModel() {
         Map<String, ParameterValue[]> parameters = new HashMap<>();
-        for(RedmineQueryParameter rqp: this.parameters.values()) {
+        for (RedmineQueryParameter rqp : this.parameters.values()) {
             parameters.put(rqp.getParameter(), rqp.getValues());
         }
         query.setParameters(parameters);
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == queryPanel.searchButton) {
@@ -284,14 +309,14 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     /////////////////////////////////////////////////////////////////////////////
-
     private void onSave(final boolean refresh) {
         query.getRepository().getRequestProcessor().post(new Runnable() {
             @Override
             public void run() {
                 Redmine.LOG.fine("on save start");
                 String name = query.getDisplayName();
-                if (query.getDisplayName() == null || query.getDisplayName().isEmpty()) {
+                if (query.getDisplayName() == null
+                        || query.getDisplayName().isEmpty()) {
                     name = getSaveName();
                     if (name == null) {
                         return;
@@ -312,7 +337,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
         NotifyDescriptor.InputLine nd = new NotifyDescriptor.InputLine(
                 "Name", "Save query");
         DialogDisplayer.getDefault().notify(nd);
-        if(nd.getValue() == NotifyDescriptor.OK_OPTION) {
+        if (nd.getValue() == NotifyDescriptor.OK_OPTION) {
             return nd.getInputText();
         } else {
             return null;
@@ -321,8 +346,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
     private void setAsSaved(boolean showModify) {
         queryPanel.setModifyVisible(showModify);
-        queryPanel.cancelChangesButton.setVisible(! showModify);
-        queryPanel.refreshCheckBox.setVisible(! showModify);
+        queryPanel.cancelChangesButton.setVisible(!showModify);
+        queryPanel.refreshCheckBox.setVisible(!showModify);
     }
 
     private String getLastRefresh() throws MissingResourceException {
@@ -374,7 +399,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
     private void onWeb() {
         String params = null; //query.getUrlParameters();
         String repoURL = repository.getUrl();
-        final String urlString = repoURL + (StringUtils.isNotBlank(params) ? params : ""); // NOI18N
+        final String urlString = repoURL
+                + (StringUtils.isNotBlank(params) ? params : ""); // NOI18N
 
         query.getRepository().getRequestProcessor().post(new Runnable() {
             @Override
@@ -436,7 +462,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
         NotifyDescriptor nd = new NotifyDescriptor.Confirmation(Bundle.MSG_RemoveQuery(query.getDisplayName()),
                 Bundle.CTL_RemoveQuery(),
                 NotifyDescriptor.OK_CANCEL_OPTION);
-        if (DialogDisplayer.getDefault().notify(nd) == NotifyDescriptor.OK_OPTION) {
+        if (DialogDisplayer.getDefault().notify(nd)
+                == NotifyDescriptor.OK_OPTION) {
             query.getRepository().getRequestProcessor().post(new Runnable() {
                 @Override
                 public void run() {
@@ -457,7 +484,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 RedmineConnector.NAME,
                 query.getDisplayName(),
                 autoRefresh
-                ));
+        ));
     }
 
     private void refreshConfiguration() {
@@ -465,132 +492,94 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     protected final void postPopulate() {
-
-        final RequestProcessor.Task[] t = new RequestProcessor.Task[1];
-        Cancellable c = new Cancellable() {
-            @Override
-            public boolean cancel() {
-                if (t[0] != null) {
-                    return t[0].cancel();
-                }
-                return true;
-            }
-        };
-
+        final Holder<ProgressHandle> handleValue = new Holder<>();
         final String msgPopulating = Bundle.MSG_Populating(repository.getDisplayName());
-        final ProgressHandle handle = ProgressHandleFactory.createHandle(msgPopulating, c);
 
-        EventQueue.invokeLater(new Runnable() {
+        CancelableRunnable cr = new CancelableRunnable() {
             @Override
             public void run() {
-                enableFields(false);
-                queryPanel.showRetrievingProgress(true, msgPopulating, !query.isSaved());
-                handle.start();
-            }
-        });
+                Redmine.LOG.log(Level.FINE, "Starting populate query controller (saved: {0}, name: {1})",
+                        new Object[]{query.isSaved(), query.getDisplayName()});
+                try (SafeAutoCloseable sac = query.busy()) {
+                    Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
+                        @Override
+                        public Void run() {
+                            queryPanel.showRetrievingProgress(true, msgPopulating, !query.isSaved());
+                            handleValue.value.start();
+                            return null;
+                        }
+                    });
 
-        t[0] = query.getRepository().getRequestProcessor().post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    populate();
+                    final List<ParameterValue> trackerList = new ArrayList<>();
+                    for (Tracker t : repository.getTrackers()) {
+                        trackerList.add(new ParameterValue(t.getName(), t.getId()));
+                    }
+                    final List<ParameterValue> statusList = new ArrayList<>();
+                    for (IssueStatus s : repository.getStatuses()) {
+                        statusList.add(new ParameterValue(s.getName(), s.getId()));
+                    }
 
-                } finally {
-                    EventQueue.invokeLater(new Runnable() {
+                    final List<ParameterValue> priorityList = new ArrayList<>();
+                    for (IssuePriority ip : repository.getIssuePriorities()) {
+                        priorityList.add(new ParameterValue(ip.getName(), ip.getId()));
+                    }
+
+                    SortedSet<RedmineUser> userList = new TreeSet<>(RedmineUserComparator.SINGLETON);
+                    for (Entry<Integer, NestedProject> entry : repository.getProjects().entrySet()) {
+                        userList.addAll(repository.getUsers(entry.getValue().getProject()));
+                    }
+
+                    final List<ParameterValue> assigneeList = new ArrayList<>();
+                    assigneeList.add(ParameterValue.NONE_PARAMETERVALUE);
+                    for (RedmineUser redmineUser : userList) {
+                        assigneeList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
+                    }
+
+                    List<NestedProject> projectList = new ArrayList<>(repository.getProjects().values());
+                    Collections.sort(projectList);
+                    final List<ParameterValue> projectValueList = new ArrayList<>();
+                    for (NestedProject np : projectList) {
+                        projectValueList.add(new ParameterValue(np.toString(), np.getProject().getId()));
+                    }
+
+                    Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
+                        @Override
+                        public Void run() {
+                            trackerParameter.setParameterValues(trackerList);
+                            categoryParameter.setParameterValues(Collections.EMPTY_LIST);
+                            versionParameter.setParameterValues(Collections.EMPTY_LIST);
+                            watcherParameter.setParameterValues(Collections.EMPTY_LIST);
+                            statusParameter.setParameterValues(statusList);
+                            priorityParameter.setParameterValues(priorityList);
+                            assigneeParameter.setParameterValues(assigneeList);
+                            projectParameter.setParameterValues(projectValueList);
+
+                            if (query.isSaved()) {
+                                boolean autoRefresh = RedmineConfig.getInstance().getQueryAutoRefresh(query.getDisplayName());
+                                queryPanel.refreshCheckBox.setSelected(autoRefresh);
+                            }
+                            return null;
+                        }
+                    });
+
+                    updateProjectValues();
+                    
+                    Mutex.EVENT.writeAccess(new Runnable() {
                         @Override
                         public void run() {
-                            enableFields(true);
-                            handle.finish();
+                            handleValue.value.finish();
                             modelToGUI();
                             queryPanel.showRetrievingProgress(false, null, !query.isSaved());
                         }
                     });
+                    Redmine.LOG.log(Level.FINE, "Finnished populate query controller (saved: {0}, name: {1})",
+                            new Object[]{query.isSaved(), query.getDisplayName()});
                 }
             }
-        });
-    }
+        };
 
-    protected void populate() {
-        if (Redmine.LOG.isLoggable(Level.FINE)) {
-            Redmine.LOG.log(Level.FINE, "Starting populate query controller {0}", (query.isSaved() ? " - " + query.getDisplayName() : "")); // NOI18N
-        }
-        try {
-            EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    populateProjectDetails();
-
-                    if (query.isSaved()) {
-                        boolean autoRefresh = RedmineConfig.getInstance().getQueryAutoRefresh(query.getDisplayName());
-                        queryPanel.refreshCheckBox.setSelected(autoRefresh);
-                    }
-                }
-            });
-        } finally {
-            if (Redmine.LOG.isLoggable(Level.FINE)) {
-                Redmine.LOG.log(Level.FINE, "Finnished populate query controller{0}", (query.isSaved() ? " - " + query.getDisplayName() : "")); // NOI18N
-            }
-        }
-    }
-
-    private void populateProjectDetails() {
-        List<ParameterValue> pvList;
-
-        // Tracker
-        pvList = new ArrayList<>();
-        for (Tracker t : repository.getTrackers()) {
-            pvList.add(new ParameterValue(t.getName(), t.getId()));
-        }
-        trackerParameter.setParameterValues(pvList);
-
-        // Status
-        pvList = new ArrayList<>();
-        for (IssueStatus s : repository.getStatuses()) {
-            pvList.add(new ParameterValue(s.getName(), s.getId()));
-        }
-        statusParameter.setParameterValues(pvList);
-
-        // Issue Priority
-        pvList = new ArrayList<>();
-        for (IssuePriority ip : repository.getIssuePriorities()) {
-            pvList.add(new ParameterValue(ip.getName(), ip.getId()));
-        }
-        priorityParameter.setParameterValues(pvList);
-
-        SortedSet<RedmineUser> userList = new TreeSet<>(RedmineUserComparator.SINGLETON);
-        for(Entry<Integer, NestedProject> entry: repository.getProjects().entrySet()) {
-            userList.addAll(repository.getUsers(entry.getValue().getProject()));
-        }
-        
-        // Assignee (assigned to)
-        pvList = new ArrayList<>();
-        pvList.add(ParameterValue.NONE_PARAMETERVALUE);
-        for (RedmineUser redmineUser : userList) {
-            pvList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
-        }
-        assigneeParameter.setParameterValues(pvList);
-
-        // Category
-        pvList = new ArrayList<>();
-        categoryParameter.setParameterValues(pvList);
-
-        // Target Version
-        pvList = new ArrayList<>();
-        versionParameter.setParameterValues(pvList);
-        
-        // Watchers
-        pvList = new ArrayList<>();
-        watcherParameter.setParameterValues(pvList);
-        
-        List<NestedProject> projectList = new ArrayList<>(repository.getProjects().values());
-        Collections.sort(projectList);
-        pvList = new ArrayList<>();
-        for(NestedProject np: projectList) {
-            pvList.add(new ParameterValue(np.toString(), np.getProject().getId()));
-        }
-        projectParameter.setParameterValues(pvList);
-        
-        updateProjectValues();
+        handleValue.value = ProgressHandleFactory.createHandle(msgPopulating);
+        repository.getRequestProcessor().execute(cr);
     }
 
     private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
@@ -655,7 +644,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             tce.setHeaderValue("Summary");
             tce.setPreferredWidth(250);
             tcm.addColumn(tce);
-            
+
             tce = new TableColumn(8);
             tce.setHeaderValue("Project");
             tce.setCellRenderer(new TableCellRendererProject());
@@ -663,7 +652,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
             tce.setPreferredWidth(80);
             tce.setMaxWidth(80);
             tcm.addColumn(tce);
-            
+
             tce = new TableColumn(2);
             tce.setHeaderValue("Tracker");
             tce.setCellRenderer(new TableCellRendererTracker());
@@ -732,15 +721,24 @@ public class RedmineQueryController implements QueryController, ActionListener {
             assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
             watcherParameter = registerQueryParameter(ListParameter.class, queryPanel.watcherList, "watcher_id");
             projectParameter = registerQueryParameter(ListParameter.class, queryPanel.projectList, "project_id");
-            
+
             registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
             registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");
             registerQueryParameter(CheckBoxParameter.class, queryPanel.qDescriptionCheckBox, "is_description");
 
+            query.addPropertyChangeListener(new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    if ("busy".equals(evt.getPropertyName())) {
+                        enableFields(!((boolean) evt.getNewValue()));
+                    }
+                }
+            });
+            
             setListeners();
             postPopulate();
         }
-        if(qm == QueryMode.VIEW) {
+        if (qm == QueryMode.VIEW) {
             setAsSaved(false);
         } else {
             setAsSaved(true);
@@ -784,7 +782,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
     public boolean isChanged() {
         return query.isSaved();
     }
-    
+
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
 
     @Override
@@ -798,6 +796,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     private class QueryTask implements Runnable, Cancellable, QueryNotifyListener {
+
         private RequestProcessor.Task task;
         private int counter;
         private boolean autoRefresh;
@@ -811,7 +810,6 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 EventQueue.invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        enableFields(false);
                         queryPanel.showSearchingProgress(true, Bundle.MSG_Searching());
                     }
                 });
@@ -827,15 +825,14 @@ public class RedmineQueryController implements QueryController, ActionListener {
                         queryPanel.setQueryRunning(false);
                         queryPanel.setLastRefresh(getLastRefresh());
                         queryPanel.showNoContentPanel(false);
-                        enableFields(true);
                     }
                 });
             }
         }
 
         public void executeQuery() {
-            setQueryRunning(true);
-            try {
+            try(SafeAutoCloseable sac = query.busy()) {
+                startQuery();
                 query.refresh(autoRefresh);
             } finally {
                 setQueryRunning(false); // XXX do we need this? its called in finishQuery anyway
@@ -915,10 +912,11 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     private class IssueTableIssueOpener implements MouseListener, KeyListener {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             int mouseRow = issueTable.rowAtPoint(e.getPoint());
-            if((mouseRow != -1) && (! issueTable.isRowSelected(mouseRow))) {
+            if ((mouseRow != -1) && (!issueTable.isRowSelected(mouseRow))) {
                 issueTable.setRowSelectionInterval(mouseRow, mouseRow);
             }
             if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
@@ -940,7 +938,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 } else {
                     issue = null;
                 }
-                
+
                 JPopupMenu menu = new JPopupMenu();
                 JMenuItem openItem = new JMenuItem(Bundle.MNU_OpenIssue());
                 openItem.setEnabled(issue != null);

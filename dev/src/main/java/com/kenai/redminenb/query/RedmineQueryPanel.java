@@ -80,14 +80,11 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import com.kenai.redminenb.util.LinkButton;
-import com.taskadapter.redmineapi.bean.Project;
 import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
 import javax.swing.JLayeredPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -141,8 +138,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
            }
        }
    };
-   
-   JComponent waitPanel = new BusyPanel();
    
    public RedmineQueryPanel(JComponent tableComponent, RedmineQueryController controller) {
       super();
@@ -226,9 +221,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       versionList.addListSelectionListener(lsl);
       assigneeList.addListSelectionListener(lsl);
       
-      layerPane.setLayout(new FullSizeLayout());
-      layerPane.add(waitPanel, JLayeredPane.MODAL_LAYER);
-      
       validate();
       repaint();
    }
@@ -289,7 +281,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         byTextPanel = new JPanel();
         qSubjectCheckBox = new JCheckBox();
         qDescriptionCheckBox = new JCheckBox();
-        layerPane = new JLayeredPane();
         innerPanel = new JPanel();
         tableFieldsPanel = new JPanel();
         tableHeaderPanel = new JPanel();
@@ -982,33 +973,13 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(searchPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 450, Short.MAX_VALUE)
+                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(noContentPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+                .addContainerGap())
         );
 
-        GroupLayout layerPaneLayout = new GroupLayout(layerPane);
-        layerPane.setLayout(layerPaneLayout);
-        layerPaneLayout.setHorizontalGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGap(0, 707, Short.MAX_VALUE)
-            .addGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(layerPaneLayout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
-                    .addComponent(innerPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 0, Short.MAX_VALUE)))
-        );
-        layerPaneLayout.setVerticalGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGap(0, 695, Short.MAX_VALUE)
-            .addGroup(layerPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(layerPaneLayout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
-                    .addComponent(innerPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 0, Short.MAX_VALUE)))
-        );
-        layerPane.setLayer(innerPanel, JLayeredPane.DEFAULT_LAYER);
-
-        add(layerPane, BorderLayout.CENTER);
+        add(innerPanel, BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1043,7 +1014,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JScrollPane jScrollPane7 = new HackedScrollPane();
     final JLabel lastRefreshDateLabel = new JLabel();
     JLabel lastRefreshLabel;
-    JLayeredPane layerPane;
     public final LinkButton modifyButton = new LinkButton();
     final JLabel nameLabel = new JLabel();
     JLabel noContentLabel;
@@ -1107,10 +1077,15 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       searchButton.setEnabled(enable);
       saveButton.setEnabled(enable);
+      saveChangesButton.setEnabled(enable);
       webButton.setEnabled(enable);
       refreshConfigurationButton.setEnabled(enable);
 
       refreshCheckBox.setEnabled(enable);
+      
+      modifyButton.setEnabled(enable);
+      refreshButton.setEnabled(enable);
+      removeButton.setEnabled(enable);
    }
 
    void switchQueryFields(boolean showAdvanced) {

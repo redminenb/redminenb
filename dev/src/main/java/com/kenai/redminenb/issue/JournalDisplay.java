@@ -28,6 +28,7 @@ import com.taskadapter.redmineapi.bean.JournalDetail;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.io.StringWriter;
+import java.util.Date;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import org.apache.commons.lang.StringUtils;
@@ -38,21 +39,60 @@ import org.openide.util.NbBundle;
  * @author matthias
  */
 public class JournalDisplay extends javax.swing.JPanel {
-    public JournalDisplay(RedmineIssue ri, Journal jd, int index) {
+    public static class JournalData {
+        private Integer id;
+        private Integer pos;
+        private String username;
+        private Date create;
+        private String htmlContent;
+
+        public JournalData(Integer id, Integer pos, String username, Date create, String htmlContent) {
+            this.id = id;
+            this.pos = pos;
+            this.username = username;
+            this.create = create;
+            this.htmlContent = htmlContent;
+        }
+        
+        public Integer getId() {
+            return id;
+        }
+
+        public Integer getPos() {
+            return pos;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public Date getCreate() {
+            return create;
+        }
+
+        public String getHtmlContent() {
+            return htmlContent;
+        }
+        
+    }
+    
+    public JournalDisplay(JournalData jd) {
         initComponents();
         
-        RedmineRepository repo = ri.getRepository();
-        
-        Object[] rightParams = new Object[] {jd.getId(), index + 1};
-        Object[] leftParams = new Object[]{ jd.getUser().getFullName(), jd.getCreatedOn()};
         leftLabel.setText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.leftTemplate", leftParams));
+                "journalDisplay.leftTemplate", new Object[]{jd.getUsername(), jd.getCreate()}));
         leftLabel.setToolTipText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.leftTemplateTooltip", leftParams));
+                "journalDisplay.leftTemplateTooltip", new Object[]{jd.getUsername(), jd.getCreate()}));
         rightLabel.setText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.rightTemplate", rightParams));
+                "journalDisplay.rightTemplate", new Object[]{jd.getId(), jd.getPos()}));
         rightLabel.setToolTipText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.rightTemplateTooltip", rightParams));
+                "journalDisplay.rightTemplateTooltip", new Object[]{jd.getId(), jd.getPos()}));
+
+        content.setHTMLText(jd.getHtmlContent());
+    }
+
+    public static JournalData buildJournalData(RedmineIssue ri, Journal jd, int index) {
+        RedmineRepository repo = ri.getRepository();
         
         String noteText = jd.getNotes();
         StringWriter writer = new StringWriter();
@@ -147,12 +187,17 @@ public class JournalDisplay extends javax.swing.JPanel {
             TextileUtil.convertToHTML(noteText, writer);
             writer.append("</div>");
         }
-        
-        String output = writer.toString();
-        content.setHTMLText(output);
-    }
 
-    private String formatCategory(RedmineRepository repo, RedmineIssue issue, String value) {
+        return new JournalData(
+                jd.getId(),
+                index + 1,
+                jd.getUser().getFullName(),
+                jd.getCreatedOn(),
+                writer.toString()
+        );
+    }
+    
+    private static String formatCategory(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
@@ -167,7 +212,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatVersion(RedmineRepository repo, RedmineIssue issue, String value) {
+    private static String formatVersion(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
@@ -182,7 +227,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatPriority(RedmineRepository repo, String value) {
+    private static String formatPriority(RedmineRepository repo, String value) {
         if(value == null) {
             return null;
         }
@@ -197,7 +242,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatStatus(RedmineRepository repo, String value) {
+    private static String formatStatus(RedmineRepository repo, String value) {
         if(value == null) {
             return null;
         }
@@ -212,7 +257,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatTracker(RedmineRepository repo, String value) {
+    private static String formatTracker(RedmineRepository repo, String value) {
         if(value == null) {
             return null;
         }
@@ -227,7 +272,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatAssignee(RedmineRepository repo, RedmineIssue issue, String value) {
+    private static String formatAssignee(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
@@ -242,7 +287,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatProject(RedmineRepository repo, RedmineIssue issue, String value) {
+    private static String formatProject(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
@@ -254,7 +299,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String escapeHTML(String input) {
+    private static String escapeHTML(String input) {
         if(input == null) {
             return "";
         }

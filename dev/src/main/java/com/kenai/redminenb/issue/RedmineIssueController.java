@@ -3,19 +3,12 @@ package com.kenai.redminenb.issue;
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.ui.Defaults;
-import com.kenai.redminenb.user.RedmineUser;
-import com.kenai.redminenb.util.ListComboBoxModel;
-import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.RedmineUtil;
 
 import com.taskadapter.redmineapi.bean.Issue;
-import com.taskadapter.redmineapi.bean.IssueCategory;
-import com.taskadapter.redmineapi.bean.Project;
-import com.taskadapter.redmineapi.bean.Version;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -23,7 +16,6 @@ import java.net.URL;
 import java.util.logging.Level;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -66,6 +58,15 @@ public class RedmineIssueController implements IssueController {
 
         pane.add(scrollPane, BorderLayout.CENTER);        
         component = pane;
+        
+        redmineIssue.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if("busy".equals(evt.getPropertyName())) {
+                    issuePanel.enableFields(! ((boolean)evt.getNewValue()));
+                }
+            }
+        });
     }
 
     @Override
@@ -78,22 +79,17 @@ public class RedmineIssueController implements IssueController {
         if (redmineIssue != null) {
             issuePanel.opened();
             redmineIssue.opened();
+
+            redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
+
+                @Override
+                public void run() {
+                    redmineIssue.refresh();
+                    issuePanel.initIssue();
+                }
+            });
+            viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
         }
-        new SwingWorker() {
-
-            @Override
-            protected Object doInBackground() throws Exception {
-                redmineIssue.refresh();
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                issuePanel.initIssue();
-            }
-            
-        }.execute();
-        viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
     }
 
     @Override
@@ -186,12 +182,12 @@ public class RedmineIssueController implements IssueController {
                             @Override
                             protected Object doInBackground() throws Exception {
                                 redmineIssue.refresh();
+                                issuePanel.initIssue();
                                 return null;
                             }
 
                             @Override
                             protected void done() {
-                                issuePanel.initIssue();
                                 issuePanel.setInfoMessage("Issue successfully reloaded.");
                             }
 
@@ -255,7 +251,11 @@ public class RedmineIssueController implements IssueController {
     @Override
     public boolean discardUnsavedChanges() {
         if(issuePanel != null) {
-            issuePanel.initIssue();
+            redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
+                public void run() {
+                    issuePanel.initIssue();
+                }
+            });
         }
         return true;
     }

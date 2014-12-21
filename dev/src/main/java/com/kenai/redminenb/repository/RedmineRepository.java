@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
@@ -618,6 +619,7 @@ public class RedmineRepository {
     }
     
     public final RedmineManager getManager() throws RedmineException {
+        assert (! SwingUtilities.isEventDispatchThread()) : "Access to Redmine Manager must happen outside EDT!";
         AuthMode authMode = getAuthMode();
         if (manager == null) {
             if (authMode == null) {

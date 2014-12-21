@@ -20,14 +20,20 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
-public class BusyPanel extends JPanel {
-
+public class BusyPanel extends JPanel implements ActionListener {
+    private static final String CMD_HIDE = "hide";
+    private static final String CMD_SHOW = "show";
     private final NoopListener noopListener = new NoopListener();
+    private Timer hideShowTimer = null;
 
     public BusyPanel() {
         super(new BorderLayout());
@@ -39,7 +45,7 @@ public class BusyPanel extends JPanel {
         add(label);
         setFocusable(true);
         setOpaque(false);
-        setVisible(false);
+        super.setVisible(false);
         // Swallow Mouse + Keyboard events
         addMouseListener(noopListener);
         addKeyListener(noopListener);
@@ -55,8 +61,42 @@ public class BusyPanel extends JPanel {
     }
 
     @Override
-    public void setVisible(boolean aFlag) {
-        super.setVisible(aFlag);
+    public void setVisible(boolean flag) {
+        if (hideShowTimer != null) {
+            if ((flag) && CMD_HIDE.equals(hideShowTimer.getActionCommand())) {
+                hideShowTimer.stop();
+                hideShowTimer = null;
+            } else if ((! flag) && CMD_SHOW.equals(hideShowTimer.getActionCommand())) {
+                hideShowTimer.stop();
+                hideShowTimer = null;
+            }
+        } else {
+            if (flag) {
+                hideShowTimer = new Timer(200, this);
+                hideShowTimer.setActionCommand(CMD_SHOW);
+            } else {
+                hideShowTimer = new Timer(200, this);
+                hideShowTimer.setActionCommand(CMD_HIDE);
+            }
+            hideShowTimer.setRepeats(false);
+            hideShowTimer.start();
+        }
+    }
+    
+    private void realSetVisible(boolean flag) {
+        super.setVisible(flag);
         requestFocus();
     }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if(CMD_SHOW.equals(e.getActionCommand())) {
+            realSetVisible(true);
+            hideShowTimer = null;
+        } else if (CMD_HIDE.equals(e.getActionCommand())) {
+            realSetVisible(false);
+            hideShowTimer = null;
+        }
+    }
+    
 }

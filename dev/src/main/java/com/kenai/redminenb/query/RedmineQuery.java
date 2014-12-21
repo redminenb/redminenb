@@ -20,10 +20,13 @@ import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.repository.IssueCache;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.util.NestedProject;
+import com.kenai.redminenb.util.SafeAutoCloseable;
 import com.taskadapter.redmineapi.AuthenticationException;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.Project;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -43,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.netbeans.modules.bugtracking.spi.QueryController;
 import org.netbeans.modules.bugtracking.spi.QueryProvider;
 import org.openide.util.Exceptions;
+import org.openide.util.Mutex;
 
 /**
  * Redmine Query.
@@ -61,8 +65,45 @@ public final class RedmineQuery {
     protected long lastRefresh;
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
     //
-    private Map<String, ParameterValue[]> parameters = Collections.EMPTY_MAP;
+    private Map<String, ParameterValue[]> parameters = new HashMap<>();
     private RedmineQueryController queryController;
+    
+    private Integer busy = 0;
+    
+    private final SafeAutoCloseable busyHelper = new SafeAutoCloseable() {
+        @Override
+        public void close() {
+            setBusy(false);
+        }
+    };
+    
+    public SafeAutoCloseable busy() {
+        setBusy(true);
+        return busyHelper;
+    }
+
+    public synchronized boolean isBusy() {
+        return busy != 0;
+    }
+    
+    public synchronized void setBusy(boolean busyBool) {
+        final boolean oldBusy = isBusy();
+        if (busyBool) {
+            busy++;
+        } else {
+            busy--;
+        }
+        if (busy < 0) {
+            throw new IllegalStateException("Inbalanced busy/nonbusy");
+        }
+        Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
+            @Override
+            public Void run() {
+                 support.firePropertyChange("busy", oldBusy, busy != 0);
+                 return null;
+            }
+        });
+    }
     
     public synchronized RedmineQueryController getController() {
         if (queryController == null) {
@@ -73,6 +114,13 @@ public final class RedmineQuery {
     
     public RedmineQuery(RedmineRepository repository) {
         this.repository = repository;
+        try {
+            Project p = repository.getProject();
+            NestedProject np = repository.getProjects().get(p.getId());
+            parameters.put("project_id", new ParameterValue[]{
+                new ParameterValue(np.toString(), p.getId())});
+        } catch (RedmineException | NullPointerException ex) {
+        }
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -133,46 +181,48 @@ public final class RedmineQuery {
     private boolean doRefresh(final boolean autoRefresh) {
         // XXX what if already running! - cancel task
         assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
-
+        
         final boolean ret[] = new boolean[1];
-        executeQuery(new Runnable() {
-            @Override
-            public void run() {
-                Redmine.LOG.log(Level.FINE, "refresh start - {0}", name); // NOI18N
-                try {
-                    if (delegateContainer != null) {
-                        delegateContainer.refreshingStarted();
-                    }
-
-                    delegateContainer.clear();
-                    issues.clear();
-
-                    firstRun = false;
+        try(SafeAutoCloseable sac = busy()) {
+            executeQuery(new Runnable() {
+                @Override
+                public void run() {
+                    Redmine.LOG.log(Level.FINE, "refresh start - {0}", name); // NOI18N
                     try {
-                        List<Issue> issueArr = doSearch();
-                        IssueCache issueCache = repository.getIssueCache();
-                        for (Issue issue : issueArr) {
-                            RedmineIssue redmineIssue = issueCache.cachedRedmineIssue(issue);
-                            issues.add(redmineIssue);
-                            if (delegateContainer != null) {
-                                delegateContainer.add(redmineIssue);
-                            }
-                            fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
+                        if (delegateContainer != null) {
+                            delegateContainer.refreshingStarted();
                         }
 
-                    } catch (Exception e) {
-                        Exceptions.printStackTrace(e);
-                    }
+                        delegateContainer.clear();
+                        issues.clear();
 
-                    if (delegateContainer != null) {
-                        delegateContainer.refreshingFinished();
+                        firstRun = false;
+                        try {
+                            List<Issue> issueArr = doSearch();
+                            IssueCache issueCache = repository.getIssueCache();
+                            for (Issue issue : issueArr) {
+                                RedmineIssue redmineIssue = issueCache.cachedRedmineIssue(issue);
+                                issues.add(redmineIssue);
+                                if (delegateContainer != null) {
+                                    delegateContainer.add(redmineIssue);
+                                }
+                                fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
+                            }
+
+                        } catch (Exception e) {
+                            Exceptions.printStackTrace(e);
+                        }
+
+                        if (delegateContainer != null) {
+                            delegateContainer.refreshingFinished();
+                        }
+                    } finally {
+                        logQueryEvent(issues.size(), autoRefresh);
+                        Redmine.LOG.log(Level.FINE, "refresh finish - {0}", name); // NOI18N
                     }
-                } finally {
-                    logQueryEvent(issues.size(), autoRefresh);
-                    Redmine.LOG.log(Level.FINE, "refresh finish - {0}", name); // NOI18N
                 }
-            }
-        });
+            });
+        }
 
         return ret[0];
     }
@@ -204,11 +254,8 @@ public final class RedmineQuery {
         
         ParameterValue[] queryStringParameter = parameters.get("query");
         String queryStr = ParameterValue.flattenList(queryStringParameter);
-        
-        Map<String,ParameterValue[]> multiValueParameters = new HashMap<>();
 
         Map<String, String> m = new HashMap<>();
-        m.put("project_id", String.valueOf(repository.getProject().getId()));
 
         for (Entry<String,ParameterValue[]> p : parameters.entrySet()) {
             String parameter = p.getKey();
@@ -218,8 +265,10 @@ public final class RedmineQuery {
             }
             ParameterValue[] paramValues = p.getValue();
             if (StringUtils.isNotBlank(ParameterValue.flattenList(paramValues))) {
-                if ( "is_subject".equals(parameter) && StringUtils.isNotBlank(queryStr)) {
-                    m.put("subject", "~" + queryStr);
+                if ( "is_subject".equals(parameter) ) {
+                    if( StringUtils.isNotBlank(queryStr) ) {
+                        m.put("subject", "~" + queryStr);
+                    }
                 } else if ("is_description".equals(parameter)) {
                     searchDescription = "1".equals(paramValues[0].getValue());
                 } else {
@@ -234,14 +283,19 @@ public final class RedmineQuery {
                     } else if (paramValues.length == 1) {
                         m.put(parameter, paramValues[0].getValue());
                     } else if (paramValues.length > 1) {
-                        m.put(parameter, ParameterValue.flattenList(paramValues));
+                        if("project_id".equals(parameter)) {
+                            m.put(parameter, paramValues[0].getValue());
+                            LOG.warning("Redmine currently (2.6.0) does not allow multiple projects for querying - only using first project");
+                        } else {
+                            m.put(parameter, ParameterValue.flattenList(paramValues));
+                        }
                     }
                 }
             }
         }
-
+        
         // Perform search
-        List<Issue> issueArr = repository.getManager().getIssues(m);
+        List<Issue> issueArr = repository.getIssueManager().getIssues(m);
 
         // Post filtering: Query string for description
         if (searchDescription && StringUtils.isNotBlank(queryStr)) {

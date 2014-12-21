@@ -15,6 +15,7 @@
  */
 package com.kenai.redminenb.repository;
 
+import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.query.RedmineQuery;
 
@@ -34,7 +35,7 @@ public class RedmineRepositoryProvider implements RepositoryProvider<RedmineRepo
 
     @Override
     public Image getIcon(RedmineRepository r) {
-        return r.getIcon();
+        return Redmine.getIconImage();
     }
 
     @Override

@@ -11,7 +11,9 @@ import javax.swing.event.DocumentListener;
 import org.openide.util.NbBundle;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
+import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.ProjectFactory;
 import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.GroupLayout;
@@ -31,7 +33,7 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
 
    private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-z0-9_]{1,100}");
    //
-   private final RedmineRepository repository;
+   private final RedmineManager redmineManager;
    private String projectName;
    private String description;
    private String identifier;
@@ -40,8 +42,8 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
    /**
     * Creates new form RedmineProjectPanel
     */
-   public RedmineProjectPanel(RedmineRepository repository) {
-      this.repository = repository;
+   public RedmineProjectPanel(RedmineManager redmineManager) {
+      this.redmineManager = redmineManager;
 
       initComponents();
 
@@ -98,14 +100,16 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
    }
 
    private boolean createNewProject() {
-      final Project project = new Project();
-
+      final Project project = ProjectFactory.create();
+      
       project.setName(projectName);
       project.setDescription(description);
       project.setIdentifier(identifier);
 
       try {
-         repository.getManager().createProject(project);
+          // @todo: This works out of sheer luck! Make sure manager is provided
+          // by repository config dialog
+         redmineManager.getProjectManager().createProject(project);
          return true;
       } catch (NotFoundException ex) {
          errorMessage = ex.getLocalizedMessage();

@@ -28,7 +28,6 @@ public final class Redmine {
     private static RedmineIssuePriorityProvider ipp;
     private static RedmineIssueScheduleProvider issp;
 
-    private RequestProcessor rp;
     private RedmineIssueProvider rip;
     private RedmineQueryProvider rqp;
     private RedmineRepositoryProvider rrp;
@@ -63,19 +62,6 @@ public final class Redmine {
 
     public static String getMessage(String resName, String... param) {
         return NbBundle.getMessage(Redmine.class, resName, param);
-    }
-
-    /**
-     * Returns the request processor for common tasks in Redmine. Do not use
-     * this when accesing a remote repository.
-     *
-     * @return the RequestProcessor
-     */
-    public final RequestProcessor getRequestProcessor() {
-        if (rp == null) {
-            rp = new RequestProcessor("Redmine", 1, true); // NOI18N
-        }
-        return rp;
     }
 
     public RedmineIssueProvider getIssueProvider() {

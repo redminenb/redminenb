@@ -18,6 +18,7 @@ package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.user.RedmineUser;
+import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.markup.TextileUtil;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -27,6 +28,7 @@ import com.taskadapter.redmineapi.bean.JournalDetail;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.io.StringWriter;
+import java.util.Date;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import org.apache.commons.lang.StringUtils;
@@ -37,21 +39,60 @@ import org.openide.util.NbBundle;
  * @author matthias
  */
 public class JournalDisplay extends javax.swing.JPanel {
-    public JournalDisplay(RedmineIssue ri, Journal jd, int index) {
+    public static class JournalData {
+        private Integer id;
+        private Integer pos;
+        private String username;
+        private Date create;
+        private String htmlContent;
+
+        public JournalData(Integer id, Integer pos, String username, Date create, String htmlContent) {
+            this.id = id;
+            this.pos = pos;
+            this.username = username;
+            this.create = create;
+            this.htmlContent = htmlContent;
+        }
+        
+        public Integer getId() {
+            return id;
+        }
+
+        public Integer getPos() {
+            return pos;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public Date getCreate() {
+            return create;
+        }
+
+        public String getHtmlContent() {
+            return htmlContent;
+        }
+        
+    }
+    
+    public JournalDisplay(JournalData jd) {
         initComponents();
         
-        RedmineRepository repo = ri.getRepository();
-        
-        Object[] rightParams = new Object[] {jd.getId(), index + 1};
-        Object[] leftParams = new Object[]{ jd.getUser().getFullName(), jd.getCreatedOn()};
         leftLabel.setText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.leftTemplate", leftParams));
+                "journalDisplay.leftTemplate", new Object[]{jd.getUsername(), jd.getCreate()}));
         leftLabel.setToolTipText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.leftTemplateTooltip", leftParams));
+                "journalDisplay.leftTemplateTooltip", new Object[]{jd.getUsername(), jd.getCreate()}));
         rightLabel.setText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.rightTemplate", rightParams));
+                "journalDisplay.rightTemplate", new Object[]{jd.getId(), jd.getPos()}));
         rightLabel.setToolTipText(NbBundle.getMessage(JournalDisplay.class, 
-                "journalDisplay.rightTemplateTooltip", rightParams));
+                "journalDisplay.rightTemplateTooltip", new Object[]{jd.getId(), jd.getPos()}));
+
+        content.setHTMLText(jd.getHtmlContent());
+    }
+
+    public static JournalData buildJournalData(RedmineIssue ri, Journal jd, int index) {
+        RedmineRepository repo = ri.getRepository();
         
         String noteText = jd.getNotes();
         StringWriter writer = new StringWriter();
@@ -73,12 +114,12 @@ public class JournalDisplay extends javax.swing.JPanel {
                 
                 switch(fieldName) {
                     case "category_id":
-                        oldValue = formatCategory(repo, oldValue);
-                        newValue = formatCategory(repo, newValue);
+                        oldValue = formatCategory(repo, ri, oldValue);
+                        newValue = formatCategory(repo, ri, newValue);
                         break;
                     case "fixed_version_id":
-                        oldValue = formatVersion(repo, oldValue);
-                        newValue = formatVersion(repo, newValue);
+                        oldValue = formatVersion(repo, ri, oldValue);
+                        newValue = formatVersion(repo, ri, newValue);
                         break;
                     case "priority_id":
                         oldValue = formatPriority(repo, oldValue);
@@ -93,8 +134,12 @@ public class JournalDisplay extends javax.swing.JPanel {
                         newValue = formatTracker(repo, newValue);
                         break;
                     case "assigned_to_id":
-                        oldValue = formatAssignee(repo, oldValue);
-                        newValue = formatAssignee(repo, newValue);
+                        oldValue = formatAssignee(repo, ri, oldValue);
+                        newValue = formatAssignee(repo, ri, newValue);
+                        break;
+                    case "project_id":
+                        oldValue = formatProject(repo, ri, oldValue);
+                        newValue = formatProject(repo, ri, newValue);
                         break;
                 }
                 
@@ -142,18 +187,23 @@ public class JournalDisplay extends javax.swing.JPanel {
             TextileUtil.convertToHTML(noteText, writer);
             writer.append("</div>");
         }
-        
-        String output = writer.toString();
-        content.setHTMLText(output);
-    }
 
-    private String formatCategory(RedmineRepository repo, String value) {
+        return new JournalData(
+                jd.getId(),
+                index + 1,
+                jd.getUser().getFullName(),
+                jd.getCreatedOn(),
+                writer.toString()
+        );
+    }
+    
+    private static String formatCategory(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
         try {
             Integer id = Integer.valueOf(value);
-            for (IssueCategory ic : repo.getIssueCategories()) {
+            for (IssueCategory ic : repo.getIssueCategories(issue.getIssue().getProject())) {
                 if (ic.getId().equals(id)) {
                     return ic.getName() + " (ID: " + id.toString() + ")";
                 }
@@ -162,13 +212,13 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatVersion(RedmineRepository repo, String value) {
+    private static String formatVersion(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
         try {
             Integer id = Integer.valueOf(value);
-            for (Version v : repo.getVersions()) {
+            for (Version v : repo.getVersions(issue.getIssue().getProject())) {
                 if (v.getId().equals(id)) {
                     return v.getName() + " (ID: " + id.toString() + ")";
                 }
@@ -177,7 +227,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatPriority(RedmineRepository repo, String value) {
+    private static String formatPriority(RedmineRepository repo, String value) {
         if(value == null) {
             return null;
         }
@@ -192,7 +242,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatStatus(RedmineRepository repo, String value) {
+    private static String formatStatus(RedmineRepository repo, String value) {
         if(value == null) {
             return null;
         }
@@ -207,7 +257,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatTracker(RedmineRepository repo, String value) {
+    private static String formatTracker(RedmineRepository repo, String value) {
         if(value == null) {
             return null;
         }
@@ -222,13 +272,13 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String formatAssignee(RedmineRepository repo, String value) {
+    private static String formatAssignee(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
         try {
             Integer id = Integer.valueOf(value);
-            for (RedmineUser ru : repo.getUsers()) {
+            for (RedmineUser ru : repo.getUsers(issue.getIssue().getProject())) {
                 if (ru.getId().equals(id)) {
                     return ru.getUser().getFullName() + " (ID: " + id.toString() + ")";
                 }
@@ -237,7 +287,19 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private String escapeHTML(String input) {
+    private static String formatProject(RedmineRepository repo, RedmineIssue issue, String value) {
+        if(value == null) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(value);
+            NestedProject np = repo.getProjects().get(id);
+            return np.toString() + " (ID: " + id.toString() + ")";
+        } catch (NumberFormatException | NullPointerException ex) {}
+        return "(ID: " + value + ")";
+    }
+    
+    private static String escapeHTML(String input) {
         if(input == null) {
             return "";
         }

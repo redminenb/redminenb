@@ -77,7 +77,7 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
                     try {
                         lastDirectory = fileChooser.getCurrentDirectory();
                         fos = new FileOutputStream(fileChooser.getSelectedFile());
-                        issue.getRepository().getManager().downloadAttachmentContent(ad, fos);
+                        issue.getRepository().getAttachmentManager().downloadAttachmentContent(ad, fos);
                         fos.close();
                     } catch (IOException ex) {
                         Exceptions.printStackTrace(ex);

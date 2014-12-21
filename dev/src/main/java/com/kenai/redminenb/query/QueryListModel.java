@@ -17,6 +17,7 @@ package com.kenai.redminenb.query;
 
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
+import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.User;
 import com.taskadapter.redmineapi.bean.Version;
@@ -45,7 +46,7 @@ public class QueryListModel extends AbstractTableModel{
 
     @Override
     public int getColumnCount() {
-        return 8;
+        return 9;
     }
 
     @Override
@@ -67,6 +68,8 @@ public class QueryListModel extends AbstractTableModel{
                 return IssueCategory.class;
             case 7:
                 return Version.class;
+            case 8:
+                return Project.class;
             default:
                 return null;
         }
@@ -92,6 +95,8 @@ public class QueryListModel extends AbstractTableModel{
                 return ri.getIssue().getCategory();
             case 7:
                 return ri.getIssue().getTargetVersion();
+            case 8:
+                return ri.getIssue().getProject();
             default:
                 return null;
         }

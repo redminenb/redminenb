@@ -20,6 +20,7 @@ import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.TimeUtil;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
+import com.taskadapter.redmineapi.bean.TimeEntryFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
@@ -180,7 +181,7 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
         Object result = DialogDisplayer.getDefault().notify(dd);
 
         if (result == DialogDescriptor.OK_OPTION) {
-            final TimeEntry te = new TimeEntry();
+            final TimeEntry te = TimeEntryFactory.create();
             TimeEntryActivity tea = tef.getTimeEntryActivity();
             te.setActivityId(tea.getId());
             te.setComment(tef.getComment());
@@ -190,7 +191,7 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
             new SwingWorker() {
                 @Override
                 protected Object doInBackground() throws Exception {
-                    issue.getRepository().getManager().createTimeEntry(te);
+                    issue.getRepository().getIssueManager().createTimeEntry(te);
                     issue.refresh();
                     return null;
                 }

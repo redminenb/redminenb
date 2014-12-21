@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class RedmineQueryXml {
 
     @XmlAttribute
-    private final static int version = 1;
+    private int version = 2;
     private Map<String,ParameterValue[]> parameters = new HashMap<>();
     
     public RedmineQueryXml() {
@@ -50,4 +50,7 @@ public class RedmineQueryXml {
         this.parameters = parameters;
     }
 
+    public int getVersion() {
+        return version;
+    }
 }

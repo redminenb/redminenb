@@ -17,7 +17,7 @@ package com.kenai.redminenb.repository;
 
 import java.util.Objects;
 
-class ProjectId implements Comparable<ProjectId> {
+public class ProjectId implements Comparable<ProjectId> {
 
     private Integer id;
     private String name;

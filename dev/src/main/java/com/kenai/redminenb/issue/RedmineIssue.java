@@ -17,9 +17,10 @@ package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.util.SafeAutoCloseable;
+import com.taskadapter.redmineapi.Include;
 import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
-import com.taskadapter.redmineapi.RedmineManager.INCLUDE;
 import com.taskadapter.redmineapi.bean.Attachment;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -39,7 +40,7 @@ import org.netbeans.modules.bugtracking.api.Issue;
 import org.netbeans.modules.bugtracking.spi.IssueController;
 import org.netbeans.modules.bugtracking.spi.IssueScheduleInfo;
 import org.netbeans.modules.bugtracking.spi.IssueStatusProvider;
-import org.openide.util.Exceptions;
+import org.openide.util.Mutex;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -106,17 +107,14 @@ public final class RedmineIssue {
     static final String FIELD_VERSION = "targetVersion";           // NOI18N
     static final String FIELD_CATEGORY = "category";               // NOI18N
     //
-    static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance(); //  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // NOI18N
-    private static final int SHORTENED_SUMMARY_LENGTH = 22;
+    static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance();
 
     private com.taskadapter.redmineapi.bean.Issue issue;
     private RedmineRepository repository;
     private RedmineIssueController controller;
 
     private final PropertyChangeSupport support;
-    //
-    private String remoteSummary;
-    private String remoteDescription;
+
     private Object localSummary;
     private Object localDescription;
 
@@ -128,8 +126,6 @@ public final class RedmineIssue {
     public RedmineIssue(RedmineRepository repo, String summary, String description) {
         repository = repo;
         support = new PropertyChangeSupport(this);
-        remoteSummary = summary;
-        remoteDescription = description;
     }
 
     public RedmineIssue(RedmineRepository repository, com.taskadapter.redmineapi.bean.Issue issue) {
@@ -143,6 +139,43 @@ public final class RedmineIssue {
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         support.removePropertyChangeListener(listener);
+    }
+    
+    private Integer busy = 0;
+    
+    private final SafeAutoCloseable busyHelper = new SafeAutoCloseable() {
+        @Override
+        public void close() {
+            setBusy(false);
+        }
+    };
+    
+    public SafeAutoCloseable busy() {
+        setBusy(true);
+        return busyHelper;
+    }
+
+    public synchronized boolean isBusy() {
+        return busy != 0;
+    }
+    
+    private synchronized void setBusy(boolean busyBool) {
+        final boolean oldBusy = isBusy();
+        if (busyBool) {
+            busy++;
+        } else {
+            busy--;
+        }
+        if (busy < 0) {
+            throw new IllegalStateException("Inbalanced busy/nonbusy");
+        }
+        Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
+            @Override
+            public Void run() {
+                 support.firePropertyChange("busy", oldBusy, busy != 0);
+                 return null;
+            }
+        });
     }
 
     public String getDisplayName() {
@@ -175,7 +208,7 @@ public final class RedmineIssue {
     }
 
     public boolean hasParent() {
-        return issue.getParentId() != null;
+        return issue != null && issue.getParentId() != null;
     }
 
     public boolean isFinished() {
@@ -222,8 +255,9 @@ public final class RedmineIssue {
         assert !SwingUtilities.isEventDispatchThread() : "Accessing remote host. Do not call in awt"; // NOI18N
 
         try {
-            if (issue.getId() != null) {
-                setIssue(getRepository().getManager().getIssueById(issue.getId(), INCLUDE.journals, INCLUDE.attachments, INCLUDE.watchers));
+            if (issue != null && issue.getId() != null) {
+                setIssue(getRepository().getIssueManager().getIssueById(
+                        issue.getId(), Include.journals, Include.attachments, Include.watchers));
             }
             return true;
         } catch (NotFoundException ex) {
@@ -246,7 +280,7 @@ public final class RedmineIssue {
                 // TODO This works for default Redmine Settings only. Add resolved status ID configuration to Redmine Option.
                 issue.setStatusId(3);
                 //issue.setStatusName("Resolved"); // not needed
-                getRepository().getManager().update(issue);
+                getRepository().getIssueManager().update(issue);
             }
             return;
 
@@ -263,13 +297,13 @@ public final class RedmineIssue {
 
     public void attachFile(File file, String description, String comment, boolean patch) {
         try {
-            Attachment a = getRepository().getManager().uploadAttachment("application/octed-stream", file);
+            Attachment a = getRepository().getAttachmentManager().uploadAttachment("application/octed-stream", file);
             a.setDescription(description);
             issue.getAttachments().add(a);
             if(! StringUtils.isBlank(comment)) {
                 issue.setNotes(comment);
             }
-            getRepository().getManager().update(issue);
+            getRepository().getIssueManager().update(issue);
         } catch (RedmineException | IOException ex) {
             // TODO Notify user that Redmine internal error has happened
             Redmine.LOG.log(Level.SEVERE, "Can't attach file to a Redmine issue", ex);
@@ -296,64 +330,9 @@ public final class RedmineIssue {
         return repository;
     }
 
-    public Map<String, String> getAttributes() {
-        // TODO: implement
-//        if(attributes == null) {
-//            attributes = new HashMap<String, String>();
-//            String value;
-//            for (IssueField field : getRepository().getConfiguration().getFields()) {
-//                value = getFieldValue(field);
-//                if(value != null && !value.trim().equals("")) {                 // NOI18N
-//                    attributes.put(field.getKey(), value);
-//                }
-//            }
-//        }
-//        return attributes;
-        return Collections.<String, String>emptyMap();
-    }
-
     @Override
     public String toString() {
         return getTooltip();
-    }
-
-    public long getLastModify() {
-        if (issue != null) {
-            return issue.getUpdatedOn().getTime();
-        }
-        return -1;
-    }
-
-    public String getRecentChanges() {
-        return ""; // TODO implement
-    }
-
-    public long getCreated() {
-        if (issue != null) {
-            return issue.getCreatedOn().getTime();
-        }
-        return -1;
-    }
-
-    /**
-     * Returns the value represented by the given field name
-     *
-     * @param fieldName the name of the field
-     * @return value of the field
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T getFieldValue(String fieldName) {
-        try {
-            Field f = issue.getClass().getDeclaredField(fieldName);
-            f.setAccessible(true);
-            return (T) f.get(issue);
-
-        } catch (NoSuchFieldException ex) {
-            Exceptions.printStackTrace(ex);
-        } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
-        }
-        return null;
     }
 
     public IssueStatusProvider.Status getStatus() {
@@ -388,17 +367,9 @@ public final class RedmineIssue {
         }
         issue.setStartDate(scheduleInfo.getDate());
         try {
-            getRepository().getManager().update(issue);
+            getRepository().getIssueManager().update(issue);
         } catch (RedmineException ex) {
             LOG.log(Level.WARNING, "Failed to update start date for issue", ex);
         }
-    }
-
-    void discardOutgoing() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    boolean submit() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

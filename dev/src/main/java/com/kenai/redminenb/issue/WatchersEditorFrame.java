@@ -20,6 +20,7 @@ import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.ListListModel;
 import com.kenai.redminenb.util.WatcherComparator;
 import com.taskadapter.redmineapi.bean.Watcher;
+import com.taskadapter.redmineapi.bean.WatcherFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -50,7 +51,9 @@ public class WatchersEditorFrame extends javax.swing.JPanel {
         List<Watcher> potentialWatchers = new ArrayList<>();
         for(RedmineUser ru: users) {
             if(! watcherIds.contains(ru.getId())) {
-                potentialWatchers.add(new Watcher(ru.getId(), ru.getUser().getFullName()));
+                Watcher w = WatcherFactory.create(ru.getId());
+                w.setName(ru.getUser().getFullName());
+                potentialWatchers.add(w);
             }
         }
         

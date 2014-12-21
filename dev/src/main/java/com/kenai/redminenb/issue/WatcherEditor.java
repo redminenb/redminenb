@@ -16,7 +16,7 @@
 package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.user.RedmineUser;
-import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.IssueManager;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Watcher;
 import java.awt.Dialog;
@@ -29,7 +29,6 @@ import javax.swing.SwingWorker;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.util.Utilities;
-import org.openide.windows.WindowManager;
 
 public class WatcherEditor {
     private RedmineIssue redmineIssue;
@@ -46,8 +45,8 @@ public class WatcherEditor {
 
             @Override
             protected Object doInBackground() throws Exception {
-                originalWatchers = redmineIssue.getIssue().getWatchers();
-                users = redmineIssue.getRepository().getUsers();
+                originalWatchers = new ArrayList<>(redmineIssue.getIssue().getWatchers());
+                users = redmineIssue.getRepository().getUsers(redmineIssue.getIssue().getProject());
                 return null;
             }
 
@@ -88,7 +87,7 @@ public class WatcherEditor {
                 removedWatchers.removeAll(newWatchers);
                 
                 Issue issue = redmineIssue.getIssue();
-                RedmineManager manager = redmineIssue.getRepository().getManager();
+                IssueManager manager = redmineIssue.getRepository().getIssueManager();
                 
                 for(Watcher added: addedWatchers) {
                     manager.addWatcherToIssue(added, issue);

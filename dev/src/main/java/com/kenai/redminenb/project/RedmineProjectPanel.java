@@ -1,21 +1,19 @@
 package com.kenai.redminenb.project;
 
-import com.kenai.redminenb.Redmine;
-import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.ActionListenerPanel;
+import com.kenai.redminenb.util.ExceptionHandler;
+import com.taskadapter.redmineapi.RedmineException;
 import java.awt.event.ActionEvent;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.openide.util.NbBundle;
-import com.taskadapter.redmineapi.NotFoundException;
-import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.bean.Project;
 import com.taskadapter.redmineapi.bean.ProjectFactory;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.util.logging.Logger;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -23,14 +21,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
-import org.jsoup.Jsoup;
 
 /**
  *
  * @author Mykolas
  */
 public class RedmineProjectPanel extends ActionListenerPanel implements DocumentListener {
-
+   private static final Logger LOG = Logger.getLogger(RedmineProjectPanel.class.getName());
    private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-z0-9_]{1,100}");
    //
    private final RedmineManager redmineManager;
@@ -107,17 +104,10 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
       project.setIdentifier(identifier);
 
       try {
-          // @todo: This works out of sheer luck! Make sure manager is provided
-          // by repository config dialog
          redmineManager.getProjectManager().createProject(project);
          return true;
-      } catch (NotFoundException ex) {
-         errorMessage = ex.getLocalizedMessage();
-         Redmine.LOG.log(Level.INFO, errorMessage, ex);
-      } catch (RedmineException ex) {
-         errorMessage = NbBundle.getMessage(Redmine.class, "MSG_REDMINE_ERROR", 
-                 Jsoup.parse(ex.getLocalizedMessage()).text());
-         Redmine.LOG.log(Level.INFO, errorMessage, ex);
+      } catch (RedmineException | RuntimeException ex) {
+         ExceptionHandler.handleException(LOG, "Failed to create project", ex);
       }
 
       errorLabel.setText(errorMessage);

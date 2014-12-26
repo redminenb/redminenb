@@ -24,6 +24,7 @@ import com.kenai.redminenb.query.RedmineQueryController;
 import com.kenai.redminenb.user.RedmineUser;
 
 import com.kenai.redminenb.api.AuthMode;
+import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.AttachmentManager;
 import com.taskadapter.redmineapi.IssueManager;
@@ -44,7 +45,6 @@ import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.TimeEntryActivityFactory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
-import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.lang.ref.WeakReference;
@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
@@ -87,6 +88,8 @@ import org.openide.util.lookup.InstanceContent;
     "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}"
 })
 public class RedmineRepository {    
+    private static final Logger LOG = Logger.getLogger(RedmineRepository.class.getName());
+    
     static final String PROPERTY_AUTH_MODE = "authMode";                // NOI18N  
     static final String PROPERTY_ACCESS_KEY = "accessKey";              // NOI18N  
     static final String PROPERTY_PROJECT_ID = "projectId";              // NOI18N
@@ -445,9 +448,8 @@ public class RedmineRepository {
                         users.add(new RedmineUser(m.getUser()));
                     }
                 }
-            } catch (RedmineException ex) {
-                // TODO Notify user that Redmine internal error has happened
-                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Users", ex);
+            } catch (RedmineException | RuntimeException ex) {
+                ExceptionHandler.handleException(LOG, "Can't get Redmine Users", ex);
             }
             userCache.put(p.getId(), Collections.unmodifiableList(users));
         }
@@ -461,14 +463,8 @@ public class RedmineRepository {
         if(trackerCache == null) {
             try {
                 trackerCache = getIssueManager().getTrackers();
-            } catch (NotFoundException ex) {
-                // TODO Notify user that the issue no longer exists
-                trackerCache = Collections.<Tracker>emptyList();
-                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
-            } catch (RedmineException ex) {
-                // TODO Notify user that Redmine internal error has happened
-                trackerCache = Collections.<Tracker>emptyList();
-                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
+            } catch (RedmineException | RuntimeException ex) {
+                ExceptionHandler.handleException(LOG, "Can't get Redmine Issue Trackers", ex);
             }
         }
         return trackerCache;
@@ -478,9 +474,10 @@ public class RedmineRepository {
         if (timeEntryActivityCache == null) {
             try {
                 timeEntryActivityCache = getIssueManager().getTimeEntryActivities();
-            } catch (RedmineException ex) {
-                // TODO Notify user that Redmine internal error has happened
-                Redmine.LOG.log(Level.INFO, "Failed to Redmine Time Entry Activities (either API is missing or no permission)", ex);
+            } catch (RedmineException | RuntimeException ex) {
+                LOG.log(Level.INFO
+                        , "Failed to Redmine Time Entry Activities (either API is missing or no permission)"
+                        , ex);
                 timeEntryActivityCache = fallbackTimeActivityEntries;
             }
         }
@@ -600,14 +597,9 @@ public class RedmineRepository {
                 redmineIssues.add(redmineIssue);
             }
             return redmineIssues;
-        } catch (NotFoundException ex) {
-            // TODO Notify user that the issue no longer exists
-            Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);
-        } catch (RedmineException ex) {
-            // TODO Notify user that Redmine internal error has happened
-            Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);
+        } catch (RedmineException | RuntimeException ex) {
+            ExceptionHandler.handleException(LOG, "Can't search for Redmine issues", ex);
         }
-
         return Collections.<RedmineIssue>emptyList();
     }
 

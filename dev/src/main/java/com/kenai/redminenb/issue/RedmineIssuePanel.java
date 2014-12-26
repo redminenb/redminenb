@@ -10,6 +10,7 @@ import com.kenai.redminenb.util.RedmineUtil;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.AttachmentDisplay;
 import com.kenai.redminenb.util.BusyPanel;
+import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.ExpandablePanel;
 import com.kenai.redminenb.util.FullSizeLayout;
 import com.taskadapter.redmineapi.bean.IssueCategory;
@@ -637,13 +638,11 @@ public class RedmineIssuePanel extends JPanel {
                     createButton.setVisible(false);
                     updateButton.setVisible(true);
                 } catch (InterruptedException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex);
-                    setErrorMessage("Can't create Redmine issue: "
-                            + ex.getMessage());
+                    Redmine.LOG.log(Level.INFO, "Can't create Redmine issue - Interrupted", ex);
                 } catch (ExecutionException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex.getCause());
-                    setErrorMessage("Can't create Redmine issue: "
-                            + ex.getCause().getMessage());
+                    Exception src = (Exception) ex.getCause();
+                    ExceptionHandler.handleException(LOG, "Can't create Redmine issue", src);
+                    setErrorMessage("Can't create Redmine issue: " + src.getMessage());
                 }
             }
        }.execute();
@@ -680,13 +679,11 @@ public class RedmineIssuePanel extends JPanel {
                     createButton.setVisible(false);
                     updateButton.setVisible(true);
                 } catch (InterruptedException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't save Redmine issue", ex);
-                    setErrorMessage("Saving the Issue failed: "
-                            + ex.getMessage());
+                    Redmine.LOG.log(Level.INFO, "Can't save Redmine issue - Interrupted", ex);
                 } catch (ExecutionException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't save Redmine issue", ex.getCause());
-                    setErrorMessage("Saving the Issue failed: "
-                            + ex.getCause().getMessage());
+                    Exception src = (Exception) ex.getCause();
+                    ExceptionHandler.handleException(LOG, "Can't create Redmine issue", src);
+                    setErrorMessage("Can't save Redmine issue: " + src.getMessage());
                 }
             }
        }.execute();
@@ -1512,13 +1509,11 @@ public class RedmineIssuePanel extends JPanel {
                     logtimePanel.colapse();
                     commentPanel.colapse();
                 } catch (InterruptedException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Saving time entry failed", ex);
-                    setErrorMessage("Saving time entry failed: "
-                        + ex.getMessage());
+                    Redmine.LOG.log(Level.INFO, "Saving time entry failed - Interrupted", ex);
                 } catch (ExecutionException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Saving time entry failed", ex.getCause());
-                    setErrorMessage("Saving time entry failed: "
-                        + ex.getCause().getMessage());
+                    Exception src = (Exception) ex.getCause();
+                    ExceptionHandler.handleException(LOG, "Saving time entry failed", src);
+                    setErrorMessage("Saving time entry failed: " + src.getMessage());
                 }
             }
         }.execute();

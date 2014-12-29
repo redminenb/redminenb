@@ -19,6 +19,7 @@ package com.kenai.redminenb.issue;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.NestedProject;
+import static com.kenai.redminenb.util.markup.StringUtil.escapeHTML;
 import com.kenai.redminenb.util.markup.TextileUtil;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -297,19 +298,6 @@ public class JournalDisplay extends javax.swing.JPanel {
             return np.toString() + " (ID: " + id.toString() + ")";
         } catch (NumberFormatException | NullPointerException ex) {}
         return "(ID: " + value + ")";
-    }
-    
-    private static String escapeHTML(String input) {
-        if(input == null) {
-            return "";
-        }
-        return input.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#x27")
-                ;
-        
     }
     
     /**

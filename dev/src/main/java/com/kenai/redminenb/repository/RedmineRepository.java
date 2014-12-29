@@ -34,6 +34,7 @@ import com.taskadapter.redmineapi.ProjectManager;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
+import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -143,6 +144,7 @@ public class RedmineRepository {
     private List<IssueStatus> statusCache = null;
     private List<TimeEntryActivity> timeEntryActivityCache = null;
     private List<Tracker> trackerCache = null;
+    private List<CustomFieldDefinition> customFieldsCache = null;
     
     // Make sure we know all instances we created - a crude hack, but API does
     // not allow ourselfes ....
@@ -574,6 +576,45 @@ public class RedmineRepository {
             }
         }
         return issuePriorities;
+    }
+    
+    public void initCustomFieldDefinitions() {
+        if (customFieldsCache == null) {
+            try {
+                // since Redmine V2.4.0
+                customFieldsCache = getManager().getCustomFieldManager().getCustomFieldDefinitions();
+            } catch (Exception ex) {
+                LOG.info("Custom Fields are not available - query failed");
+                customFieldsCache = Collections.EMPTY_LIST;
+            }
+        }
+    }
+    
+    public List<CustomFieldDefinition> getCustomFieldDefinitions(String type, Project proj, Tracker t) {
+        initCustomFieldDefinitions();
+        List<CustomFieldDefinition> result = new ArrayList<>();
+        for(CustomFieldDefinition cfd: customFieldsCache) {
+            if(type.equals(cfd.getCustomizedType())
+                    && (cfd.getTrackers().contains(t)))
+            {
+                // @todo: Rework this not to depend on the string representation
+                if("version".equals(cfd.getFieldFormat())) {
+                    cfd.getPossibleValues().clear();
+                    for(Version v: getVersions(proj)) {
+                        cfd.getPossibleValues().add(
+                                v.getName() + " [" + v.getId() + "]");
+                    }
+                } else if ("user".equals(cfd.getFieldFormat())) {
+                    cfd.getPossibleValues().clear();
+                    for (RedmineUser ru: getUsers(proj)) {
+                        cfd.getPossibleValues().add(
+                                ru.getUser().getFullName() + " [" + ru.getId() + "]");
+                    }
+                }
+                result.add(cfd);
+            }
+        }
+        return result;
     }
 
     public Collection<RedmineIssue> simpleSearch(String string) {

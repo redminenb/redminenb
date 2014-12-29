@@ -12,7 +12,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -64,6 +67,8 @@ public class RedmineIssueController implements IssueController {
             public void propertyChange(PropertyChangeEvent evt) {
                 if("busy".equals(evt.getPropertyName())) {
                     issuePanel.enableFields(! ((boolean)evt.getNewValue()));
+                } else if (org.netbeans.modules.bugtracking.api.Issue.EVENT_ISSUE_DATA_CHANGED.equals(evt.getPropertyName())) {
+                    issuePanel.customFieldValueBackingStore.clear();
                 }
             }
         });

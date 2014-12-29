@@ -616,6 +616,16 @@ public class RedmineRepository {
         }
         return result;
     }
+    
+    public CustomFieldDefinition getCustomFieldDefinitionById(int id) {
+        initCustomFieldDefinitions();
+        for(CustomFieldDefinition cfd: customFieldsCache) {
+            if(cfd.getId().equals(id)) {
+                return cfd;
+            }
+        }
+        return null;  
+    }
 
     public Collection<RedmineIssue> simpleSearch(String string) {
         try {

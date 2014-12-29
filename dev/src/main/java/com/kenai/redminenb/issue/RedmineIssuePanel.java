@@ -695,6 +695,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
    }
    
    private void setIssueData(com.taskadapter.redmineapi.bean.Issue issue) {
+      issue.setUpdateTracking(true);
       issue.setTracker((Tracker)trackerComboBox.getSelectedItem());
       issue.setStatusId(((IssueStatus)statusComboBox.getSelectedItem()).getId());
 

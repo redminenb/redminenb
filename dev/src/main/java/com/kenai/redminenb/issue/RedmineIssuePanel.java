@@ -102,7 +102,7 @@ import org.openide.windows.WindowManager;
 @NbBundle.Messages({
     "BTN_AddAttachment=Add attachment"
 })
-public class RedmineIssuePanel extends JPanel {
+public class RedmineIssuePanel extends VerticalScrollPane {
    private static final Logger LOG = Logger.getLogger(RedmineIssuePanel.class.getName());
    private static final long serialVersionUID = 9011030935877495476L;
    private static File lastDirectory;
@@ -124,14 +124,22 @@ public class RedmineIssuePanel extends JPanel {
        
         @Override
         public void itemStateChanged(ItemEvent e) {
-            RedmineIssuePanel.this.redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
+           final NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
+           final Project project;
+           if(np != null) {
+               project = np.getProject();
+           } else {
+               project = null;
+           }
+           final Tracker tracker = (Tracker) trackerComboBox.getSelectedItem();
+           RedmineIssuePanel.this.redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
                 @Override
                 public void run() {
                     if(running) {
                         return;
                     }
                     running = true;
-                    initProjectData(false);
+                    initProjectData(false, project, tracker, null);
                     running = false;
                 }
             });
@@ -151,8 +159,8 @@ public class RedmineIssuePanel extends JPanel {
       redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
           @Override
           public void run() {
-              initValues();
-              initIssue();
+              Runnable edtUpdate = initValues();
+              initIssue(edtUpdate);
           }
       });
     }
@@ -247,7 +255,12 @@ public class RedmineIssuePanel extends JPanel {
       toolbarPopupButton.addActionListener(a);
    }
 
-   final void initIssue() {
+   /**
+    * Initialize panel data from issue.
+    * 
+    * @param edtUpdate can be null, if not null is called on the EDT
+    */
+   final void initIssue(final Runnable edtUpdate) {
       assert ! SwingUtilities.isEventDispatchThread();
        
       final com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
@@ -286,9 +299,12 @@ public class RedmineIssuePanel extends JPanel {
           }
       }
  
-       Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
-           public Void run() {
-
+      Runnable edtUpdate2 = new Runnable() {
+          @Override
+          public void run() {
+               if(edtUpdate != null) {
+                   edtUpdate.run();
+               }
                headPane.setVisible(!redmineIssue.isNew());
                parentHeaderPanel.setVisible(!redmineIssue.isNew());
                headerLabel.setVisible(!redmineIssue.isNew());
@@ -427,7 +443,7 @@ public class RedmineIssuePanel extends JPanel {
                                                comment.getText(),
                                                false);
                                        redmineIssue.refresh();
-                                       initIssue();
+                                       initIssue(null);
                                    }
                                });
                            }
@@ -500,14 +516,20 @@ public class RedmineIssuePanel extends JPanel {
                }
                setInfoMessage(null);
                updateTextileOutput();
-               return null;
            }
-       });
-       initProjectData(true);
-
+       };
+       initProjectData(true, issue.getProject(), issue.getTracker(), edtUpdate2);
     }
 
-    private void initProjectData(final boolean init) {
+    /**
+     * Initialize project/tracker dependend data.
+     * 
+     * @param init indicates whether this is called after the issue was completely reset or just project/tracker changed
+     * @param project currently selected project
+     * @param tracker currently selected tracker
+     * @param edtInit can be null, if not null will be called on the EDT before further updates
+     */
+    private void initProjectData(final boolean init, final Project project, final Tracker tracker, final Runnable edtInit) {
         assert !SwingUtilities.isEventDispatchThread();
 
         try (SafeAutoCloseable sac = redmineIssue.busy()) {
@@ -519,24 +541,23 @@ public class RedmineIssuePanel extends JPanel {
             versionsModel.add(null);
 
             final List<CustomFieldDefinition> fieldDefinitions = new ArrayList<>();
-            
-            final NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
-            if (np != null) {
-                Project p = np.getProject();
-                Tracker t = (Tracker) trackerComboBox.getSelectedItem();
-                if (p != null) {
-                    assigneeModel.addAll(redmineIssue.getRepository().getUsers(p));
-                    categoryModel.addAll(redmineIssue.getRepository().getIssueCategories(p));
-                    versionsModel.addAll(redmineIssue.getRepository().getVersions(p));
-                }
-                if (p != null && t != null) {
-                    fieldDefinitions.addAll(redmineIssue.getRepository().getCustomFieldDefinitions("issue", p, t));
+
+            if (project != null) {
+                assigneeModel.addAll(redmineIssue.getRepository().getUsers(project));
+                categoryModel.addAll(redmineIssue.getRepository().getIssueCategories(project));
+                versionsModel.addAll(redmineIssue.getRepository().getVersions(project));
+                if (tracker != null) {
+                    fieldDefinitions.addAll(redmineIssue.getRepository().getCustomFieldDefinitions("issue", project, tracker));
                 }
             }
 
             Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
                 @Override
                 public Void run() {
+                    if(edtInit != null) {
+                        edtInit.run();
+                    }
+                    
                     assigneeModel.setSelectedItem(assigneeComboBox.getSelectedItem());
                     categoryModel.setSelectedItem(categoryComboBox.getSelectedItem());
                     versionsModel.setSelectedItem(targetVersionComboBox.getSelectedItem());
@@ -560,8 +581,8 @@ public class RedmineIssuePanel extends JPanel {
                     } else {
                         assignToMeButton.setEnabled(false);
                     }
-                    versionAddButton.setEnabled(np != null);
-                    categoryAddButton.setEnabled(np != null);
+                    versionAddButton.setEnabled(project != null);
+                    categoryAddButton.setEnabled(project != null);
 
                     if (init) {
                         customFieldValueBackingStore.clear();
@@ -756,7 +777,7 @@ public class RedmineIssuePanel extends JPanel {
                    Issue issue = rr.getIssueManager().createIssue(projektId, inputIssue);
                    redmineIssue.setIssue(issue);
                    redmineIssue.getRepository().getIssueCache().put(redmineIssue);
-                   initIssue();
+                   initIssue(null);
                }
                return null;
            }
@@ -794,7 +815,7 @@ public class RedmineIssuePanel extends JPanel {
                 try (SafeAutoCloseable sac = redmineIssue.busy()) {
                    redmineIssue.getRepository().getIssueManager().update(issue);
                    redmineIssue.refresh();
-                   initIssue();
+                   initIssue(null);
                 }
                 return null;
            }
@@ -820,7 +841,10 @@ public class RedmineIssuePanel extends JPanel {
        }.execute();
    }
 
-    private void initValues() {
+    /**
+     * @return Runnable that _must_ be called on the EDT
+     */
+    private Runnable initValues() {
         assert ! SwingUtilities.isEventDispatchThread() : "Needs to be called off the EDT";
         final List<Tracker> trackerList = redmineIssue.getRepository().getTrackers();
         final Collection<? extends IssueStatus> statusList = redmineIssue.getRepository().getStatuses();
@@ -829,8 +853,8 @@ public class RedmineIssuePanel extends JPanel {
         final List<NestedProject> projects = new ArrayList<>(redmineIssue.getRepository().getProjects().values());
         Collections.sort(projects);
 
-        Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
-            public Void run() {
+        return new Runnable() {
+            public void run() {
                 trackerComboBox.setRenderer(new Defaults.TrackerLCR());
                 trackerComboBox.setModel(new DefaultComboBoxModel(trackerList.toArray()));
 
@@ -863,10 +887,8 @@ public class RedmineIssuePanel extends JPanel {
                 logtimeActivityComboBox.setModel(timeEntryActivityModel);
 
                 projectComboBox.setModel(new DefaultComboBoxModel(projects.toArray()));
-
-                return null;
             }
-        });
+        };
     }
 
    private boolean isIssueValid() {
@@ -1625,7 +1647,7 @@ public class RedmineIssuePanel extends JPanel {
                 try (SafeAutoCloseable sac = redmineIssue.busy()) {
                     redmineIssue.getRepository().getIssueManager().createTimeEntry(te);
                     redmineIssue.refresh();
-                    initIssue();
+                    initIssue(null);
                 }
                 return null;
             }

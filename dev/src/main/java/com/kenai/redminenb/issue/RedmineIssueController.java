@@ -12,10 +12,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -90,7 +87,7 @@ public class RedmineIssueController implements IssueController {
                 @Override
                 public void run() {
                     redmineIssue.refresh();
-                    issuePanel.initIssue();
+                    issuePanel.initIssue(null);
                 }
             });
             viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
@@ -187,7 +184,7 @@ public class RedmineIssueController implements IssueController {
                             @Override
                             protected Object doInBackground() throws Exception {
                                 redmineIssue.refresh();
-                                issuePanel.initIssue();
+                                issuePanel.initIssue(null);
                                 return null;
                             }
 
@@ -258,7 +255,7 @@ public class RedmineIssueController implements IssueController {
         if(issuePanel != null) {
             redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
                 public void run() {
-                    issuePanel.initIssue();
+                    issuePanel.initIssue(null);
                 }
             });
         }

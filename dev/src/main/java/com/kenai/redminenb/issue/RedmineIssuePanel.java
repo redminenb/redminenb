@@ -629,6 +629,8 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                                         && value instanceof String) {
                                     cfc.setValue((String) value);
                                 }
+                            } else {
+                                cfc.setDefaultValue();
                             }
                         }
                         addCustomField(cfc);

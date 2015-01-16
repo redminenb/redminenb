@@ -518,7 +518,11 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                updateTextileOutput();
            }
        };
-       initProjectData(true, issue.getProject(), issue.getTracker(), edtUpdate2);
+       if(issue != null) {
+            initProjectData(true, issue.getProject(), issue.getTracker(), edtUpdate2);
+       } else {
+           initProjectData(true, null, null, edtUpdate2);
+       }
     }
 
     /**

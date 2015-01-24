@@ -127,7 +127,7 @@
         <dependency>
             <groupId>com.taskadapter</groupId>
             <artifactId>redmine-java-api</artifactId>
-            <version>2.0.0-mb2</version>
+            <version>2.0.0-mb3</version>
             <exclusions>
                 <!-- Runtime dependency is added by an explizit dependency defined in the module descriptor below -->
                 <exclusion>

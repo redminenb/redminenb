@@ -20,6 +20,7 @@ import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.repository.IssueCache;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.SafeAutoCloseable;
 import com.taskadapter.redmineapi.AuthenticationException;
@@ -120,6 +121,7 @@ public final class RedmineQuery {
             parameters.put("project_id", new ParameterValue[]{
                 new ParameterValue(np.toString(), p.getId())});
         } catch (RedmineException | NullPointerException ex) {
+            // Happens when failing to retrieve project/no project set => swallow
         }
     }
 
@@ -209,8 +211,8 @@ public final class RedmineQuery {
                                 fireNotifyData(redmineIssue); // XXX - !!! triggers getIssues()
                             }
 
-                        } catch (Exception e) {
-                            Exceptions.printStackTrace(e);
+                        } catch (RedmineException | RuntimeException ex) {
+                            ExceptionHandler.handleException(LOG, "Failed to search", ex);
                         }
 
                         if (delegateContainer != null) {
@@ -247,9 +249,7 @@ public final class RedmineQuery {
      * @see RedmineQueryController#RedmineQueryController
      * @param searchParameters
      */
-    private List<Issue> doSearch()
-            throws IOException, AuthenticationException, NotFoundException, RedmineException {
-
+    private List<Issue> doSearch() throws RedmineException {
         boolean searchDescription = false;
         
         ParameterValue[] queryStringParameter = parameters.get("query");

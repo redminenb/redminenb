@@ -17,20 +17,17 @@ package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.Redmine;
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.SafeAutoCloseable;
 import com.taskadapter.redmineapi.Include;
-import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Attachment;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.text.DateFormat;
-import java.util.Collections;
 import java.util.Date;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -260,12 +257,8 @@ public final class RedmineIssue {
                         issue.getId(), Include.journals, Include.attachments, Include.watchers));
             }
             return true;
-        } catch (NotFoundException ex) {
-            // TODO Notify user that the issue no longer exists
-            Redmine.LOG.log(Level.SEVERE, "Can't refresh Redmine issue", ex);
-        } catch (RedmineException ex) {
-            // TODO Notify user that Redmine internal error has happened
-            Redmine.LOG.log(Level.SEVERE, "Can't refresh Redmine issue", ex);
+        } catch (RedmineException | RuntimeException ex) {
+            ExceptionHandler.handleException(LOG, "Can't refresh Redmine issue", ex);
         }
         return false;
     }
@@ -284,12 +277,8 @@ public final class RedmineIssue {
             }
             return;
 
-        } catch (NotFoundException ex) {
-            // TODO Notify user that the issue no longer exists
-            Redmine.LOG.log(Level.SEVERE, "Can't add comment for a Redmine issue", ex);
-        } catch (RedmineException ex) {
-            // TODO Notify user that Redmine internal error has happened
-            Redmine.LOG.log(Level.SEVERE, "Can't add comment for a Redmine issue", ex);
+        } catch (RedmineException | RuntimeException ex) {
+            ExceptionHandler.handleException(LOG, "Can't add comment for a Redmine issue", ex);
         }
 
         issue.setStatusId(oldStatusId);
@@ -305,8 +294,7 @@ public final class RedmineIssue {
             }
             getRepository().getIssueManager().update(issue);
         } catch (RedmineException | IOException ex) {
-            // TODO Notify user that Redmine internal error has happened
-            Redmine.LOG.log(Level.SEVERE, "Can't attach file to a Redmine issue", ex);
+            ExceptionHandler.handleException(LOG, "Can't attach file to a Redmine issue", ex);
         }
     }
 
@@ -368,8 +356,8 @@ public final class RedmineIssue {
         issue.setStartDate(scheduleInfo.getDate());
         try {
             getRepository().getIssueManager().update(issue);
-        } catch (RedmineException ex) {
-            LOG.log(Level.WARNING, "Failed to update start date for issue", ex);
+        } catch (RedmineException | RuntimeException ex) {
+            ExceptionHandler.handleException(LOG, "Failed to update start date for issue", ex);
         }
     }
 }

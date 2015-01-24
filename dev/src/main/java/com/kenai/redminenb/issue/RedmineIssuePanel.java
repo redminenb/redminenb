@@ -9,9 +9,8 @@ import com.kenai.redminenb.util.RedmineUtil;
 
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.AttachmentDisplay;
-import com.kenai.redminenb.util.BusyPanel;
+import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.ExpandablePanel;
-import com.kenai.redminenb.util.FullSizeLayout;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
@@ -46,6 +45,9 @@ import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.SafeAutoCloseable;
 import com.kenai.redminenb.util.VerticalScrollPane;
 import com.taskadapter.redmineapi.bean.Attachment;
+import com.taskadapter.redmineapi.bean.CustomField;
+import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
+import com.taskadapter.redmineapi.bean.CustomFieldFactory;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.IssueCategoryFactory;
 import com.taskadapter.redmineapi.bean.Journal;
@@ -60,6 +62,7 @@ import com.taskadapter.redmineapi.bean.VersionFactory;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -67,13 +70,13 @@ import java.io.File;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 import javax.swing.Box.Filler;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JLayeredPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -99,7 +102,7 @@ import org.openide.windows.WindowManager;
 @NbBundle.Messages({
     "BTN_AddAttachment=Add attachment"
 })
-public class RedmineIssuePanel extends JPanel {
+public class RedmineIssuePanel extends VerticalScrollPane {
    private static final Logger LOG = Logger.getLogger(RedmineIssuePanel.class.getName());
    private static final long serialVersionUID = 9011030935877495476L;
    private static File lastDirectory;
@@ -111,20 +114,43 @@ public class RedmineIssuePanel extends JPanel {
    private final ExpandablePanel commentPanel;
    private final ExpandablePanel logtimePanel;
    
+   private final static int CUSTOM_ROW_START = 9;
+   private final static int CUSTOM_ROW_END = 18;
+   private final List<CustomFieldComponent> customFields = new ArrayList<>();
+   Map<Integer,Object> customFieldValueBackingStore = new HashMap<>();
+   
+   private final ItemListener projectTrackerListener = new ItemListener() {
+        private boolean running = false;
+       
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+           final NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
+           final Project project;
+           if(np != null) {
+               project = np.getProject();
+           } else {
+               project = null;
+           }
+           final Tracker tracker = (Tracker) trackerComboBox.getSelectedItem();
+           RedmineIssuePanel.this.redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    if(running) {
+                        return;
+                    }
+                    running = true;
+                    initProjectData(false, project, tracker, null);
+                    running = false;
+                }
+            });
+        }
+   };
+
    public RedmineIssuePanel(RedmineIssue redmineIssue) {
       this.redmineIssue = redmineIssue;
       initComponents();
-      projectComboBox.addItemListener(new ItemListener() {
-          @Override
-          public void itemStateChanged(ItemEvent e) {
-              RedmineIssuePanel.this.redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
-                  @Override
-                  public void run() {
-                      initProjectData();
-                  }
-              });
-          }
-      });
+      projectComboBox.addItemListener(projectTrackerListener);
+      trackerComboBox.addItemListener(projectTrackerListener);
       updateCommentTabPanel.setVisible(false);
       commentPanel = new ExpandablePanel(updateCommentLabel, updateCommentTabPanel);
       logtimeInputPanel.setVisible(false);
@@ -133,12 +159,61 @@ public class RedmineIssuePanel extends JPanel {
       redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
           @Override
           public void run() {
-              initValues();
-              initIssue();
+              Runnable edtUpdate = initValues();
+              initIssue(edtUpdate);
           }
       });
     }
 
+    public void clearCustomFields() {
+        for (CustomFieldComponent cfc : customFields) {
+            issuePane.remove(cfc);
+            issuePane.remove(cfc.getLabel());
+        }
+        customFields.clear();
+    }
+    
+    public void addCustomField(CustomFieldComponent cfc) {
+        int row = CUSTOM_ROW_START + (customFields.size() / 2);
+        if(row > CUSTOM_ROW_END) {
+            throw new IllegalStateException("Maximum custom field count reached");
+        }
+
+        boolean even = customFields.size() % 2 == 0;
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.BASELINE_LEADING;
+        gbc.gridx = even ? 0 : 3;
+        gbc.gridy = row;
+        gbc.gridheight = 1;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(2, 2, 2, 2);
+        gbc.weightx = 0;
+        
+        issuePane.add(cfc.getLabel(), gbc);
+        
+        gbc.weightx = 1;
+        gbc.gridx = even ? 1 : 4;
+        gbc.gridwidth = 2;
+        
+        issuePane.add(cfc, gbc);
+        customFields.add(cfc);
+    }
+    
+    public CustomFieldComponent getCustomFieldById(Integer id) {
+        for(CustomFieldComponent cfc: customFields) {
+            if(cfc.getCustomFieldDefinition().getId().equals(id)) {
+                return cfc;
+            }
+        }
+        return null;
+    }
+    
+    public List<CustomFieldComponent> getCustomFields() {
+        return Collections.unmodifiableList(customFields);
+    }
+   
    void updateCommentTextileOutput() {
        updateCommentHtmlOutputLabel.setTextileText(updateCommentTextArea.getText());
    }
@@ -180,7 +255,12 @@ public class RedmineIssuePanel extends JPanel {
       toolbarPopupButton.addActionListener(a);
    }
 
-   final void initIssue() {
+   /**
+    * Initialize panel data from issue.
+    * 
+    * @param edtUpdate can be null, if not null is called on the EDT
+    */
+   final void initIssue(final Runnable edtUpdate) {
       assert ! SwingUtilities.isEventDispatchThread();
        
       final com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
@@ -219,9 +299,12 @@ public class RedmineIssuePanel extends JPanel {
           }
       }
  
-       Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
-           public Void run() {
-
+      Runnable edtUpdate2 = new Runnable() {
+          @Override
+          public void run() {
+               if(edtUpdate != null) {
+                   edtUpdate.run();
+               }
                headPane.setVisible(!redmineIssue.isNew());
                parentHeaderPanel.setVisible(!redmineIssue.isNew());
                headerLabel.setVisible(!redmineIssue.isNew());
@@ -360,7 +443,7 @@ public class RedmineIssuePanel extends JPanel {
                                                comment.getText(),
                                                false);
                                        redmineIssue.refresh();
-                                       initIssue();
+                                       initIssue(null);
                                    }
                                });
                            }
@@ -433,14 +516,24 @@ public class RedmineIssuePanel extends JPanel {
                }
                setInfoMessage(null);
                updateTextileOutput();
-               return null;
            }
-       });
-       initProjectData();
-
+       };
+       if(issue != null) {
+            initProjectData(true, issue.getProject(), issue.getTracker(), edtUpdate2);
+       } else {
+           initProjectData(true, null, null, edtUpdate2);
+       }
     }
 
-    private void initProjectData() {
+    /**
+     * Initialize project/tracker dependend data.
+     * 
+     * @param init indicates whether this is called after the issue was completely reset or just project/tracker changed
+     * @param project currently selected project
+     * @param tracker currently selected tracker
+     * @param edtInit can be null, if not null will be called on the EDT before further updates
+     */
+    private void initProjectData(final boolean init, final Project project, final Tracker tracker, final Runnable edtInit) {
         assert !SwingUtilities.isEventDispatchThread();
 
         try (SafeAutoCloseable sac = redmineIssue.busy()) {
@@ -451,19 +544,24 @@ public class RedmineIssuePanel extends JPanel {
             final ListComboBoxModel<Version> versionsModel = new ListComboBoxModel<>();
             versionsModel.add(null);
 
-            final NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
-            if (np != null) {
-                Project p = np.getProject();
-                if (p != null) {
-                    assigneeModel.addAll(redmineIssue.getRepository().getUsers(p));
-                    categoryModel.addAll(redmineIssue.getRepository().getIssueCategories(p));
-                    versionsModel.addAll(redmineIssue.getRepository().getVersions(p));
+            final List<CustomFieldDefinition> fieldDefinitions = new ArrayList<>();
+
+            if (project != null) {
+                assigneeModel.addAll(redmineIssue.getRepository().getUsers(project));
+                categoryModel.addAll(redmineIssue.getRepository().getIssueCategories(project));
+                versionsModel.addAll(redmineIssue.getRepository().getVersions(project));
+                if (tracker != null) {
+                    fieldDefinitions.addAll(redmineIssue.getRepository().getCustomFieldDefinitions("issue", project, tracker));
                 }
             }
 
             Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
                 @Override
                 public Void run() {
+                    if(edtInit != null) {
+                        edtInit.run();
+                    }
+                    
                     assigneeModel.setSelectedItem(assigneeComboBox.getSelectedItem());
                     categoryModel.setSelectedItem(categoryComboBox.getSelectedItem());
                     versionsModel.setSelectedItem(targetVersionComboBox.getSelectedItem());
@@ -487,8 +585,58 @@ public class RedmineIssuePanel extends JPanel {
                     } else {
                         assignToMeButton.setEnabled(false);
                     }
-                    versionAddButton.setEnabled(np != null);
-                    categoryAddButton.setEnabled(np != null);
+                    versionAddButton.setEnabled(project != null);
+                    categoryAddButton.setEnabled(project != null);
+
+                    if (init) {
+                        customFieldValueBackingStore.clear();
+                    } else {
+                        for (CustomFieldComponent cfc : getCustomFields()) {
+                            if(cfc.getCustomFieldDefinition().isMultiple()) {
+                                customFieldValueBackingStore.put(
+                                        cfc.getCustomFieldDefinition().getId(),
+                                        cfc.getValues());                                
+                            } else {
+                                customFieldValueBackingStore.put(
+                                        cfc.getCustomFieldDefinition().getId(),
+                                        cfc.getValue());
+                            }
+                        }
+                    }
+                    clearCustomFields();
+                    for (CustomFieldDefinition cfdd : fieldDefinitions) {
+                        CustomFieldComponent cfc = CustomFieldComponent.create(cfdd);
+                        Integer id = cfdd.getId();
+                        if (init) {
+                            if (redmineIssue.isNew()) {
+                                cfc.setDefaultValue();
+                            } else {
+                                CustomField cf = redmineIssue.getIssue().getCustomFieldById(cfdd.getId());
+                                if (cf != null) {
+                                    if (cf.isMultiple()) {
+                                        cfc.setValues(cf.getValues());
+                                    } else {
+                                        cfc.setValue(cf.getValue());
+                                    }
+                                }
+                            }
+                        } else {
+                            if (customFieldValueBackingStore.containsKey(id)) {
+                                Object value = customFieldValueBackingStore.get(id);
+                                if (cfdd.isMultiple() && value instanceof List) {
+                                    cfc.setValues((List<String>) value);
+                                } else if ((!cfdd.isMultiple())
+                                        && value instanceof String) {
+                                    cfc.setValue((String) value);
+                                }
+                            } else {
+                                cfc.setDefaultValue();
+                            }
+                        }
+                        addCustomField(cfc);
+                    }
+
+                    
                     return null;
                 }
             });
@@ -553,6 +701,7 @@ public class RedmineIssuePanel extends JPanel {
    }
    
    private void setIssueData(com.taskadapter.redmineapi.bean.Issue issue) {
+      issue.setUpdateTracking(true);
       issue.setTracker((Tracker)trackerComboBox.getSelectedItem());
       issue.setStatusId(((IssueStatus)statusComboBox.getSelectedItem()).getId());
 
@@ -567,18 +716,29 @@ public class RedmineIssuePanel extends JPanel {
       issue.setDueDate(dueDateChooser.getDate());
       issue.setEstimatedHours(getEstimateTime());
       issue.setDoneRatio(doneComboBox.getSelectedIndex() * 10);
+      Project p = null;
       // Workaround for https://github.com/taskadapter/redmine-java-api/pull/163
       try {
-           Project p = ((NestedProject) projectComboBox.getSelectedItem()).getProject();
+           p = ((NestedProject) projectComboBox.getSelectedItem()).getProject();
            Project transfer = ProjectFactory.create(p.getId());
            transfer.setIdentifier(p.getId().toString());
            issue.setProject(transfer);
-       } catch (NullPointerException ex) {
-       }
+      } catch (NullPointerException ex) {
+      }
 
-      //List<CustomField> customFields = null;
-      //...
-      //issue.setCustomFields(customFields);
+      for(CustomFieldComponent cfc: getCustomFields()) {
+          CustomFieldDefinition cfd = cfc.getCustomFieldDefinition();
+          CustomField cf = issue.getCustomFieldById(cfd.getId());
+          if(cf == null) {
+            cf = CustomFieldFactory.create(cfd.getId());
+            issue.addCustomField(cf);
+          }
+          if(cfd.isMultiple()) {
+              cf.setValues(cfc.getValues());
+          } else {
+              cf.setValue(cfc.getValue());
+          }
+      }
    }
 
    private User getSelectedAssignee() {
@@ -624,7 +784,7 @@ public class RedmineIssuePanel extends JPanel {
                    Issue issue = rr.getIssueManager().createIssue(projektId, inputIssue);
                    redmineIssue.setIssue(issue);
                    redmineIssue.getRepository().getIssueCache().put(redmineIssue);
-                   initIssue();
+                   initIssue(null);
                }
                return null;
            }
@@ -637,13 +797,11 @@ public class RedmineIssuePanel extends JPanel {
                     createButton.setVisible(false);
                     updateButton.setVisible(true);
                 } catch (InterruptedException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex);
-                    setErrorMessage("Can't create Redmine issue: "
-                            + ex.getMessage());
+                    Redmine.LOG.log(Level.INFO, "Can't create Redmine issue - Interrupted", ex);
                 } catch (ExecutionException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't create Redmine issue", ex.getCause());
-                    setErrorMessage("Can't create Redmine issue: "
-                            + ex.getCause().getMessage());
+                    Exception src = (Exception) ex.getCause();
+                    ExceptionHandler.handleException(LOG, "Can't create Redmine issue", src);
+                    setErrorMessage("Can't create Redmine issue: " + src.getMessage());
                 }
             }
        }.execute();
@@ -664,7 +822,7 @@ public class RedmineIssuePanel extends JPanel {
                 try (SafeAutoCloseable sac = redmineIssue.busy()) {
                    redmineIssue.getRepository().getIssueManager().update(issue);
                    redmineIssue.refresh();
-                   initIssue();
+                   initIssue(null);
                 }
                 return null;
            }
@@ -680,19 +838,20 @@ public class RedmineIssuePanel extends JPanel {
                     createButton.setVisible(false);
                     updateButton.setVisible(true);
                 } catch (InterruptedException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't save Redmine issue", ex);
-                    setErrorMessage("Saving the Issue failed: "
-                            + ex.getMessage());
+                    Redmine.LOG.log(Level.INFO, "Can't save Redmine issue - Interrupted", ex);
                 } catch (ExecutionException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Can't save Redmine issue", ex.getCause());
-                    setErrorMessage("Saving the Issue failed: "
-                            + ex.getCause().getMessage());
+                    Exception src = (Exception) ex.getCause();
+                    ExceptionHandler.handleException(LOG, "Can't create Redmine issue", src);
+                    setErrorMessage("Can't save Redmine issue: " + src.getMessage());
                 }
             }
        }.execute();
    }
 
-    private void initValues() {
+    /**
+     * @return Runnable that _must_ be called on the EDT
+     */
+    private Runnable initValues() {
         assert ! SwingUtilities.isEventDispatchThread() : "Needs to be called off the EDT";
         final List<Tracker> trackerList = redmineIssue.getRepository().getTrackers();
         final Collection<? extends IssueStatus> statusList = redmineIssue.getRepository().getStatuses();
@@ -701,8 +860,8 @@ public class RedmineIssuePanel extends JPanel {
         final List<NestedProject> projects = new ArrayList<>(redmineIssue.getRepository().getProjects().values());
         Collections.sort(projects);
 
-        Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
-            public Void run() {
+        return new Runnable() {
+            public void run() {
                 trackerComboBox.setRenderer(new Defaults.TrackerLCR());
                 trackerComboBox.setModel(new DefaultComboBoxModel(trackerList.toArray()));
 
@@ -735,10 +894,8 @@ public class RedmineIssuePanel extends JPanel {
                 logtimeActivityComboBox.setModel(timeEntryActivityModel);
 
                 projectComboBox.setModel(new DefaultComboBoxModel(projects.toArray()));
-
-                return null;
             }
-        });
+        };
     }
 
    private boolean isIssueValid() {
@@ -1497,7 +1654,7 @@ public class RedmineIssuePanel extends JPanel {
                 try (SafeAutoCloseable sac = redmineIssue.busy()) {
                     redmineIssue.getRepository().getIssueManager().createTimeEntry(te);
                     redmineIssue.refresh();
-                    initIssue();
+                    initIssue(null);
                 }
                 return null;
             }
@@ -1512,13 +1669,11 @@ public class RedmineIssuePanel extends JPanel {
                     logtimePanel.colapse();
                     commentPanel.colapse();
                 } catch (InterruptedException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Saving time entry failed", ex);
-                    setErrorMessage("Saving time entry failed: "
-                        + ex.getMessage());
+                    Redmine.LOG.log(Level.INFO, "Saving time entry failed - Interrupted", ex);
                 } catch (ExecutionException ex) {
-                    Redmine.LOG.log(Level.SEVERE, "Saving time entry failed", ex.getCause());
-                    setErrorMessage("Saving time entry failed: "
-                        + ex.getCause().getMessage());
+                    Exception src = (Exception) ex.getCause();
+                    ExceptionHandler.handleException(LOG, "Saving time entry failed", src);
+                    setErrorMessage("Saving time entry failed: " + src.getMessage());
                 }
             }
         }.execute();

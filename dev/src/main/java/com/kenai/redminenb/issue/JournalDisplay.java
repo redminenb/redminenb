@@ -19,7 +19,9 @@ package com.kenai.redminenb.issue;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.NestedProject;
+import static com.kenai.redminenb.util.markup.StringUtil.escapeHTML;
 import com.kenai.redminenb.util.markup.TextileUtil;
+import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
@@ -108,10 +110,10 @@ public class JournalDisplay extends javax.swing.JPanel {
                 } catch (MissingResourceException ex) {
                     // Ok, was not translated
                 }
-                
+
                 String oldValue = detail.getOldValue();
                 String newValue = detail.getNewValue();
-                
+
                 switch(fieldName) {
                     case "category_id":
                         oldValue = formatCategory(repo, ri, oldValue);
@@ -134,13 +136,41 @@ public class JournalDisplay extends javax.swing.JPanel {
                         newValue = formatTracker(repo, newValue);
                         break;
                     case "assigned_to_id":
-                        oldValue = formatAssignee(repo, ri, oldValue);
-                        newValue = formatAssignee(repo, ri, newValue);
+                        oldValue = formatUser(repo, ri, oldValue);
+                        newValue = formatUser(repo, ri, newValue);
                         break;
                     case "project_id":
                         oldValue = formatProject(repo, ri, oldValue);
                         newValue = formatProject(repo, ri, newValue);
                         break;
+                }
+                
+                if("cf".equals(detail.getProperty())) {
+                    try {
+                        int fieldId = Integer.parseInt(fieldName);
+                        CustomFieldDefinition cfd = ri.getRepository()
+                                .getCustomFieldDefinitionById(fieldId);
+                        if (cfd != null) {
+                            translatedFieldName = cfd.getName();
+                            switch (cfd.getFieldFormat()) {
+                                case "user":
+                                    oldValue = formatUser(repo, ri, oldValue);
+                                    newValue = formatUser(repo, ri, newValue);
+                                    break;
+                                case "version":
+                                    oldValue = formatVersion(repo, ri, oldValue);
+                                    newValue = formatVersion(repo, ri, newValue);
+                                    break;
+                                case "bool":
+                                    oldValue = formatBool(repo, ri, oldValue);
+                                    newValue = formatBool(repo, ri, newValue);
+                                    break;
+                            }
+                        } else {
+                            translatedFieldName = "Custom field ID " + fieldId;
+                        }
+                    } catch (NumberFormatException ex) {
+                    }
                 }
                 
                 Object[] formatParams = new Object[]{
@@ -155,13 +185,14 @@ public class JournalDisplay extends javax.swing.JPanel {
                 String key;
                 String alternativeKey;
                 
-                if (detail.getName().equals("description")) {
+                if ("description".equals(fieldName) 
+                        || (oldValue == null && newValue == null)) {
                     key = detail.getProperty() + ".baseChanged";
                     alternativeKey = "attr.baseChanged";
-                } else if  (detail.getOldValue() != null && detail.getNewValue() != null) {
+                } else if  (oldValue != null && newValue != null) {
                     key = detail.getProperty() + ".changed";
                     alternativeKey = "attr.changed";
-                } else if (detail.getOldValue() != null) {
+                } else if (oldValue != null) {
                     key = detail.getProperty() + ".deleted";
                     alternativeKey = "attr.deleted";
                 } else {
@@ -272,7 +303,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private static String formatAssignee(RedmineRepository repo, RedmineIssue issue, String value) {
+    private static String formatUser(RedmineRepository repo, RedmineIssue issue, String value) {
         if(value == null) {
             return null;
         }
@@ -299,17 +330,18 @@ public class JournalDisplay extends javax.swing.JPanel {
         return "(ID: " + value + ")";
     }
     
-    private static String escapeHTML(String input) {
-        if(input == null) {
-            return "";
+    private static String formatBool(RedmineRepository repo, RedmineIssue issue, String value) {
+        if (value == null) {
+            return null;
         }
-        return input.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#x27")
-                ;
-        
+        switch(value) {
+            case "0":
+                return "No";
+            case "1":
+                return "Yes";
+            default:
+                return null;
+        }
     }
     
     /**

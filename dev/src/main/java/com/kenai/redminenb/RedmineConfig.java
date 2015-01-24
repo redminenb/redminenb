@@ -190,8 +190,10 @@ public class RedmineConfig {
                     Project p = null;
                     try {
                         p = repository.getProject();
-                    } catch (RedmineException ex) {}
-                    if((! rqx.getParameters().containsKey("project_id"))) {
+                    } catch (RedmineException ex) {
+                        //
+                    }
+                    if( p != null && (! rqx.getParameters().containsKey("project_id"))) {
                         rqx.getParameters().put("project_id", new ParameterValue[]{
                             new ParameterValue(p.getName(), p.getId())
                         });

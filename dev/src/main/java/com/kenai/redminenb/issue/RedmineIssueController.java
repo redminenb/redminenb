@@ -64,6 +64,8 @@ public class RedmineIssueController implements IssueController {
             public void propertyChange(PropertyChangeEvent evt) {
                 if("busy".equals(evt.getPropertyName())) {
                     issuePanel.enableFields(! ((boolean)evt.getNewValue()));
+                } else if (org.netbeans.modules.bugtracking.api.Issue.EVENT_ISSUE_DATA_CHANGED.equals(evt.getPropertyName())) {
+                    issuePanel.customFieldValueBackingStore.clear();
                 }
             }
         });
@@ -85,7 +87,7 @@ public class RedmineIssueController implements IssueController {
                 @Override
                 public void run() {
                     redmineIssue.refresh();
-                    issuePanel.initIssue();
+                    issuePanel.initIssue(null);
                 }
             });
             viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
@@ -182,7 +184,7 @@ public class RedmineIssueController implements IssueController {
                             @Override
                             protected Object doInBackground() throws Exception {
                                 redmineIssue.refresh();
-                                issuePanel.initIssue();
+                                issuePanel.initIssue(null);
                                 return null;
                             }
 
@@ -253,7 +255,7 @@ public class RedmineIssueController implements IssueController {
         if(issuePanel != null) {
             redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
                 public void run() {
-                    issuePanel.initIssue();
+                    issuePanel.initIssue(null);
                 }
             });
         }

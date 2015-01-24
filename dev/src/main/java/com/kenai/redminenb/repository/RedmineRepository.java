@@ -24,6 +24,7 @@ import com.kenai.redminenb.query.RedmineQueryController;
 import com.kenai.redminenb.user.RedmineUser;
 
 import com.kenai.redminenb.api.AuthMode;
+import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.AttachmentManager;
 import com.taskadapter.redmineapi.IssueManager;
@@ -33,6 +34,7 @@ import com.taskadapter.redmineapi.ProjectManager;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
+import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -44,7 +46,6 @@ import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.TimeEntryActivityFactory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
-import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.lang.ref.WeakReference;
@@ -61,6 +62,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
@@ -87,6 +89,8 @@ import org.openide.util.lookup.InstanceContent;
     "LBL_RepositoryTooltip=\"Redmine repository<br>{0} : {1}@{2}"
 })
 public class RedmineRepository {    
+    private static final Logger LOG = Logger.getLogger(RedmineRepository.class.getName());
+    
     static final String PROPERTY_AUTH_MODE = "authMode";                // NOI18N  
     static final String PROPERTY_ACCESS_KEY = "accessKey";              // NOI18N  
     static final String PROPERTY_PROJECT_ID = "projectId";              // NOI18N
@@ -140,6 +144,7 @@ public class RedmineRepository {
     private List<IssueStatus> statusCache = null;
     private List<TimeEntryActivity> timeEntryActivityCache = null;
     private List<Tracker> trackerCache = null;
+    private List<CustomFieldDefinition> customFieldsCache = null;
     
     // Make sure we know all instances we created - a crude hack, but API does
     // not allow ourselfes ....
@@ -445,9 +450,8 @@ public class RedmineRepository {
                         users.add(new RedmineUser(m.getUser()));
                     }
                 }
-            } catch (RedmineException ex) {
-                // TODO Notify user that Redmine internal error has happened
-                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Users", ex);
+            } catch (RedmineException | RuntimeException ex) {
+                ExceptionHandler.handleException(LOG, "Can't get Redmine Users", ex);
             }
             userCache.put(p.getId(), Collections.unmodifiableList(users));
         }
@@ -461,14 +465,8 @@ public class RedmineRepository {
         if(trackerCache == null) {
             try {
                 trackerCache = getIssueManager().getTrackers();
-            } catch (NotFoundException ex) {
-                // TODO Notify user that the issue no longer exists
-                trackerCache = Collections.<Tracker>emptyList();
-                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
-            } catch (RedmineException ex) {
-                // TODO Notify user that Redmine internal error has happened
-                trackerCache = Collections.<Tracker>emptyList();
-                Redmine.LOG.log(Level.SEVERE, "Can't get Redmine Issue Trackers", ex);
+            } catch (RedmineException | RuntimeException ex) {
+                ExceptionHandler.handleException(LOG, "Can't get Redmine Issue Trackers", ex);
             }
         }
         return trackerCache;
@@ -478,9 +476,10 @@ public class RedmineRepository {
         if (timeEntryActivityCache == null) {
             try {
                 timeEntryActivityCache = getIssueManager().getTimeEntryActivities();
-            } catch (RedmineException ex) {
-                // TODO Notify user that Redmine internal error has happened
-                Redmine.LOG.log(Level.INFO, "Failed to Redmine Time Entry Activities (either API is missing or no permission)", ex);
+            } catch (RedmineException | RuntimeException ex) {
+                LOG.log(Level.INFO
+                        , "Failed to Redmine Time Entry Activities (either API is missing or no permission)"
+                        , ex);
                 timeEntryActivityCache = fallbackTimeActivityEntries;
             }
         }
@@ -578,6 +577,55 @@ public class RedmineRepository {
         }
         return issuePriorities;
     }
+    
+    public void initCustomFieldDefinitions() {
+        if (customFieldsCache == null) {
+            try {
+                // since Redmine V2.4.0
+                customFieldsCache = getManager().getCustomFieldManager().getCustomFieldDefinitions();
+            } catch (Exception ex) {
+                LOG.info("Custom Fields are not available - query failed");
+                customFieldsCache = Collections.EMPTY_LIST;
+            }
+        }
+    }
+    
+    public List<CustomFieldDefinition> getCustomFieldDefinitions(String type, Project proj, Tracker t) {
+        initCustomFieldDefinitions();
+        List<CustomFieldDefinition> result = new ArrayList<>();
+        for(CustomFieldDefinition cfd: customFieldsCache) {
+            if(type.equals(cfd.getCustomizedType())
+                    && (cfd.getTrackers().contains(t)))
+            {
+                // @todo: Rework this not to depend on the string representation
+                if("version".equals(cfd.getFieldFormat())) {
+                    cfd.getPossibleValues().clear();
+                    for(Version v: getVersions(proj)) {
+                        cfd.getPossibleValues().add(
+                                v.getName() + " [" + v.getId() + "]");
+                    }
+                } else if ("user".equals(cfd.getFieldFormat())) {
+                    cfd.getPossibleValues().clear();
+                    for (RedmineUser ru: getUsers(proj)) {
+                        cfd.getPossibleValues().add(
+                                ru.getUser().getFullName() + " [" + ru.getId() + "]");
+                    }
+                }
+                result.add(cfd);
+            }
+        }
+        return result;
+    }
+    
+    public CustomFieldDefinition getCustomFieldDefinitionById(int id) {
+        initCustomFieldDefinitions();
+        for(CustomFieldDefinition cfd: customFieldsCache) {
+            if(cfd.getId().equals(id)) {
+                return cfd;
+            }
+        }
+        return null;  
+    }
 
     public Collection<RedmineIssue> simpleSearch(String string) {
         try {
@@ -600,14 +648,9 @@ public class RedmineRepository {
                 redmineIssues.add(redmineIssue);
             }
             return redmineIssues;
-        } catch (NotFoundException ex) {
-            // TODO Notify user that the issue no longer exists
-            Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);
-        } catch (RedmineException ex) {
-            // TODO Notify user that Redmine internal error has happened
-            Redmine.LOG.log(Level.SEVERE, "Can't search for Redmine issues", ex);
+        } catch (RedmineException | RuntimeException ex) {
+            ExceptionHandler.handleException(LOG, "Can't search for Redmine issues", ex);
         }
-
         return Collections.<RedmineIssue>emptyList();
     }
 

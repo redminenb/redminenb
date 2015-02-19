@@ -271,10 +271,11 @@ public final class RedmineIssue {
 
             if (resolve) {
                 // TODO This works for default Redmine Settings only. Add resolved status ID configuration to Redmine Option.
-                issue.setStatusId(3);
-                //issue.setStatusName("Resolved"); // not needed
-                getRepository().getIssueManager().update(issue);
+                issue.setStatusId(3);    
             }
+            
+            getRepository().getIssueManager().update(issue);
+            
             return;
 
         } catch (RedmineException | RuntimeException ex) {

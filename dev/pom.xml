@@ -4,7 +4,7 @@
 
     <groupId>com.kenai.redminenb</groupId>
     <artifactId>redminenb</artifactId>
-    <version>1.7-SNAPSHOT</version>
+    <version>1.6.1-SNAPSHOT</version>
     <packaging>nbm</packaging>
 
     <name>RedmineNB</name>
@@ -190,6 +190,25 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>2.5</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>redmine-timestamp</name>
+                            <pattern>yyyyMMddHHmmss</pattern>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
                 
             <plugin>

@@ -48,7 +48,9 @@ import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,7 +65,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 import javax.swing.SwingUtilities;
+import org.apache.http.conn.ssl.SSLInitializationException;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
@@ -670,16 +680,46 @@ public class RedmineRepository {
             }
             if (authMode == AuthMode.AccessKey) {
                 manager = RedmineManagerFactory.createWithApiKey(
-                        getUrl(), getAccessKey());
+                        getUrl(), getAccessKey(), RedmineManagerFactory.createShortTermConfig(createConnectionManager()));
             } else {
                 manager = RedmineManagerFactory.createWithUserAuth(
                         getUrl(), getUsername(),
-                        getPassword() == null ? "" : String.valueOf(getPassword()));
+                        getPassword() == null ? "" : String.valueOf(getPassword()),
+                        RedmineManagerFactory.createShortTermConfig(createConnectionManager()));
             }
             currentUser = new RedmineUser(manager.getUserManager().getCurrentUser(), true);
             manager.setObjectsPerPage(100);
         }
         return manager;
+    }
+
+    static PoolingClientConnectionManager createConnectionManager() throws SSLInitializationException {
+        SSLSocketFactory socketFactory = SSLSocketFactory.getSystemSocketFactory();
+        socketFactory.setHostnameVerifier(new X509HostnameVerifier() {
+            @Override
+            public void verify(String string, SSLSocket ssls) throws IOException {
+                if (!HttpsURLConnection.getDefaultHostnameVerifier().verify(string, ssls.getSession())) {
+                    throw new SSLException("Hostname did not verify");
+                }
+            }
+            
+            @Override
+            public void verify(String string, X509Certificate xc) throws SSLException {
+                throw new SSLException("Check not implemented yet");
+            }
+            
+            @Override
+            public void verify(String string, String[] strings, String[] strings1) throws SSLException {
+                throw new SSLException("Check not implemented yet");
+            }
+            
+            @Override
+            public boolean verify(String string, SSLSession ssls) {
+                return HttpsURLConnection.getDefaultHostnameVerifier().verify(string, ssls);
+            }
+        });
+        PoolingClientConnectionManager connectionManager = RedmineManagerFactory.createConnectionManager(Integer.MAX_VALUE, socketFactory);
+        return connectionManager;
     }
 
     public IssueManager getIssueManager() throws RedmineException {

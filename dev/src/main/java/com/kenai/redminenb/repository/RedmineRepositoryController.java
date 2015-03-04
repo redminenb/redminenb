@@ -1,5 +1,6 @@
 /*
  * Copyright 2012 Anchialas and Mykolas.
+ * Copyright 2015 Matthias Bläsing
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,21 +32,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -54,9 +49,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.jsoup.Jsoup;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
 import org.openide.util.*;
@@ -413,13 +405,15 @@ public class RedmineRepositoryController implements RepositoryController, Docume
             manager = RedmineManagerFactory.createWithApiKey(
                     getUrl()
                     , getAccessKey()
-                    , RedmineManagerFactory.createShortTermConfig(RedmineRepository.createConnectionManager()));
+                    , RedmineManagerFactoryHelper.getTransportConfig()
+            );
         } else {
             manager = RedmineManagerFactory.createWithUserAuth(
                     getUrl()
                     , getUser()
                     , new String(getPassword())
-                    , RedmineManagerFactory.createShortTermConfig(RedmineRepository.createConnectionManager()));
+                    , RedmineManagerFactoryHelper.getTransportConfig()
+            );
         }
         return manager;
     }

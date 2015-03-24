@@ -17,6 +17,8 @@ package com.kenai.redminenb.util.markup;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import org.eclipse.mylyn.wikitext.core.parser.Attributes;
+import org.eclipse.mylyn.wikitext.core.parser.DocumentBuilder;
 import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
 import org.eclipse.mylyn.wikitext.core.parser.builder.HtmlDocumentBuilder;
 import org.eclipse.mylyn.wikitext.textile.core.TextileLanguage;
@@ -43,7 +45,20 @@ public final class TextileUtil {
     }
     
     public static void convertToHTML(String textile, Writer writer) {
-        HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer);
+        HtmlDocumentBuilder builder = new HtmlDocumentBuilder(writer) {
+
+            @Override
+            public void beginSpan(DocumentBuilder.SpanType type, Attributes attributes) {
+                // Work-around java limit for html rendering - map:
+                // - <del>XY</del> to <span style='text-decoration: line-through'>XY</span>
+                if(type == SpanType.DELETED) {
+                    type = SpanType.SPAN;
+                    attributes.appendCssStyle("text-decoration: line-through");
+                }
+                super.beginSpan(type, attributes);
+            }
+            
+        };
         // avoid the <html> and <body> tags
         builder.setEmitAsDocument(false);
 

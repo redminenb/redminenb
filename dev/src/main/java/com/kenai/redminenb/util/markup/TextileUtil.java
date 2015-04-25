@@ -54,6 +54,9 @@ public final class TextileUtil {
                 if(type == SpanType.DELETED) {
                     type = SpanType.SPAN;
                     attributes.appendCssStyle("text-decoration: line-through");
+                } else if (type == SpanType.INSERTED) {
+                    type = SpanType.SPAN;
+                    attributes.appendCssStyle("text-decoration: underline;");
                 }
                 super.beginSpan(type, attributes);
             }

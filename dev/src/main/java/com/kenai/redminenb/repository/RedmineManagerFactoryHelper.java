@@ -30,14 +30,25 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 
 class RedmineManagerFactoryHelper {
     /**
-     * Implement a minimal hostname verifier, that delegates to the hostname
-     * verifier used by the HTttpsURLCOnnection
+     * Implement a minimal hostname verifier. This is needed to be able to use
+     * hosts with certificates, that don't match the used hostname (VServer).
+     * 
+     * This is implemented by first trying the "Browser compatible" hostname 
+     * verifier and if that fails, fall back to the default java hostname
+     * verifier.
+     * 
+     * If the default case the hostname verifier in java always rejects, but
+     * for netbeans the "SSL Certificate Exception" module is available that
+     * catches this and turns a failure into a request to the GUI user.
      */
     private static PoolingClientConnectionManager createConnectionManager() throws SSLInitializationException {
         SSLSocketFactory socketFactory = SSLSocketFactory.getSystemSocketFactory();
         socketFactory.setHostnameVerifier(new X509HostnameVerifier() {
             @Override
             public void verify(String string, SSLSocket ssls) throws IOException {
+                if(SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER.verify(string, ssls.getSession())) {
+                    return;
+                }
                 if (!HttpsURLConnection.getDefaultHostnameVerifier().verify(string, ssls.getSession())) {
                     throw new SSLException("Hostname did not verify");
                 }
@@ -55,6 +66,9 @@ class RedmineManagerFactoryHelper {
             
             @Override
             public boolean verify(String string, SSLSession ssls) {
+                if (SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER.verify(string, ssls)) {
+                    return true;
+                }
                 return HttpsURLConnection.getDefaultHostnameVerifier().verify(string, ssls);
             }
         });

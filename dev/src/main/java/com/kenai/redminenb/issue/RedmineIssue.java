@@ -289,7 +289,7 @@ public final class RedmineIssue {
         try {
             Attachment a = getRepository().getAttachmentManager().uploadAttachment("application/octed-stream", file);
             a.setDescription(description);
-            issue.getAttachments().add(a);
+            issue.addAttachment(a);
             if(! StringUtils.isBlank(comment)) {
                 issue.setNotes(comment);
             }

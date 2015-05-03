@@ -1,4 +1,3 @@
-
 package com.kenai.redminenb.util;
 
 import com.kenai.redminenb.issue.RedmineIssue;
@@ -7,16 +6,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.SwingWorker;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.NotImplementedException;
 
 public class AttachmentDisplay extends DelegatingBaseLineJPanel implements ActionListener {
+
     private static File lastDirectory;
     private final String COMMAND_DELETE = "delete";
     private final String COMMAND_DOWNLOAD = "download";
@@ -57,44 +57,51 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(COMMAND_DELETE.equals(e.getActionCommand())) {
+        if (COMMAND_DELETE.equals(e.getActionCommand())) {
             throw new NotImplementedException();
         }
         if (COMMAND_DOWNLOAD.equals(e.getActionCommand())) {
-            try {
-                JFileChooser fileChooser = new JFileChooser(lastDirectory);
-                fileChooser.setDialogTitle("Save attachment");
-                File preselected;
-                if (lastDirectory != null && lastDirectory.canWrite()) {
-                    preselected = new File(lastDirectory, ad.getFileName());
-                } else {
-                    preselected = new File(ad.getFileName());
-                }
-                fileChooser.setSelectedFile(preselected);
-                int result = fileChooser.showSaveDialog(this);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    FileOutputStream fos = null;
-                    try {
-                        lastDirectory = fileChooser.getCurrentDirectory();
-                        fos = new FileOutputStream(fileChooser.getSelectedFile());
-                        issue.getRepository().getAttachmentManager().downloadAttachmentContent(ad, fos);
-                        fos.close();
-                    } catch (IOException ex) {
-                        Exceptions.printStackTrace(ex);
-                    } finally {
+            JFileChooser fileChooser = new JFileChooser(lastDirectory);
+            fileChooser.setDialogTitle("Save attachment");
+            File preselected;
+            if (lastDirectory != null && lastDirectory.canWrite()) {
+                preselected = new File(lastDirectory, ad.getFileName());
+            } else {
+                preselected = new File(ad.getFileName());
+            }
+            fileChooser.setSelectedFile(preselected);
+            int result = fileChooser.showSaveDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                lastDirectory = fileChooser.getCurrentDirectory();
+                final File selectedFile = fileChooser.getSelectedFile();
+
+                new SwingWorker() {
+
+                    @Override
+                    protected Object doInBackground() throws Exception {
+                        try (FileOutputStream fos = new FileOutputStream(selectedFile)) {
+                            issue.getRepository().getAttachmentManager().downloadAttachmentContent(ad, fos);
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
                         try {
-                            if (fos != null) {
-                                fos.close();
-                            }
-                        } catch (IOException ex) {
+                            get();
+                        } catch (ExecutionException ex) {
+                            NotifyDescriptor nd = new NotifyDescriptor.Exception(ex.getCause(),
+                                    "Failed to retrieve attachment from issue");
+                            DialogDisplayer.getDefault().notifyLater(nd);
+                        } catch (InterruptedException ex) {
+                            NotifyDescriptor nd = new NotifyDescriptor.Exception(ex,
+                                    "Failed to retrieve attachment from issue");
+                            DialogDisplayer.getDefault().notifyLater(nd);
                         }
                     }
-                }
-            } catch (Exception ex) {
-                NotifyDescriptor nd = new NotifyDescriptor.Exception(ex,
-                        "Failed to retrieve attachment from issue");
-                DialogDisplayer.getDefault().notifyLater(nd);
+                };
             }
+
         }
     }
 }

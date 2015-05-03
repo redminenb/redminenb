@@ -27,27 +27,52 @@ import org.openide.util.NbBundle;
  *
  * @author Mykolas
  */
-public class RedmineRepositoryPanel extends javax.swing.JPanel {
+public class RedmineRepositoryPanel extends javax.swing.JPanel implements ActionListener {
 
+    private boolean fieldsEnabled = true;
     private final RedmineRepositoryController controller;
 
     public RedmineRepositoryPanel(RedmineRepositoryController controller) {
         this.controller = controller;
         initComponents();
+        
+        rbAccessKey.addActionListener(this);
+        rbCredentials.addActionListener(this);
+        httpAuthEnabled.addActionListener(this);
+        
+        updateFieldState();
     }
 
-    void enableFields(boolean b) {
-        nameLabel.setEnabled(b);
-        nameTextField.setEnabled(b);
-        hostLabel.setEnabled(b);
-        urlTextField.setEnabled(b);
-        rbAccessKey.setEnabled(b);
-        accessKeyTextField.setEnabled(b);
-        authLabel.setEnabled(b);
-        rbCredentials.setEnabled(b);
-        userField.setEnabled(b);
-        pwdField.setEnabled(b);
-        projectLabel.setEnabled(b);
+    private void updateFieldState() {
+        nameLabel.setEnabled(fieldsEnabled);
+        nameTextField.setEnabled(fieldsEnabled);
+        hostLabel.setEnabled(fieldsEnabled);
+        urlTextField.setEnabled(fieldsEnabled);
+        rbAccessKey.setEnabled(fieldsEnabled);
+        accessKeyTextField.setEnabled(fieldsEnabled);
+        authLabel.setEnabled(fieldsEnabled);
+        rbCredentials.setEnabled(fieldsEnabled);
+        userField.setEnabled(fieldsEnabled);
+        pwdField.setEnabled(fieldsEnabled);
+        projectLabel.setEnabled(fieldsEnabled);
+        httpAuthEnabled.setEnabled(fieldsEnabled);
+        
+        accessKeyTextField.setEnabled(rbAccessKey.isSelected());
+        httpAuthEnabled.setEnabled(rbAccessKey.isSelected());
+        httpUserField.setEnabled(httpAuthEnabled.isEnabled() && httpAuthEnabled.isSelected());
+        httpPwdField.setEnabled(httpAuthEnabled.isEnabled() && httpAuthEnabled.isSelected());
+        
+        userField.setEnabled(rbCredentials.isSelected());
+        pwdField.setEnabled(rbCredentials.isSelected());
+    }
+    
+    public void setFieldsEnabled(boolean enabled) {
+        boolean oldState = this.fieldsEnabled;
+        this.fieldsEnabled = enabled;
+        if(oldState != enabled) {
+            firePropertyChange("fieldsEnabled", oldState, this.fieldsEnabled);
+        }
+        updateFieldState();
     }
 
     AuthMode getAuthMode() {
@@ -97,6 +122,13 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         createNewProjectButton = new LinkButton();
         featuresLabel = new JLabel();
         featureWatchers = new JCheckBox();
+        httpAuthEnabled = new JCheckBox();
+        userLabel = new JLabel();
+        pwdLabel = new JLabel();
+        httpUserLabel = new JLabel();
+        httpPasswordLabel = new JLabel();
+        httpUserField = new JTextField();
+        httpPwdField = new JPasswordField();
 
         setNextFocusableComponent(nameTextField);
         setLayout(new GridBagLayout());
@@ -106,7 +138,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(nameLabel, gridBagConstraints);
 
@@ -115,16 +147,16 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(hostLabel, gridBagConstraints);
 
         projectLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.projectLabel.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(projectLabel, gridBagConstraints);
 
@@ -133,18 +165,18 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(nameTextField, gridBagConstraints);
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(urlTextField, gridBagConstraints);
@@ -154,19 +186,19 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new Insets(1, 5, 1, 5);
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
         add(accessKeyTextField, gridBagConstraints);
 
         connectButton.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.connectButton.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(connectButton, gridBagConstraints);
 
@@ -187,50 +219,45 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
 
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(progressPanel, gridBagConstraints);
 
         userField.setColumns(12);
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new Insets(1, 5, 5, 5);
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(userField, gridBagConstraints);
 
         pwdField.setColumns(12);
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new Insets(1, 5, 5, 5);
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(pwdField, gridBagConstraints);
 
         buttonGroup1.add(rbAccessKey);
         rbAccessKey.setSelected(true);
         rbAccessKey.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.rbAccessKey.text")); // NOI18N
         rbAccessKey.setActionCommand(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.rbAccessKey.actionCommand")); // NOI18N
-        rbAccessKey.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                rbAuthPerformed(evt);
-            }
-        });
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
-        gridBagConstraints.insets = new Insets(1, 5, 1, 5);
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
         add(rbAccessKey, gridBagConstraints);
 
         authLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.authLabel.text")); // NOI18N
@@ -238,47 +265,43 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
-        gridBagConstraints.insets = new Insets(5, 5, 1, 5);
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(authLabel, gridBagConstraints);
 
         buttonGroup1.add(rbCredentials);
         rbCredentials.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.rbCredentials.text")); // NOI18N
-        rbCredentials.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                rbAuthPerformed(evt);
-            }
-        });
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
-        gridBagConstraints.insets = new Insets(1, 5, 5, 5);
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(rbCredentials, gridBagConstraints);
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(projectComboBox, gridBagConstraints);
 
         createNewProjectButton.setIcon(new ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/add.png"))); // NOI18N
         createNewProjectButton.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.createNewProjectButton.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(createNewProjectButton, gridBagConstraints);
 
         featuresLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.featuresLabel.text_1")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(featuresLabel, gridBagConstraints);
 
@@ -286,18 +309,72 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
         featureWatchers.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.featureWatchers.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 5, 5);
         add(featureWatchers, gridBagConstraints);
-    }// </editor-fold>//GEN-END:initComponents
 
-    private void rbAuthPerformed(ActionEvent evt) {//GEN-FIRST:event_rbAuthPerformed
-        accessKeyTextField.setEnabled(evt.getSource() == rbAccessKey);
-        userField.setEnabled(evt.getSource() == rbCredentials);
-        pwdField.setEnabled(evt.getSource() == rbCredentials);
-    }//GEN-LAST:event_rbAuthPerformed
+        httpAuthEnabled.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.httpAuthEnabled.text")); // NOI18N
+        httpAuthEnabled.setToolTipText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.httpAuthEnabled.toolTipText")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 2, 5);
+        add(httpAuthEnabled, gridBagConstraints);
+
+        userLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.userLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(userLabel, gridBagConstraints);
+
+        pwdLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.pwdLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        add(pwdLabel, gridBagConstraints);
+
+        httpUserLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.httpUserLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        add(httpUserLabel, gridBagConstraints);
+
+        httpPasswordLabel.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.httpPasswordLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        add(httpPasswordLabel, gridBagConstraints);
+
+        httpUserField.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.httpUserField.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        add(httpUserField, gridBagConstraints);
+
+        httpPwdField.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.httpPwdField.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        add(httpPwdField, gridBagConstraints);
+    }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     JTextField accessKeyTextField;
@@ -308,6 +385,11 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
     JCheckBox featureWatchers;
     JLabel featuresLabel;
     JLabel hostLabel;
+    JCheckBox httpAuthEnabled;
+    JLabel httpPasswordLabel;
+    JPasswordField httpPwdField;
+    JTextField httpUserField;
+    JLabel httpUserLabel;
     JLabel nameLabel;
     JTextField nameTextField;
     JLabel progressIcon;
@@ -317,9 +399,16 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel {
     JComboBox<ProjectId> projectComboBox;
     JLabel projectLabel;
     final JPasswordField pwdField = new JPasswordField();
+    JLabel pwdLabel;
     JRadioButton rbAccessKey;
     JRadioButton rbCredentials;
     JTextField urlTextField;
     final JTextField userField = new JTextField();
+    JLabel userLabel;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        updateFieldState();
+    }
 }

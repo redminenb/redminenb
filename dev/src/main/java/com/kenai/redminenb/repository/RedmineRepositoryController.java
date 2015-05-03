@@ -41,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.management.RuntimeErrorException;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -51,6 +53,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.netbeans.modules.bugtracking.spi.RepositoryController;
+import org.netbeans.modules.bugtracking.spi.RepositoryInfo;
 import org.openide.util.*;
 import org.openide.util.NbBundle.Messages;
 
@@ -74,6 +77,7 @@ import org.openide.util.NbBundle.Messages;
     "MSG_Unchanged=Unchanged"
 })
 public class RedmineRepositoryController implements RepositoryController, DocumentListener, ActionListener, ItemListener {
+    private static final Logger LOG = Logger.getLogger(RedmineRepositoryController.class.getName());
     
     private final RedmineRepository repository;
     private final RedmineRepositoryPanel panel;
@@ -98,6 +102,10 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
         panel.rbAccessKey.addActionListener(this);
         panel.rbCredentials.addActionListener(this);
+        
+        panel.httpAuthEnabled.addActionListener(this);
+        panel.httpPwdField.getDocument().addDocumentListener(this);
+        panel.httpUserField.getDocument().addDocumentListener(this);
     }
 
     @Override
@@ -136,6 +144,18 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
     private boolean isFeatureWatchers() {
         return panel.featureWatchers.isSelected();
+    }
+    
+    private boolean isEnableHTTPAuth() {
+        return panel.httpAuthEnabled.isSelected();
+    }
+    
+    private String getHttpUser() {
+        return panel.httpUserField.getText();
+    }
+
+    private char[] getHttpPassword() {
+        return panel.httpPwdField.getPassword();
     }
 
     @Override
@@ -195,6 +215,12 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
     @Override
     public void applyChanges() {
+        String httpUser = null;
+        char[] httpPassword = null;
+        if(panel.httpAuthEnabled.isSelected()) {
+            httpUser = getHttpUser();
+            httpPassword = getHttpPassword();
+        }
         repository.setInfoValues(getName(),
                 getUrl(),
                 getUser(),
@@ -202,7 +228,9 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                 getAccessKey(),
                 getAuthMode(),
                 getProject() == null ? null : getProject().getId(),
-                isFeatureWatchers());
+                isFeatureWatchers(),
+                httpUser,
+                httpPassword);
     }
 
     @Override
@@ -221,6 +249,22 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         panel.userField.setText(repository.getUsername());
         panel.pwdField.setText(repository.getPassword() == null ? "" : String.valueOf(repository.getPassword()));
         
+        RepositoryInfo info = repository.getInfo();
+        
+        if( info != null 
+                && info.getHttpUsername() != null 
+                && (! info.getHttpUsername().isEmpty())
+                && info.getHttpPassword() != null 
+                && info.getHttpPassword().length > 0) {
+            panel.httpAuthEnabled.setSelected(true);
+            panel.httpUserField.setText(info.getHttpUsername());
+            panel.httpPwdField.setText(new String(info.getHttpPassword()));
+        } else {
+            panel.httpAuthEnabled.setSelected(false);
+            panel.httpUserField.setText("");
+            panel.httpPwdField.setText("");
+        }
+        
         List<ProjectId> initList = new ArrayList<>();
         initList.add(null);
         if(repository.getProjectID() != null) {
@@ -233,6 +277,8 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         }
         
         panel.featureWatchers.setSelected(repository.isFeatureWatchers());
+        
+        panel.setFieldsEnabled(true);
     }
 
     @Override
@@ -262,7 +308,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
     }
 
     private void onConnect() {
-        panel.enableFields(false);
+        panel.setFieldsEnabled(false);
         
         new SwingWorker<List<ProjectId>,Object>() {
 
@@ -283,6 +329,8 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                         result.add(new ProjectId(np.getProject().getId(), np.toString()));
                     }
                     return result;
+                } catch (Throwable ex) {
+                    throw new RuntimeException("Failed to connect; " + ex.getMessage(), ex);
                 } finally {
                     if (rm != null) {
                         rm.shutdown();
@@ -312,7 +360,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                     } else if (cause instanceof Exception) {
                         errorMessage = Redmine.getMessage("MSG_CONNECTION_ERROR",
                                 ex.getLocalizedMessage());
-                        Redmine.LOG.log(Level.WARNING, errorMessage, ex);
+                        Redmine.LOG.log(Level.INFO, errorMessage, ex);
                     }
                     if (errorMessage != null) {
                         panel.progressIcon.setIcon(Defaults.getIcon("warning.png"));
@@ -320,7 +368,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                     }
                 } catch (InterruptedException ex) {
                 }
-                panel.enableFields(true);
+                panel.setFieldsEnabled(true);
             }
         }.execute();
     }
@@ -407,6 +455,10 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                     , getAccessKey()
                     , RedmineManagerFactoryHelper.getTransportConfig()
             );
+            if(panel.httpAuthEnabled.isSelected()) {
+                RedmineManagerFactoryHelper.getTransportFromManager(manager)
+                        .setCredentials(getHttpUser(), new String(getHttpPassword()));
+            }
         } else {
             manager = RedmineManagerFactory.createWithUserAuth(
                     getUrl()

@@ -25,6 +25,7 @@ import com.kenai.redminenb.query.RedmineQueryController;
 import com.kenai.redminenb.user.RedmineUser;
 
 import com.kenai.redminenb.api.AuthMode;
+import static com.kenai.redminenb.repository.RedmineManagerFactoryHelper.getTransportFromManager;
 import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.AttachmentManager;
@@ -199,10 +200,9 @@ public class RedmineRepository {
     }
 
     synchronized void setInfoValues(String name, String url, String user, char[] password,
-            String accessKey, AuthMode authMode, Integer project, boolean featureWatchers) {
+            String accessKey, AuthMode authMode, Integer project, boolean featureWatchers,
+            String httpUser, char[] httpPassword) {
         String id = info != null ? info.getID() : name + System.currentTimeMillis();
-        String httpUser = null;
-        char[] httpPassword = null;
         RepositoryInfo ri = new RepositoryInfo(id,
                 RedmineConnector.ID,
                 url,
@@ -675,6 +675,12 @@ public class RedmineRepository {
                         getAccessKey(), 
                         RedmineManagerFactoryHelper.getTransportConfig()
                 );
+                if(getInfo().getHttpUsername() != null && (! getInfo().getHttpUsername().isEmpty())
+                        && getInfo().getHttpPassword() != null && getInfo().getHttpPassword().length > 0) {
+                    getTransportFromManager(manager).setCredentials(
+                            getInfo().getHttpUsername(),
+                            new String(getInfo().getHttpPassword()));
+                }
             } else {
                 manager = RedmineManagerFactory.createWithUserAuth(
                         getUrl(), 

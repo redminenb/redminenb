@@ -16,8 +16,12 @@
 
 package com.kenai.redminenb.repository;
 
+import com.taskadapter.redmineapi.RedmineManager;
+import com.taskadapter.redmineapi.RedmineManagerFactory;
 import com.taskadapter.redmineapi.TransportConfiguration;
+import com.taskadapter.redmineapi.internal.Transport;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
@@ -79,6 +83,16 @@ class RedmineManagerFactoryHelper {
     }
     
     public static TransportConfiguration getTransportConfig() {
-        return com.taskadapter.redmineapi.RedmineManagerFactory.createShortTermConfig(createConnectionManager());
+        return RedmineManagerFactory.createShortTermConfig(createConnectionManager());
+    }
+    
+    public static Transport getTransportFromManager(RedmineManager rm) {
+        try {
+            Field transportField = RedmineManager.class.getDeclaredField("transport");
+            transportField.setAccessible(true);
+            return (Transport) transportField.get(rm);
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+            throw new RuntimeException("Failed to get transport from redmine manager", ex);
+        }
     }
 }

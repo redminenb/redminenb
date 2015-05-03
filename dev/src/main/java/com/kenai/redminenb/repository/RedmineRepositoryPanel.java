@@ -64,6 +64,13 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel implements Action
         
         userField.setEnabled(rbCredentials.isSelected());
         pwdField.setEnabled(rbCredentials.isSelected());
+        
+        featureWatchers.setEnabled(fieldsEnabled);
+        featuresLabel.setEnabled(fieldsEnabled);
+        
+        connectButton.setEnabled(fieldsEnabled);
+        projectComboBox.setEnabled(fieldsEnabled);
+        createNewProjectButton.setEnabled(fieldsEnabled);
     }
     
     public void setFieldsEnabled(boolean enabled) {

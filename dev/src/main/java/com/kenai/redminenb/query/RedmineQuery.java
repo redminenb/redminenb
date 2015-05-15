@@ -23,14 +23,11 @@ import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.SafeAutoCloseable;
-import com.taskadapter.redmineapi.AuthenticationException;
-import com.taskadapter.redmineapi.NotFoundException;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.Project;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,7 +43,6 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.netbeans.modules.bugtracking.spi.QueryController;
 import org.netbeans.modules.bugtracking.spi.QueryProvider;
-import org.openide.util.Exceptions;
 import org.openide.util.Mutex;
 
 /**
@@ -67,7 +63,7 @@ public final class RedmineQuery {
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
     //
     private Map<String, ParameterValue[]> parameters = new HashMap<>();
-    private RedmineQueryController queryController;
+    private final RedmineQueryController queryController;
     
     private Integer busy = 0;
     
@@ -106,15 +102,13 @@ public final class RedmineQuery {
         });
     }
     
-    public synchronized RedmineQueryController getController() {
-        if (queryController == null) {
-            queryController = new RedmineQueryController(repository, this);
-        }
+    public RedmineQueryController getController() {
         return queryController;
     }
     
     public RedmineQuery(RedmineRepository repository) {
         this.repository = repository;
+        this.queryController = new RedmineQueryController(repository, this);
         try {
             Project p = repository.getProject();
             NestedProject np = repository.getProjects().get(p.getId());

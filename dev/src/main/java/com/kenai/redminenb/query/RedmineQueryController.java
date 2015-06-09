@@ -21,6 +21,7 @@ import com.kenai.redminenb.RedmineConnector;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.kenai.redminenb.query.RedmineQueryParameter.CheckBoxParameter;
 import com.kenai.redminenb.query.RedmineQueryParameter.ListParameter;
+import com.kenai.redminenb.query.RedmineQueryParameter.ComboParameter;
 import com.kenai.redminenb.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
@@ -40,6 +41,7 @@ import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.SavedQuery;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.awt.Component;
@@ -54,6 +56,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -139,6 +142,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
     //
     private final RedmineQuery query;
     //
+    private List<SavedQuery> savedQueries = Collections.EMPTY_LIST;
+    //
     private ListParameter versionParameter;
     private ListParameter trackerParameter;
     private ListParameter statusParameter;
@@ -147,6 +152,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
     private ListParameter assigneeParameter;
     private ListParameter watcherParameter;
     private ListParameter projectParameter;
+    private ComboParameter queryParameter;
+    private ComboParameter project2Parameter;
     private Map<String, RedmineQueryParameter> parameters;
     //
     private final Object REFRESH_LOCK = new Object();
@@ -184,8 +191,29 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 }
             }
         });
+        queryPanel.bySaveQueryProjectCB.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateProjectValues2();
+            }
+        });
     }
 
+    private void updateProjectValues2() {
+        Integer projectId = null;
+        try {
+            projectId = Integer.valueOf(project2Parameter.getValues()[0].getValue());
+        } catch (NullPointerException | NumberFormatException ex) {}
+        List<ParameterValue> queries = new ArrayList<>();
+        for(SavedQuery sq: savedQueries) {
+            if(projectId != null && (sq.getProjectId() == null || sq.getProjectId().equals(projectId))) {
+                queries.add(new ParameterValue(sq.getName(), sq.getId()));
+            }
+        }
+        queryParameter.setParameterValues(queries);
+    }
+    
     private void updateProjectValues() {
         assert (!SwingUtilities.isEventDispatchThread()) : "Must be called off the EDT";
 
@@ -251,12 +279,18 @@ public class RedmineQueryController implements QueryController, ActionListener {
         // Initalize project first, as other values depend on selected project
         if (queryParams.containsKey("project_id")) {
             parameters.get("project_id").setValues(queryParams.get("project_id"));
+            parameters.get("project_id2").setValues(queryParams.get("project_id"));
         }
         for (Entry<String, ParameterValue[]> e : query.getParameters().entrySet()) {
             if ((!"project_id".equals(e.getKey()))
                     && parameters.containsKey(e.getKey())) {
                 parameters.get(e.getKey()).setValues(e.getValue());
             }
+        }
+        if(queryParams.containsKey("query_id")) {
+            queryPanel.queryTypeCombo.setSelectedIndex(1);
+        } else { 
+            queryPanel.queryTypeCombo.setSelectedIndex(0);
         }
         queryPanel.setTitle(query.getDisplayName());
         queryPanel.cancelChangesButton.setVisible(query.getDisplayName() != null);
@@ -265,8 +299,17 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
     private void guiToModel() {
         Map<String, ParameterValue[]> parameters = new HashMap<>();
-        for (RedmineQueryParameter rqp : this.parameters.values()) {
-            parameters.put(rqp.getParameter(), rqp.getValues());
+        if(queryPanel.queryTypeCombo.getSelectedIndex() == 1) {
+            parameters.put("query_id", this.parameters.get("query_id").getValues());
+            parameters.put("project_id", this.parameters.get("project_id2").getValues());
+        } else {
+            for (Entry<String,RedmineQueryParameter> e: this.parameters.entrySet()) {
+                if("query_id".equals(e.getKey()) || "project_id2".equals(e.getKey())) {
+                    continue;
+                }
+                RedmineQueryParameter rqp = e.getValue();
+                parameters.put(rqp.getParameter(), rqp.getValues());
+            }
         }
         query.setParameters(parameters);
     }
@@ -509,7 +552,9 @@ public class RedmineQueryController implements QueryController, ActionListener {
                             return null;
                         }
                     });
-
+                    
+                    savedQueries = repository.getServersideQueries();
+                    
                     final List<ParameterValue> trackerList = new ArrayList<>();
                     for (Tracker t : repository.getTrackers()) {
                         trackerList.add(new ParameterValue(t.getName(), t.getId()));
@@ -553,11 +598,15 @@ public class RedmineQueryController implements QueryController, ActionListener {
                             priorityParameter.setParameterValues(priorityList);
                             assigneeParameter.setParameterValues(assigneeList);
                             projectParameter.setParameterValues(projectValueList);
-
+                            project2Parameter.setParameterValues(projectValueList);
+                            
                             if (query.isSaved()) {
                                 boolean autoRefresh = RedmineConfig.getInstance().getQueryAutoRefresh(query.getDisplayName());
                                 queryPanel.refreshCheckBox.setSelected(autoRefresh);
                             }
+                            
+                            updateProjectValues2();
+                            
                             return null;
                         }
                     });
@@ -582,16 +631,24 @@ public class RedmineQueryController implements QueryController, ActionListener {
         repository.getRequestProcessor().execute(cr);
     }
 
-    private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
+    private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName, String internalParamName) {
         try {
             Constructor<T> constructor = clazz.getConstructor(c.getClass(), String.class);
             T t = constructor.newInstance(c, parameterName);
-            parameters.put(parameterName, t);
+            if(internalParamName == null) {
+                parameters.put(parameterName, t);
+            } else {
+                parameters.put(internalParamName, t);
+            }
             return t;
-        } catch (Exception ex) {
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Redmine.LOG.log(Level.SEVERE, parameterName, ex);
         }
         return null;
+    }
+    
+    private <T extends RedmineQueryParameter> T registerQueryParameter(Class<T> clazz, Component c, String parameterName) {
+        return registerQueryParameter(clazz, c, parameterName, parameterName);
     }
 
     protected void enableFields(boolean bl) {
@@ -721,6 +778,8 @@ public class RedmineQueryController implements QueryController, ActionListener {
             assigneeParameter = registerQueryParameter(ListParameter.class, queryPanel.assigneeList, "assigned_to_id");
             watcherParameter = registerQueryParameter(ListParameter.class, queryPanel.watcherList, "watcher_id");
             projectParameter = registerQueryParameter(ListParameter.class, queryPanel.projectList, "project_id");
+            project2Parameter = registerQueryParameter(ComboParameter.class, queryPanel.bySaveQueryProjectCB, "project_id", "project_id2");
+            queryParameter = registerQueryParameter(ComboParameter.class, queryPanel.bySaveQueryQueryCB, "query_id");
 
             registerQueryParameter(TextFieldParameter.class, queryPanel.queryTextField, "query");
             registerQueryParameter(CheckBoxParameter.class, queryPanel.qSubjectCheckBox, "is_subject");

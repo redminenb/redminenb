@@ -44,6 +44,7 @@ import com.taskadapter.redmineapi.bean.IssuePriorityFactory;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Membership;
 import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.SavedQuery;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.TimeEntryActivityFactory;
 import com.taskadapter.redmineapi.bean.Tracker;
@@ -346,7 +347,7 @@ public class RedmineRepository {
                     redmineIssue = issueCache.cachedRedmineIssue(issue);
                 } catch (NotFoundException ex) {
                     // do nothing
-                } catch (Exception ex) {
+                } catch (RuntimeException | RedmineException ex) {
                     Redmine.LOG.log(Level.SEVERE, null, ex);
                 }
             }
@@ -440,6 +441,15 @@ public class RedmineRepository {
         return getQueryMap().values();
     }
 
+    public List<SavedQuery> getServersideQueries() {
+        try {
+            return getManager().getIssueManager().getSavedQueries();
+        } catch (RedmineException | RuntimeException ex) {
+            ExceptionHandler.handleException(LOG, "Can't search for Redmine issues", ex);
+            return Collections.EMPTY_LIST;
+        }
+    }
+    
     public Collection<RedmineUser> getUsers(Project p) {
         if (p != null && (!userCache.containsKey(p.getId()))) {
             ArrayList<RedmineUser> users = new ArrayList<>();
@@ -522,9 +532,9 @@ public class RedmineRepository {
         if (p != null && (!categoryCache.containsKey(p.getId()))) {
             try {
                 List<IssueCategory> cats = getIssueManager().getCategories(p.getId());
-                for(IssueCategory ic: cats) {
-                    ic.setProject(null);
-                    ic.setAssignee(null);
+                for(IssueCategory cat: cats) {
+                    cat.setProject(null);
+                    cat.setAssignee(null);
                 }
                 categoryCache.put(p.getId(), Collections.unmodifiableList(cats));
             } catch (NotFoundException ex) {
@@ -595,22 +605,26 @@ public class RedmineRepository {
         initCustomFieldDefinitions();
         List<CustomFieldDefinition> result = new ArrayList<>();
         for(CustomFieldDefinition cfd: customFieldsCache) {
-            if(type.equals(cfd.getCustomizedType())
-                    && (cfd.getTrackers().contains(t)))
+            if (type.equals(cfd.getCustomizedType())
+                    && (cfd.getTrackers().contains(t))
+                    && cfd.getFieldFormat() != null)
             {
-                // @todo: Rework this not to depend on the string representation
-                if("version".equals(cfd.getFieldFormat())) {
-                    cfd.getPossibleValues().clear();
-                    for(Version v: getVersions(proj)) {
-                        cfd.getPossibleValues().add(
-                                v.getName() + " [" + v.getId() + "]");
-                    }
-                } else if ("user".equals(cfd.getFieldFormat())) {
-                    cfd.getPossibleValues().clear();
-                    for (RedmineUser ru: getUsers(proj)) {
-                        cfd.getPossibleValues().add(
-                                ru.getUser().getFullName() + " [" + ru.getId() + "]");
-                    }
+                switch (cfd.getFieldFormat()) {
+                    case "version":
+                        cfd.getPossibleValues().clear();
+                        for (Version v : getVersions(proj)) {
+                            cfd.getPossibleValues().add(
+                                    v.getName() + " [" + v.getId() + "]");
+                        }
+                        break;
+                    case "user":
+                        cfd.getPossibleValues().clear();
+                        for (RedmineUser ru : getUsers(proj)) {
+                            cfd.getPossibleValues().add(
+                                    ru.getUser().getFullName() + " ["
+                                    + ru.getId() + "]");
+                        }
+                        break;
                 }
                 result.add(cfd);
             }
@@ -635,8 +649,7 @@ public class RedmineRepository {
 
             try {
                 resultIssues.add(issueManager.getIssueById(Integer.parseInt(string)));
-            } catch (NumberFormatException ex) {
-            } catch (NotFoundException ex) {
+            } catch (NumberFormatException | NotFoundException ex) {
             }
 
             resultIssues.addAll(issueManager.getIssuesBySummary(
@@ -729,7 +742,7 @@ public class RedmineRepository {
                 public void run() {
                     Set<String> ids;
                     synchronized (issuesToRefresh) {
-                        ids = new HashSet<String>(issuesToRefresh);
+                        ids = new HashSet<>(issuesToRefresh);
                     }
                     if (ids.isEmpty()) {
                         Redmine.LOG.log(Level.FINE, "no issues to refresh {0}",
@@ -753,7 +766,7 @@ public class RedmineRepository {
                     try {
                         Set<RedmineQuery> queries;
                         synchronized (refreshQueryTask) {
-                            queries = new HashSet<RedmineQuery>(queriesToRefresh);
+                            queries = new HashSet<>(queriesToRefresh);
                         }
                         if (queries.isEmpty()) {
                             Redmine.LOG.log(Level.FINE, "no queries to refresh {0}",
@@ -905,7 +918,7 @@ public class RedmineRepository {
     }
     
     public static IssuePriority createIssuePriority(Integer id, String name, boolean isDefault) {
-        IssuePriority ip = IssuePriorityFactory.create(id);;
+        IssuePriority ip = IssuePriorityFactory.create(id);
         ip.setName(name);
         ip.setDefault(isDefault);
         return ip;

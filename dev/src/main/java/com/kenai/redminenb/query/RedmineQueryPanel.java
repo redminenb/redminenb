@@ -85,6 +85,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JLayeredPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -103,6 +105,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
    //
    final ExpandablePanel byText;
    final ExpandablePanel byDetails;
+   final ExpandablePanel bySavedQuery;
    //
    private final Color defaultTextColor;
    
@@ -152,12 +155,11 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
       byTextContainer.add(byTextPanel);
       byDetailsContainer.add(byDetailsPanel);
+      bySavedQueryContainer.add(bySavedQueryPanel);
 
       byText = new ExpandablePanel(byTextLabel, byTextContainer);
       byDetails = new ExpandablePanel(byDetailsLabel, byDetailsContainer);
-
-      byText.expand();
-      byDetails.expand();
+      bySavedQuery = new ExpandablePanel(bySavedQueryLabel, bySavedQueryContainer);
 
       tableFieldsPanel.setVisible(false);
       saveChangesButton.setVisible(false);
@@ -221,10 +223,38 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       versionList.addListSelectionListener(lsl);
       assigneeList.addListSelectionListener(lsl);
       
+      queryTypeCombo.setSelectedIndex(0);
+      updateQueryType();
+      queryTypeCombo.addActionListener(new ActionListener() {
+
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              updateQueryType();
+          }
+      });
+      
       validate();
       repaint();
    }
 
+   private void updateQueryType() {
+       if(queryTypeCombo.getSelectedIndex() == 1) {
+           byText.colapse();
+           byDetails.colapse();
+           bySavedQuery.expand();
+           byText.setVisible(false);
+           byDetails.setVisible(false);
+           bySavedQuery.setVisible(true);
+       } else {
+           byText.expand();
+           byDetails.expand();
+           bySavedQuery.colapse();
+           byText.setVisible(true);
+           byDetails.setVisible(true);
+           bySavedQuery.setVisible(false);
+       }
+   }
+   
    private void setFocusListener(FocusListener f) {
       cancelChangesButton.addFocusListener(f);
 
@@ -281,10 +311,17 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         byTextPanel = new JPanel();
         qSubjectCheckBox = new JCheckBox();
         qDescriptionCheckBox = new JCheckBox();
+        bySavedQueryPanel = new JPanel();
+        bySaveQueryProjectLabel = new JLabel();
+        bySaveQueryQueryLabel = new JLabel();
+        bySaveQueryProjectCB = new JComboBox();
+        bySaveQueryQueryCB = new JComboBox();
         innerPanel = new JPanel();
         tableFieldsPanel = new JPanel();
         tableHeaderPanel = new JPanel();
         criteriaPanel = new JPanel();
+        queryTypeLabel = new JLabel();
+        queryTypeCombo = new JComboBox();
         issueIdTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
         separatorLabel2 = new JLabel();
         separatorLabel1 = new JLabel();
@@ -681,6 +718,45 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.insets = new Insets(12, 5, 12, 12);
         byTextPanel.add(qDescriptionCheckBox, gridBagConstraints);
 
+        bySavedQueryPanel.setBackground(UIManager.getDefaults().getColor("TextArea.background"));
+        bySavedQueryPanel.setLayout(new GridBagLayout());
+
+        Mnemonics.setLocalizedText(bySaveQueryProjectLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.bySaveQueryProjectLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.insets = new Insets(3, 3, 3, 3);
+        bySavedQueryPanel.add(bySaveQueryProjectLabel, gridBagConstraints);
+
+        Mnemonics.setLocalizedText(bySaveQueryQueryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.bySaveQueryQueryLabel.text_1")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.insets = new Insets(3, 3, 3, 3);
+        bySavedQueryPanel.add(bySaveQueryQueryLabel, gridBagConstraints);
+
+        bySaveQueryProjectCB.setModel(new DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(3, 3, 3, 3);
+        bySavedQueryPanel.add(bySaveQueryProjectCB, gridBagConstraints);
+
+        bySaveQueryQueryCB.setModel(new DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(3, 3, 3, 3);
+        bySavedQueryPanel.add(bySaveQueryQueryCB, gridBagConstraints);
+
         setLayout(new BorderLayout());
 
         tableFieldsPanel.setBackground(UIManager.getDefaults().getColor("EditorPane.background"));
@@ -711,6 +787,19 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
 
         criteriaPanel.setBorder(BorderFactory.createLineBorder(UIManager.getDefaults().getColor("Button.shadow")));
         criteriaPanel.setLayout(new GridBagLayout());
+
+        Mnemonics.setLocalizedText(queryTypeLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.queryTypeLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.insets = new Insets(3, 3, 3, 3);
+        criteriaPanel.add(queryTypeLabel, gridBagConstraints);
+
+        queryTypeCombo.setModel(new DefaultComboBoxModel(new String[] { "Custom query", "Serverside saved query" }));
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new Insets(3, 3, 3, 3);
+        criteriaPanel.add(queryTypeCombo, gridBagConstraints);
 
         byTextLabel.setFont(byTextLabel.getFont().deriveFont(byTextLabel.getFont().getStyle() | Font.BOLD));
         Mnemonics.setLocalizedText(byTextLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.byTextLabel.text")); // NOI18N
@@ -755,6 +844,27 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(0, 1, 1, 1);
         criteriaPanel.add(byDetailsContainer, gridBagConstraints);
+
+        bySavedQueryLabel.setFont(bySavedQueryLabel.getFont().deriveFont(bySavedQueryLabel.getFont().getStyle() | Font.BOLD));
+        Mnemonics.setLocalizedText(bySavedQueryLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.bySavedQueryLabel.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(3, 3, 3, 3);
+        criteriaPanel.add(bySavedQueryLabel, gridBagConstraints);
+
+        bySavedQueryContainer.setLayout(new BorderLayout());
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(0, 1, 1, 1);
+        criteriaPanel.add(bySavedQueryContainer, gridBagConstraints);
 
         Mnemonics.setLocalizedText(cancelChangesButton, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.cancelChangesButton.text")); // NOI18N
 
@@ -973,7 +1083,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(searchPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
+                .addComponent(tableFieldsPanel, GroupLayout.DEFAULT_SIZE, 422, Short.MAX_VALUE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(noContentPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -990,6 +1100,13 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JPanel byDetailsContainer = new JPanel();
     final JLabel byDetailsLabel = new JLabel();
     final JPanel byDetailsPanel = new JPanel();
+    JComboBox bySaveQueryProjectCB;
+    JLabel bySaveQueryProjectLabel;
+    JComboBox bySaveQueryQueryCB;
+    JLabel bySaveQueryQueryLabel;
+    final JPanel bySavedQueryContainer = new JPanel();
+    final JLabel bySavedQueryLabel = new JLabel();
+    JPanel bySavedQueryPanel;
     final JPanel byTextContainer = new JPanel();
     final JLabel byTextLabel = new JLabel();
     JPanel byTextPanel;
@@ -1029,6 +1146,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     JPanel queryHeaderPanel;
     final JLabel queryLabel = new JLabel();
     final JTextField queryTextField = new JTextField();
+    JComboBox queryTypeCombo;
+    JLabel queryTypeLabel;
     final LinkButton refreshButton = new LinkButton();
     final JCheckBox refreshCheckBox = new JCheckBox();
     final LinkButton refreshConfigurationButton = new LinkButton();

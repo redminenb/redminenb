@@ -29,7 +29,7 @@ import javax.swing.*;
  */
 public abstract class RedmineQueryParameter {
 
-   static final ParameterValue[] EMPTY_PARAMETER_VALUE = new ParameterValue[]{new ParameterValue("", "")}; // NOI18N
+   static final ParameterValue[] EMPTY_PARAMETER_VALUE = new ParameterValue[]{new ParameterValue(" ", "")}; // NOI18N
    //
    private final String parameter;
    protected boolean alwaysDisabled = false;
@@ -74,7 +74,7 @@ public abstract class RedmineQueryParameter {
       public ComboParameter(JComboBox combo, String parameter) {
          super(parameter);
          this.combo = combo;
-         combo.setModel(new DefaultComboBoxModel());
+         combo.setModel(new DefaultComboBoxModel(EMPTY_PARAMETER_VALUE));
       }
 
       @Override
@@ -94,6 +94,10 @@ public abstract class RedmineQueryParameter {
 
       public final void setParameterValues(ParameterValue[] values) {
          combo.setModel(new DefaultComboBoxModel(values));
+      }
+      
+      public final void setParameterValues(List<ParameterValue> values) {
+         combo.setModel(new DefaultComboBoxModel(values.toArray(new ParameterValue[values.size()])));
       }
 
       @Override

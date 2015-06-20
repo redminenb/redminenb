@@ -25,6 +25,7 @@ import com.kenai.redminenb.user.RedmineUser;
 import com.taskadapter.redmineapi.bean.Identifiable;
 import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.Project;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
@@ -98,23 +99,9 @@ public final class RedmineUtil {
         return DialogDisplayer.getDefault().notify(dd) == ok;
     }
 
-    public static class ProjectComparator implements Comparator<Project> {
-
-        public static ProjectComparator SINGLETON = new ProjectComparator();
-
-        private ProjectComparator() {
-            // suppressed to enforce using the SINGLETON
-        }
-
-        @Override
-        public int compare(Project a, Project b) {
-            return a.getName().compareTo(b.getName());
-        }
-    }
-
-    public static class ProjectIdComparator implements Comparator<ProjectId> {
-
-        public static ProjectIdComparator SINGLETON = new ProjectIdComparator();
+    public static class ProjectIdComparator implements Comparator<ProjectId>, Serializable {
+        private static final long serialVersionUID = 1L;
+        public static final ProjectIdComparator SINGLETON = new ProjectIdComparator();
 
         private ProjectIdComparator() {
             // suppressed to enforce using the SINGLETON
@@ -126,9 +113,9 @@ public final class RedmineUtil {
         }
     }
     
-    public static class RedmineUserComparator implements Comparator<RedmineUser> {
-
-        public static RedmineUserComparator SINGLETON = new RedmineUserComparator();
+    public static class RedmineUserComparator implements Comparator<RedmineUser>, Serializable {
+        private static final long serialVersionUID = 1L;
+        public static final RedmineUserComparator SINGLETON = new RedmineUserComparator();
 
         private RedmineUserComparator() {
             // suppressed to enforce using the SINGLETON
@@ -140,9 +127,9 @@ public final class RedmineUtil {
         }
     }
     
-    public static class JournalComparator implements Comparator<Journal> {
-
-        public static JournalComparator SINGLETON = new JournalComparator();
+    public static class JournalComparator implements Comparator<Journal>, Serializable {
+        private static final long serialVersionUID = 1L;
+        public static final JournalComparator SINGLETON = new JournalComparator();
 
         private JournalComparator() {
             // suppressed to enforce using the SINGLETON

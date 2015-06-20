@@ -9,7 +9,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -125,6 +124,9 @@ public abstract class CustomFieldComponent extends DelegatingBaseLineJPanel impl
         switch (e.getActionCommand()) {
             case "reset":
                 this.setDefaultValue();
+                break;
+            default:
+                assert false : "Unhandled action command";
                 break;
         }
     }
@@ -247,11 +249,13 @@ public abstract class CustomFieldComponent extends DelegatingBaseLineJPanel impl
 
         @Override
         public void setValue(String value) {
-            try {
-                Date d = isoDate.parse(value);
-                datePicker.setDate(d);
-            } catch (Exception ex) {
-                datePicker.setDate(null);
+            synchronized (isoDate) {
+                try {
+                    Date d = isoDate.parse(value);
+                    datePicker.setDate(d);
+                } catch (Exception ex) {
+                    datePicker.setDate(null);
+                }
             }
         }
 
@@ -444,7 +448,7 @@ public abstract class CustomFieldComponent extends DelegatingBaseLineJPanel impl
         }
         
         private String extractId(String input) {
-            return input.substring(input.lastIndexOf("[") + 1, input.lastIndexOf("]"));
+            return input.substring(input.lastIndexOf('[') + 1, input.lastIndexOf(']'));
         }
     }
     

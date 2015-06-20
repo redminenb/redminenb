@@ -224,7 +224,7 @@ public abstract class RedmineQueryParameter {
 
    static class CheckBoxParameter extends RedmineQueryParameter {
 
-      private static ParameterValue[] SELECTED_VALUE = new ParameterValue[]{new ParameterValue("1")}; // NOI18N
+      private static final ParameterValue[] SELECTED_VALUE = new ParameterValue[]{new ParameterValue("1")}; // NOI18N
       //
       private final JCheckBox chk;
 
@@ -264,7 +264,8 @@ public abstract class RedmineQueryParameter {
 
       public SimpleQueryParameter(String parameter, String[] values) {
          super(parameter);
-         this.values = values;
+         this.values = new String[values.length];
+         System.arraycopy(values, 0, this.values, 0, values.length);
       }
       
       @Override

@@ -26,7 +26,7 @@ public final class Redmine {
     public static final String ICON_IMAGE = "redmine.png";
 
     private static RedmineIssuePriorityProvider ipp;
-    private static RedmineIssueScheduleProvider issp;
+    private static volatile RedmineIssueScheduleProvider issp;
 
     private RedmineIssueProvider rip;
     private RedmineQueryProvider rqp;
@@ -80,7 +80,11 @@ public final class Redmine {
 
     public RedmineIssueScheduleProvider getIssueScheduleProvider() {
         if (issp == null) {
-            issp = new RedmineIssueScheduleProvider();
+            synchronized (this) {
+                if (issp == null) {
+                    issp = new RedmineIssueScheduleProvider();
+                }
+            }
         }
         return issp;
     }

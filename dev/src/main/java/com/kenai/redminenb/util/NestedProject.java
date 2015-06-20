@@ -79,14 +79,14 @@ public class NestedProject implements Comparable<NestedProject>{
                         && chain1.get(i).getProject().getName() != null) {
                     s1 = chain1.get(i).getProject().getName();
                 }
-            } catch (Exception ex) {
+            } catch (RuntimeException ex) {
             }
             try {
                 if (i < chain2.size() 
                         && chain2.get(i).getProject().getName() != null) {
                     s2 = chain2.get(i).getProject().getName();
                 }
-            } catch (Exception ex) {
+            } catch (RuntimeException ex) {
             }
             int stringResult = s1.compareToIgnoreCase(s2);
             if(stringResult != 0) {

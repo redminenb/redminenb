@@ -2,6 +2,7 @@ package com.kenai.redminenb.util;
 
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.taskadapter.redmineapi.bean.Attachment;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -13,13 +14,12 @@ import javax.swing.JLabel;
 import javax.swing.SwingWorker;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.NotImplementedException;
 
 public class AttachmentDisplay extends DelegatingBaseLineJPanel implements ActionListener {
 
     private static File lastDirectory;
-    private final String COMMAND_DELETE = "delete";
-    private final String COMMAND_DOWNLOAD = "download";
+//    private static final String COMMAND_DELETE = "delete";
+    private static final String COMMAND_DOWNLOAD = "download";
     private final Attachment ad;
     private final RedmineIssue issue;
     private final JLabel leadingLabel = new JLabel();
@@ -49,23 +49,27 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
 //        deleteButton.addActionListener(this);
 //        deleteButton.setActionCommand(COMMAND_DELETE);
         downloadButton.setBorder(null);
-        downloadButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/kenai/redminenb/resources/document-save.png")));
+        downloadButton.setIcon(new javax.swing.ImageIcon(AttachmentDisplay.class.getResource("/com/kenai/redminenb/resources/document-save.png")));
         downloadButton.setToolTipText("download");
         downloadButton.addActionListener(this);
         downloadButton.setActionCommand(COMMAND_DOWNLOAD);
     }
 
     @Override
+    @SuppressFBWarnings(
+            value="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD", 
+            justification = "Intended behaviour - if there is a race in lastDirectory reading/writing it is ok as it is only help for user")
     public void actionPerformed(ActionEvent e) {
-        if (COMMAND_DELETE.equals(e.getActionCommand())) {
-            throw new NotImplementedException();
-        }
+//        if (COMMAND_DELETE.equals(e.getActionCommand())) {
+//            throw new NotImplementedException();
+//        }
         if (COMMAND_DOWNLOAD.equals(e.getActionCommand())) {
             JFileChooser fileChooser = new JFileChooser(lastDirectory);
             fileChooser.setDialogTitle("Save attachment");
             File preselected;
-            if (lastDirectory != null && lastDirectory.canWrite()) {
-                preselected = new File(lastDirectory, ad.getFileName());
+            File lastDirectoryBuffer = lastDirectory;
+            if (lastDirectoryBuffer != null && lastDirectoryBuffer.canWrite()) {
+                preselected = new File(lastDirectoryBuffer, ad.getFileName());
             } else {
                 preselected = new File(ad.getFileName());
             }

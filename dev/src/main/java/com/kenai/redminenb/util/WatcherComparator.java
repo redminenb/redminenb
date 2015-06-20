@@ -16,10 +16,12 @@
 package com.kenai.redminenb.util;
 
 import com.taskadapter.redmineapi.bean.Watcher;
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class WatcherComparator implements Comparator<Watcher> {
-
+public class WatcherComparator implements Comparator<Watcher>, Serializable {
+    private static final long serialVersionUID = 1L;
+    
     @Override
     public int compare(Watcher o1, Watcher o2) {
         String name1 = "";

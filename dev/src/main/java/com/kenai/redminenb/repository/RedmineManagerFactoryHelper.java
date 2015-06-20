@@ -22,6 +22,8 @@ import com.taskadapter.redmineapi.TransportConfiguration;
 import com.taskadapter.redmineapi.internal.Transport;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
@@ -86,13 +88,19 @@ class RedmineManagerFactoryHelper {
         return RedmineManagerFactory.createShortTermConfig(createConnectionManager());
     }
     
-    public static Transport getTransportFromManager(RedmineManager rm) {
-        try {
-            Field transportField = RedmineManager.class.getDeclaredField("transport");
-            transportField.setAccessible(true);
-            return (Transport) transportField.get(rm);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-            throw new RuntimeException("Failed to get transport from redmine manager", ex);
-        }
+    public static Transport getTransportFromManager(final RedmineManager rm) {
+        return AccessController.doPrivileged(new PrivilegedAction<Transport>() {
+
+            @Override
+            public Transport run() {
+                try {
+                    Field transportField = RedmineManager.class.getDeclaredField("transport");
+                    transportField.setAccessible(true);
+                    return (Transport) transportField.get(rm);
+                } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                    throw new RuntimeException("Failed to get transport from redmine manager", ex);
+                }
+            }
+        });
     }
 }

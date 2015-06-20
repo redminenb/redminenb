@@ -118,7 +118,7 @@ public class RedmineProjectPanel extends ActionListenerPanel implements Document
 
    @Override
    public void actionPerformed(ActionEvent e) {
-      if (e.getSource() == okButton) {
+      if (e.getSource() == okButton && dialogDescribtor != null) {
          if (isProjectValid()) {
             if (createNewProject()) {
                dialogDescribtor.setClosingOptions(new Object[]{okButton, cancelButton});

@@ -42,17 +42,17 @@ import org.openide.util.NbBundle;
  */
 public class JournalDisplay extends javax.swing.JPanel {
     public static class JournalData {
-        private Integer id;
-        private Integer pos;
-        private String username;
-        private Date create;
-        private String htmlContent;
+        private final Integer id;
+        private final Integer pos;
+        private final String username;
+        private final Date create;
+        private final String htmlContent;
 
         public JournalData(Integer id, Integer pos, String username, Date create, String htmlContent) {
             this.id = id;
             this.pos = pos;
             this.username = username;
-            this.create = create;
+            this.create = (Date) create.clone();
             this.htmlContent = htmlContent;
         }
         
@@ -69,7 +69,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         }
 
         public Date getCreate() {
-            return create;
+            return (Date) create.clone();
         }
 
         public String getHtmlContent() {
@@ -143,6 +143,9 @@ public class JournalDisplay extends javax.swing.JPanel {
                         oldValue = formatProject(repo, ri, oldValue);
                         newValue = formatProject(repo, ri, newValue);
                         break;
+                    default:
+                        // Identity (silence findbugs)
+                        break;
                 }
                 
                 if("cf".equals(detail.getProperty())) {
@@ -164,6 +167,9 @@ public class JournalDisplay extends javax.swing.JPanel {
                                 case "bool":
                                     oldValue = formatBool(repo, ri, oldValue);
                                     newValue = formatBool(repo, ri, newValue);
+                                    break;
+                                default:
+                                    // Identity (silence findbugs)
                                     break;
                             }
                         } else {

@@ -146,10 +146,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         return panel.featureWatchers.isSelected();
     }
     
-    private boolean isEnableHTTPAuth() {
-        return panel.httpAuthEnabled.isSelected();
-    }
-    
     private String getHttpUser() {
         return panel.httpUserField.getText();
     }

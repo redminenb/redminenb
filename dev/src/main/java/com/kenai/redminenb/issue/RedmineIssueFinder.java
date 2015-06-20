@@ -1,5 +1,6 @@
 package com.kenai.redminenb.issue;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class RedmineIssueFinder implements IssueFinder {
       return issueHyperlinkText.substring(pos + 1);
    }
 
+   @SuppressFBWarnings(value = "PZLA_PREFER_ZERO_LENGTH_ARRAYS")
    private static int[] findBoundaries(CharSequence str) {
       try {
          return getImpl().findBoundaries(str);
@@ -50,6 +52,7 @@ public class RedmineIssueFinder implements IssueFinder {
    }
 
    //--------------------------------------------------------------------------
+   @SuppressFBWarnings(value="DM_CONVERT_CASE", justification = "Relevent case are only invoked with enabled asserts and words are expected to be only english")
    private static final class Impl {
 
       /*
@@ -112,7 +115,7 @@ public class RedmineIssueFinder implements IssueFinder {
              * Checks that precondition #2 is met - all elements of
              * BUGNUM_PREFIX_PARTS are unique:
              */
-            Set<String> bugnumPrefixPartsSet = new HashSet<String>(7);
+            Set<String> bugnumPrefixPartsSet = new HashSet<>(7);
             bugnumPrefixPartsSet.addAll(Arrays.asList(BUGNUM_PREFIX_PARTS));
             assert bugnumPrefixPartsSet.size() == BUGNUM_PREFIX_PARTS.length;
          }
@@ -124,7 +127,6 @@ public class RedmineIssueFinder implements IssueFinder {
       private int bugnumPrefixPartsProcessed;
       int startOfWord;
       int start;
-      int end;
       int[] result;
 
       private Impl() {
@@ -153,7 +155,6 @@ public class RedmineIssueFinder implements IssueFinder {
 
          startOfWord = -1;
          start = -1;
-         end = -1;
 
          result = null;
       }
@@ -191,14 +192,6 @@ public class RedmineIssueFinder implements IssueFinder {
                }
                break;
             case HASH:
-               if ((c == ' ') || (c == '\t')) {
-                  newState = HASH_SPC;
-               } else if (isDigit(c)) {
-                  newState = NUM;
-               } else {
-                  newState = getInitialState(c);
-               }
-               break;
             case HASH_SPC:
                if ((c == ' ') || (c == '\t')) {
                   newState = HASH_SPC;

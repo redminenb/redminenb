@@ -25,7 +25,7 @@ import javax.swing.MutableComboBoxModel;
  * @author Anchialas <anchialas@gmail.com>
  */
 @SuppressWarnings("unchecked")
-public class ListComboBoxModel<T> extends ListListModel<T> implements MutableComboBoxModel, Serializable {
+public class ListComboBoxModel<T> extends ListListModel<T> implements MutableComboBoxModel {
 
    private T selectedObject;
 

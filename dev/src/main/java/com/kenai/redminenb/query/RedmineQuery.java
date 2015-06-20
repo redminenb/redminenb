@@ -59,7 +59,7 @@ public final class RedmineQuery {
     //
     private boolean firstRun = true;
     private boolean saved;
-    protected long lastRefresh;
+    private long lastRefresh;
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
     //
     private Map<String, ParameterValue[]> parameters = new HashMap<>();
@@ -187,9 +187,9 @@ public final class RedmineQuery {
                     try {
                         if (delegateContainer != null) {
                             delegateContainer.refreshingStarted();
+                            delegateContainer.clear();
                         }
 
-                        delegateContainer.clear();
                         issues.clear();
 
                         firstRun = false;
@@ -268,7 +268,7 @@ public final class RedmineQuery {
                 } else {
                     boolean isNone = false;
                     for (ParameterValue pv : paramValues) {
-                        if (ParameterValue.NONE_VALUE.equals(pv)) {
+                        if (ParameterValue.NONE_PARAMETERVALUE.equals(pv)) {
                             isNone = true;
                         }
                     }

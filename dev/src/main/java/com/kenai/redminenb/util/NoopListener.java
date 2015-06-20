@@ -19,10 +19,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.Serializable;
 
 
-public class NoopListener implements MouseListener, KeyListener {
-
+public class NoopListener implements MouseListener, KeyListener, Serializable {
+    private static final long serialVersionUID = 1L;
+    
     @Override
     public void mouseClicked(MouseEvent e) {
         e.consume();

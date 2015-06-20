@@ -44,6 +44,7 @@ import com.kenai.redminenb.util.LinkButton;
 import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.SafeAutoCloseable;
 import com.kenai.redminenb.util.VerticalScrollPane;
+import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Attachment;
 import com.taskadapter.redmineapi.bean.CustomField;
 import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
@@ -322,18 +323,21 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                    headerLabel.setPreferredSize(new Dimension(0, dim.height));
                    headerLabel.setText(redmineIssue.getDisplayName());
 
-                   if (issue.getCreatedOn() != null) {
-                       createdValueLabel.setText(RedmineIssue.DATETIME_FORMAT.format(issue.getCreatedOn())
-                               + " by " + issue.getAuthor().getFullName());
-                   }
-                   if (issue.getUpdatedOn() == null) {
-                       updatedLabel.setVisible(false);
-                       updatedValueLabel.setVisible(false);
-                       updatedValueLabel.setText(null);
-                   } else {
-                       updatedLabel.setVisible(true);
-                       updatedValueLabel.setVisible(true);
-                       updatedValueLabel.setText(RedmineIssue.DATETIME_FORMAT.format(issue.getUpdatedOn()));
+                   synchronized (RedmineIssue.DATETIME_FORMAT) {
+                       if (issue.getCreatedOn() != null) {
+                           createdValueLabel.setText(
+                                   RedmineIssue.DATETIME_FORMAT.format(issue.getCreatedOn())
+                                   + " by " + issue.getAuthor().getFullName());
+                       }
+                       if (issue.getUpdatedOn() == null) {
+                           updatedLabel.setVisible(false);
+                           updatedValueLabel.setVisible(false);
+                           updatedValueLabel.setText(null);
+                       } else {
+                           updatedLabel.setVisible(true);
+                           updatedValueLabel.setVisible(true);
+                           updatedValueLabel.setText(RedmineIssue.DATETIME_FORMAT.format(issue.getUpdatedOn()));
+                       }
                    }
 
                    subjectTextField.setText(issue.getSubject());
@@ -357,8 +361,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                    startDateChooser.setDate(issue.getStartDate());
                    dueDateChooser.setDate(issue.getDueDate());
                    estimateTimeTextField.setValue(issue.getEstimatedHours());
-                   doneComboBox.setSelectedIndex(Math.round(issue.getDoneRatio()
-                           / 10));
+                   doneComboBox.setSelectedIndex(Math.round(issue.getDoneRatio() / 10f));
 
                    if (issue.getJournals() != null && issue.getJournals().size()
                            > 0) {
@@ -437,6 +440,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                                lastDirectory = fileChooser.getCurrentDirectory();
                                final File selectedFile = fileChooser.getSelectedFile();
                                redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
+                                   @Override
                                    public void run() {
                                        redmineIssue.attachFile(selectedFile,
                                                description.getText(),
@@ -1720,7 +1724,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                     return null;
                 }
             });
-        } catch (Exception ex) {
+        } catch (RedmineException | RuntimeException ex) {
             LOG.log(Level.WARNING, "Failed to create Version", ex);
         }
     }
@@ -1763,7 +1767,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                     return null;
                 }
             });
-        } catch (Exception ex) {
+        } catch (RedmineException | RuntimeException ex) {
             LOG.log(Level.WARNING, "Failed to create category", ex);
         }
     }

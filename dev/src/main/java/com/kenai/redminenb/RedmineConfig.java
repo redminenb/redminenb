@@ -7,6 +7,7 @@ import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.ui.Defaults;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.bean.Project;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Image;
 
 import java.io.BufferedInputStream;
@@ -37,7 +38,6 @@ import javax.xml.bind.Unmarshaller;
 import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 
 /**
@@ -273,6 +273,8 @@ public class RedmineConfig {
      *
      * @param issues
      */
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE", 
+            justification = "If mkdirs fails it is checked one line further")
     public void setActionItemIssues(HashMap<String, List<String>> issues) {
         Redmine.LOG.fine("setActionItemIssues: saving issues");              //NOI18N
         File f = new File(getConfigPath());

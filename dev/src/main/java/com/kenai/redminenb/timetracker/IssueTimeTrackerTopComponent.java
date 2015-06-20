@@ -21,6 +21,7 @@ import com.kenai.redminenb.util.TimeUtil;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
@@ -84,9 +85,10 @@ import org.openide.windows.WindowManager;
 public final class IssueTimeTrackerTopComponent extends TopComponent {
 
     private static final Logger LOG = Logger.getLogger(IssueTimeTrackerTopComponent.class.getName());
+    @SuppressFBWarnings(value = "CI_CONFUSED_INHERITANCE", justification = "Needed to be usable from annotation")
     protected static final String PREFERRED_ID = "IssueTimeTrackerTopComponent";
-    public static String PROP_ISSUE = "issue";
-    public static String PROP_RUNNING = "running";
+    public static final String PROP_ISSUE = "issue";
+    public static final String PROP_RUNNING = "running";
 
     private final Timer refreshTimer = new Timer(1000, new ActionListener() {
         @Override
@@ -103,7 +105,7 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
         return (IssueTimeTrackerTopComponent) WindowManager.getDefault().findTopComponent(PREFERRED_ID);
     }
 
-    protected IssueTimeTrackerTopComponent() {
+    public IssueTimeTrackerTopComponent() {
         initComponents();
         setName(Bundle.CTL_IssueTimeTrackerTopComponent());
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
@@ -248,9 +250,9 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
             dd.setOptions(new Object[]{cancel, reset, save});
             dd.setClosingOptions(new Object[]{cancel, reset, save});
             Object result = DialogDisplayer.getDefault().notify(dd);
-            if (result == reset || result == save) {
+            if (result.equals(reset) || result.equals(save)) {
                 setRunning(false);
-                if (result == reset) {
+                if (result.equals(reset)) {
                     reset();
                 } else {
                     save();

@@ -27,6 +27,7 @@ import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.user.RedmineUser;
 import com.kenai.redminenb.util.CancelableRunnable;
+import com.kenai.redminenb.util.CancelableRunnableWrapper;
 import com.kenai.redminenb.util.NestedProject;
 import com.kenai.redminenb.util.RedmineUtil;
 import com.kenai.redminenb.util.RedmineUtil.RedmineUserComparator;
@@ -86,7 +87,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.xml.ws.Holder;
-import org.apache.commons.lang.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.modules.bugtracking.spi.QueryController;
@@ -94,10 +94,8 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.HtmlBrowser;
 import org.openide.util.Cancellable;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Mutex;
-import org.openide.util.MutexException;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
@@ -406,18 +404,11 @@ public class RedmineQueryController implements QueryController, ActionListener {
             return;
         }
 
-        final RequestProcessor.Task[] t = new RequestProcessor.Task[1];
-        Cancellable c = new Cancellable() {
-            @Override
-            public boolean cancel() {
-                if (t[0] != null) {
-                    return t[0].cancel();
-                }
-                return true;
-            }
-        };
+        CancelableRunnableWrapper c = new CancelableRunnableWrapper();
+        
         final ProgressHandle handle = ProgressHandleFactory.createHandle(Bundle.MSG_Opening(issueId), c); // NOI18N
-        t[0] = query.getRepository().getRequestProcessor().create(new Runnable() {
+        
+        Runnable r = new Runnable() {
             @Override
             public void run() {
                 handle.start();
@@ -427,8 +418,10 @@ public class RedmineQueryController implements QueryController, ActionListener {
                     handle.finish();
                 }
             }
-        });
-        t[0].schedule(0);
+        };
+        
+        c.setBackingRunnable(r);
+        query.getRepository().getRequestProcessor().submit(c);
     }
 
     protected void openIssue(RedmineIssue issue) {
@@ -439,19 +432,19 @@ public class RedmineQueryController implements QueryController, ActionListener {
         }
     }
 
-    private void onWeb() {
-        String params = null; //query.getUrlParameters();
-        String repoURL = repository.getUrl();
-        final String urlString = repoURL
-                + (StringUtils.isNotBlank(params) ? params : ""); // NOI18N
+    private static class UrlOpener implements Runnable {
+        private final String urlString;
 
-        query.getRepository().getRequestProcessor().post(new Runnable() {
-            @Override
-            public void run() {
+        public UrlOpener(String urlString) {
+            this.urlString = urlString;
+        }
+        
+        @Override
+        public void run() {
                 URL url;
                 try {
                     url = new URL(urlString);
-                } catch (MalformedURLException ex) {
+                } catch (NullPointerException | MalformedURLException ex) {
                     Redmine.LOG.log(Level.SEVERE, null, ex);
                     return;
                 }
@@ -462,8 +455,13 @@ public class RedmineQueryController implements QueryController, ActionListener {
                     // XXX nice error message?
                     Redmine.LOG.warning("No URLDisplayer found.");             // NOI18N
                 }
-            }
-        });
+        }
+        
+        
+    }
+    
+    private void onWeb() {
+        query.getRepository().getRequestProcessor().post(new UrlOpener(repository.getUrl()));
     }
 
     public void autoRefresh() {
@@ -486,14 +484,13 @@ public class RedmineQueryController implements QueryController, ActionListener {
     }
 
     private void refresh(final boolean auto) {
-        RequestProcessor.Task t;
         synchronized (REFRESH_LOCK) {
             if (refreshTask == null) {
                 refreshTask = new QueryTask();
             } else {
                 refreshTask.cancel();
             }
-            t = refreshTask.post(auto);
+            refreshTask.post(auto);
         }
     }
 
@@ -540,7 +537,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
 
         CancelableRunnable cr = new CancelableRunnable() {
             @Override
-            public void run() {
+            public void guardedRun() {
                 Redmine.LOG.log(Level.FINE, "Starting populate query controller (saved: {0}, name: {1})",
                         new Object[]{query.isSaved(), query.getDisplayName()});
                 try (SafeAutoCloseable sac = query.busy()) {

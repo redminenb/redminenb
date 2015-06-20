@@ -109,6 +109,32 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
    //
    private final Color defaultTextColor;
    
+   // Handle list selection for list containing "NONE" value - selecting none
+   // leeds to unselecting all other entries
+   private static final ListSelectionListener listNoneHandler = new ListSelectionListener() {
+
+          @Override
+          public void valueChanged(ListSelectionEvent e) {
+              if(! e.getValueIsAdjusting()) {
+                  JList list = (JList) e.getSource();
+                  boolean noneSelected = false;
+                  boolean otherSelected = false;
+                  for(Object o: list.getSelectedValues()) {
+                      if(o instanceof ParameterValue) {
+                          if(ParameterValue.NONE_PARAMETERVALUE.equals(o)) {
+                              noneSelected = true;
+                              continue;
+                          }
+                      }
+                      otherSelected = true;
+                  }
+                  if(noneSelected && otherSelected) {
+                      list.setSelectedIndex(0);
+                  }
+              }
+          }
+      };
+   
    private final ActionListener clearActionListener = new ActionListener() {
 
        @Override
@@ -137,6 +163,9 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
                    break;
                case "project":
                    projectList.clearSelection();
+                   break;
+               default:
+                   assert false : "Unhandled actionCommand: " + e.getActionCommand();
                    break;
            }
        }
@@ -191,37 +220,13 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
       projectClear.addActionListener(clearActionListener);
 
       setFocusListener(this);
-
-      ListSelectionListener lsl = new ListSelectionListener() {
-
-          @Override
-          public void valueChanged(ListSelectionEvent e) {
-              if(! e.getValueIsAdjusting()) {
-                  JList list = (JList) e.getSource();
-                  boolean noneSelected = false;
-                  boolean otherSelected = false;
-                  for(Object o: list.getSelectedValues()) {
-                      if(o instanceof ParameterValue) {
-                          if(ParameterValue.NONE_PARAMETERVALUE.equals(o)) {
-                              noneSelected = true;
-                              continue;
-                          }
-                      }
-                      otherSelected = true;
-                  }
-                  if(noneSelected && otherSelected) {
-                      list.setSelectedIndex(0);
-                  }
-              }
-          }
-      };
       
-      categoryList.addListSelectionListener(lsl);
-      priorityList.addListSelectionListener(lsl);
-      trackerList.addListSelectionListener(lsl);
-      statusList.addListSelectionListener(lsl);
-      versionList.addListSelectionListener(lsl);
-      assigneeList.addListSelectionListener(lsl);
+      categoryList.addListSelectionListener(listNoneHandler);
+      priorityList.addListSelectionListener(listNoneHandler);
+      trackerList.addListSelectionListener(listNoneHandler);
+      statusList.addListSelectionListener(listNoneHandler);
+      versionList.addListSelectionListener(listNoneHandler);
+      assigneeList.addListSelectionListener(listNoneHandler);
       
       queryTypeCombo.setSelectedIndex(0);
       updateQueryType();
@@ -350,11 +355,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         jScrollPane2.setMinimumSize(new Dimension(100, 120));
         jScrollPane2.setPreferredSize(new Dimension(100, 120));
 
-        versionList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        versionList.setModel(new StringListModel());
         versionList.setVisibleRowCount(6);
         jScrollPane2.setViewportView(versionList);
         versionList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.versionList.AccessibleContext.accessibleDescription")); // NOI18N
@@ -381,11 +382,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         jScrollPane3.setMinimumSize(new Dimension(100, 120));
         jScrollPane3.setPreferredSize(new Dimension(100, 120));
 
-        statusList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        statusList.setModel(new StringListModel());
         statusList.setVisibleRowCount(6);
         jScrollPane3.setViewportView(statusList);
         statusList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.statusList.AccessibleContext.accessibleDescription")); // NOI18N
@@ -412,11 +409,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         jScrollPane4.setMinimumSize(new Dimension(100, 120));
         jScrollPane4.setPreferredSize(new Dimension(100, 120));
 
-        priorityList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        priorityList.setModel(new StringListModel());
         priorityList.setVisibleRowCount(6);
         jScrollPane4.setViewportView(priorityList);
         priorityList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.priorityList.AccessibleContext.accessibleDescription")); // NOI18N
@@ -443,11 +436,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         jScrollPane6.setMinimumSize(new Dimension(100, 120));
         jScrollPane6.setPreferredSize(new Dimension(100, 120));
 
-        categoryList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        categoryList.setModel(new StringListModel());
         categoryList.setVisibleRowCount(6);
         jScrollPane6.setViewportView(categoryList);
         categoryList.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.componentList.AccessibleContext.accessibleDescription")); // NOI18N
@@ -475,11 +464,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         issueTypeScrollPane.setName(""); // NOI18N
         issueTypeScrollPane.setPreferredSize(new Dimension(100, 120));
 
-        trackerList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        trackerList.setModel(new StringListModel());
         trackerList.setVisibleRowCount(6);
         issueTypeScrollPane.setViewportView(trackerList);
 
@@ -505,11 +490,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         assigneeScrollPane.setMinimumSize(new Dimension(100, 120));
         assigneeScrollPane.setPreferredSize(new Dimension(100, 120));
 
-        assigneeList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        assigneeList.setModel(new StringListModel());
         assigneeList.setVisibleRowCount(6);
         assigneeScrollPane.setViewportView(assigneeList);
 
@@ -596,11 +577,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         jScrollPane5.setMinimumSize(new Dimension(100, 120));
         jScrollPane5.setPreferredSize(new Dimension(100, 120));
 
-        watcherList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        watcherList.setModel(new StringListModel());
         watcherList.setVisibleRowCount(6);
         jScrollPane5.setViewportView(watcherList);
 
@@ -637,11 +614,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         jScrollPane7.setMinimumSize(new Dimension(100, 120));
         jScrollPane7.setPreferredSize(new Dimension(100, 120));
 
-        projectList.setModel(new AbstractListModel() {
-            String[] strings = { "" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        projectList.setModel(new StringListModel());
         projectList.setVisibleRowCount(6);
         jScrollPane7.setViewportView(projectList);
 
@@ -1304,4 +1277,19 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
          return dim;
       }
    }
+   
+    static class StringListModel extends AbstractListModel {
+
+        String[] strings = {""};
+
+        @Override
+        public int getSize() {
+            return strings.length;
+        }
+
+        @Override
+        public Object getElementAt(int i) {
+            return strings[i];
+        }
+    };
 }

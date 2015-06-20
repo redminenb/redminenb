@@ -166,11 +166,10 @@ public final class RedmineIssue {
         if (busy < 0) {
             throw new IllegalStateException("Inbalanced busy/nonbusy");
         }
-        Mutex.EVENT.writeAccess(new Mutex.Action<Void>() {
+        Mutex.EVENT.writeAccess(new Runnable() {
             @Override
-            public Void run() {
+            public void run() {
                  support.firePropertyChange("busy", oldBusy, busy != 0);
-                 return null;
             }
         });
     }

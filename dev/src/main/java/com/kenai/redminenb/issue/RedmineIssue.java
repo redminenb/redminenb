@@ -354,7 +354,11 @@ public final class RedmineIssue {
         if(issue == null) {
             return; // Silently igonre setSchedule on not yet saved issues
         }
-        issue.setStartDate(scheduleInfo.getDate());
+        if (scheduleInfo == null) {
+            issue.setStartDate(null);
+        } else {
+            issue.setStartDate(scheduleInfo.getDate());
+        }
         try {
             getRepository().getIssueManager().update(issue);
         } catch (RedmineException | RuntimeException ex) {

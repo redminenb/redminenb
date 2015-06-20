@@ -359,10 +359,17 @@ public final class RedmineIssue {
         } else {
             issue.setStartDate(scheduleInfo.getDate());
         }
-        try {
-            getRepository().getIssueManager().update(issue);
-        } catch (RedmineException | RuntimeException ex) {
-            ExceptionHandler.handleException(LOG, "Failed to update start date for issue", ex);
-        }
+        getRepository().getRequestProcessor().execute(issueUpdate);
     }
+    
+    private Runnable issueUpdate = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                getRepository().getIssueManager().update(issue);
+            } catch (RedmineException | RuntimeException ex) {
+                ExceptionHandler.handleException(LOG, "Failed to update start date for issue", ex);
+            }
+        }
+    };
 }

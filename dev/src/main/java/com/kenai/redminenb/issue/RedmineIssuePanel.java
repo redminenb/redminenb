@@ -780,12 +780,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
            protected Object doInBackground() throws Exception {
                try (SafeAutoCloseable sac = redmineIssue.busy()) {
                    RedmineRepository rr = redmineIssue.getRepository();
-                   String projektId = null;
-                   try {
-                       projektId = ((NestedProject) projectComboBox.getSelectedItem()).getProject().getIdentifier();
-                   } catch (NullPointerException ex) {
-                   }
-                   Issue issue = rr.getIssueManager().createIssue(projektId, inputIssue);
+                   Issue issue = rr.getIssueManager().createIssue(inputIssue);
                    redmineIssue.setIssue(issue);
                    redmineIssue.getRepository().getIssueCache().put(redmineIssue);
                    initIssue(null);

@@ -286,9 +286,22 @@ public final class RedmineQuery {
                 }
             }
         }
-        
-        // Perform search
-        List<Issue> issueArr = repository.getIssueManager().getIssues(m);
+
+        List<Issue> issueArr = new ArrayList<>();
+        // Limit request count
+        int offset = 0;
+        for(int i = 0; i < 100; i++) {
+            // Perform search
+            // According to the documentation 100 is the maximum  
+            m.put("limit", Integer.toString(100));
+            m.put("offset", Integer.toString(offset));
+            List<Issue> queryResult = repository.getIssueManager().getIssues(m);
+            issueArr.addAll(queryResult);
+            offset += queryResult.size();
+            if(queryResult.isEmpty()) {
+                break;
+            }
+        }
 
         // Post filtering: Query string for description
         if (searchDescription && StringUtils.isNotBlank(queryStr)) {

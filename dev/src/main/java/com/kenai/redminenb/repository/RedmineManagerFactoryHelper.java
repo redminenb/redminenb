@@ -17,39 +17,43 @@
 package com.kenai.redminenb.repository;
 
 import com.taskadapter.redmineapi.RedmineManager;
-import com.taskadapter.redmineapi.RedmineManagerFactory;
 import com.taskadapter.redmineapi.TransportConfiguration;
 import com.taskadapter.redmineapi.internal.Transport;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.ProxySelector;
 import java.security.AccessController;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivilegedAction;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-import org.apache.http.conn.ssl.SSLInitializationException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 
 class RedmineManagerFactoryHelper {
-    /**
+
+    public static TransportConfiguration getTransportConfig() {
+        /**
      * Implement a minimal hostname verifier. This is needed to be able to use
      * hosts with certificates, that don't match the used hostname (VServer).
-     * 
-     * This is implemented by first trying the "Browser compatible" hostname 
-     * verifier and if that fails, fall back to the default java hostname
-     * verifier.
-     * 
-     * If the default case the hostname verifier in java always rejects, but
-     * for netbeans the "SSL Certificate Exception" module is available that
-     * catches this and turns a failure into a request to the GUI user.
-     */
-    private static PoolingClientConnectionManager createConnectionManager() throws SSLInitializationException {
-        SSLSocketFactory socketFactory = SSLSocketFactory.getSystemSocketFactory();
-        socketFactory.setHostnameVerifier(new X509HostnameVerifier() {
+         *
+         * This is implemented by first trying the "Browser compatible" hostname
+         * verifier and if that fails, fall back to the default java hostname
+         * verifier.
+         *
+         * If the default case the hostname verifier in java always rejects, but
+         * for netbeans the "SSL Certificate Exception" module is available that
+         * catches this and turns a failure into a request to the GUI user.
+         */
+        X509HostnameVerifier hostnameverified = new X509HostnameVerifier() {
             @Override
             public void verify(String string, SSLSocket ssls) throws IOException {
                 if(SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER.verify(string, ssls.getSession())) {
@@ -59,17 +63,17 @@ class RedmineManagerFactoryHelper {
                     throw new SSLException("Hostname did not verify");
                 }
             }
-            
+
             @Override
             public void verify(String string, X509Certificate xc) throws SSLException {
                 throw new SSLException("Check not implemented yet");
             }
-            
+
             @Override
             public void verify(String string, String[] strings, String[] strings1) throws SSLException {
                 throw new SSLException("Check not implemented yet");
             }
-            
+
             @Override
             public boolean verify(String string, SSLSession ssls) {
                 if (SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER.verify(string, ssls)) {
@@ -77,15 +81,20 @@ class RedmineManagerFactoryHelper {
                 }
                 return HttpsURLConnection.getDefaultHostnameVerifier().verify(string, ssls);
             }
-        });
-        PoolingClientConnectionManager connectionManager = 
-                com.taskadapter.redmineapi.RedmineManagerFactory
-                        .createConnectionManager(Integer.MAX_VALUE, socketFactory);
-        return connectionManager;
-    }
-    
-    public static TransportConfiguration getTransportConfig() {
-        return RedmineManagerFactory.createShortTermConfig(createConnectionManager());
+        };
+
+        try {
+            SSLConnectionSocketFactory scsf = new SSLConnectionSocketFactory(SSLContext.getDefault(), hostnameverified);
+
+            HttpClient hc = HttpClientBuilder.create()
+                    .setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()))
+                    .setSSLSocketFactory(scsf)
+                    .build();
+
+            return TransportConfiguration.create(hc, null);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex);
+        }
     }
     
     public static Transport getTransportFromManager(final RedmineManager rm) {

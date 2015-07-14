@@ -16,6 +16,8 @@
 
 package com.kenai.redminenb.util;
 
+import com.kenai.redminenb.user.RedmineUser;
+import com.taskadapter.redmineapi.bean.Group;
 import com.taskadapter.redmineapi.bean.User;
 import java.awt.Component;
 import javax.swing.JTable;
@@ -28,9 +30,26 @@ public class TableCellRendererUser extends DefaultTableCellRenderer{
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        if(value instanceof RedmineUser) {
+            value = ((RedmineUser) value).getUser();
+        }
         if(value instanceof User) {
             User user = (User) value;
-            value = user.getFullName();
+            StringBuilder stringValue = new StringBuilder();
+            if(user.getFirstName() != null) {
+                stringValue.append(user.getFirstName());
+            }
+            if(user.getLastName() != null) {
+                if(stringValue.length() != 0) {
+                    stringValue.append(" ");
+                }
+                stringValue.append(user.getLastName());
+            }
+            value = stringValue.toString();
+        } else if (value instanceof Group) {
+            value = ((Group) value).getName();
+        } else if (value instanceof AssigneeWrapper) {
+            value = ((AssigneeWrapper) value).getName();
         }
         return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }

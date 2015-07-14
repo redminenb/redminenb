@@ -17,7 +17,7 @@
 package com.kenai.redminenb.issue;
 
 import com.kenai.redminenb.repository.RedmineRepository;
-import com.kenai.redminenb.user.RedmineUser;
+import com.kenai.redminenb.util.AssigneeWrapper;
 import com.kenai.redminenb.util.NestedProject;
 import static com.kenai.redminenb.util.markup.StringUtil.escapeHTML;
 import com.kenai.redminenb.util.markup.TextileUtil;
@@ -315,9 +315,9 @@ public class JournalDisplay extends javax.swing.JPanel {
         }
         try {
             Integer id = Integer.valueOf(value);
-            for (RedmineUser ru : repo.getUsers(issue.getIssue().getProject())) {
+            for (AssigneeWrapper ru : repo.getAssigneeWrappers(issue.getIssue().getProject())) {
                 if (ru.getId().equals(id)) {
-                    return ru.getUser().getFullName() + " (ID: " + id.toString() + ")";
+                    return ru.getName() + " (ID: " + id.toString() + ")";
                 }
             }
         } catch (NumberFormatException ex) {}

@@ -18,6 +18,7 @@ package com.kenai.redminenb.ui;
 import com.kenai.redminenb.RedmineConfig;
 import com.kenai.redminenb.query.ParameterValue;
 import com.kenai.redminenb.user.RedmineUser;
+import com.kenai.redminenb.util.AssigneeWrapper;
 import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -132,21 +133,29 @@ public class Defaults {
 
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            RedmineUser user = null;
+            boolean isCurrentUser = false;
+            boolean notNull = false;
             if (value instanceof ParameterValue) {
                 ParameterValue pv = (ParameterValue) value;
                 value = pv.getDisplayName();
             }
 
             if (value instanceof RedmineUser) {
-                user = (RedmineUser) value;
+                RedmineUser user = (RedmineUser) value;
                 value = user.getUser().getFullName();
+                isCurrentUser = user.isIsCurrentUser();
+                notNull = true;
+            } else if (value instanceof AssigneeWrapper) {
+                AssigneeWrapper assignee = (AssigneeWrapper) value;
+                value = assignee.getName();
+                isCurrentUser = assignee.isIsCurrentUser();
+                notNull = true;
             } else if (value == null) {
                 value = " ";
             }
             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            if (user != null) {
-                ((JLabel) c).setIcon(Defaults.getIcon(user.isIsCurrentUser() ? "user.png" : "user_gray.png"));
+            if(notNull) {
+                ((JLabel) c).setIcon(Defaults.getIcon(isCurrentUser ? "user.png" : "user_gray.png"));
             }
             return c;
         }

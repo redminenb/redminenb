@@ -26,6 +26,7 @@ import com.kenai.redminenb.user.RedmineUser;
 
 import com.kenai.redminenb.api.AuthMode;
 import static com.kenai.redminenb.repository.RedmineManagerFactoryHelper.getTransportFromManager;
+import com.kenai.redminenb.util.AssigneeWrapper;
 import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.NestedProject;
 import com.taskadapter.redmineapi.AttachmentManager;
@@ -37,6 +38,7 @@ import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
 import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
+import com.taskadapter.redmineapi.bean.Group;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -141,7 +143,7 @@ public class RedmineRepository {
 
     private final Set<RedmineIssue> newIssues = Collections.synchronizedSet(new HashSet<RedmineIssue>());
     private Map<Integer, NestedProject> projects;
-    private final Map<Integer, List<RedmineUser>> userCache = Collections.synchronizedMap(new HashMap<Integer,List<RedmineUser>>());
+    private final Map<Integer, List<Membership>> userCache = Collections.synchronizedMap(new HashMap<Integer,List<Membership>>());
     private final Map<Integer, List<IssueCategory>> categoryCache = Collections.synchronizedMap(new HashMap<Integer, List<IssueCategory>>());
     private final Map<Integer, List<Version>> versionCache = Collections.synchronizedMap(new HashMap<Integer, List<Version>>());
     private List<IssueStatus> statusCache = null;
@@ -450,26 +452,59 @@ public class RedmineRepository {
         }
     }
     
-    public Collection<RedmineUser> getUsers(Project p) {
-        if (p != null && (!userCache.containsKey(p.getId()))) {
-            ArrayList<RedmineUser> users = new ArrayList<>();
+    private Collection<Membership> getMemberships(Project p) {
+        if(p == null) {
+            return Collections.<Membership>emptyList();
+        }
+        if (!userCache.containsKey(p.getId())) {
             try {
-                users.add(currentUser);
-                for (Membership m : getMembershipManager().getMemberships(p.getId().toString())) {
-                    if (m.getUser() != null
-                            && !currentUser.getUser().getId().equals(m.getUser().getId())) {
-                        users.add(new RedmineUser(m.getUser()));
-                    }
-                }
+                userCache.put(p.getId(), getMembershipManager().getMemberships(p.getId().toString()));
             } catch (RedmineException | RuntimeException ex) {
                 ExceptionHandler.handleException(LOG, "Can't get Redmine Users", ex);
             }
-            userCache.put(p.getId(), Collections.unmodifiableList(users));
         }
-        if(p == null || (! userCache.containsKey(p.getId()))) {
-            return Collections.EMPTY_LIST;
+        List<Membership> memberships = userCache.get(p.getId());
+        if(memberships == null) {
+            return Collections.<Membership>emptyList();
+        } else {
+            return memberships;
         }
-        return userCache.get(p.getId());
+    }
+    
+    public Collection<RedmineUser> getUsers(Project p) {
+        ArrayList<RedmineUser> users = new ArrayList<>();
+        users.add(currentUser);
+        for (Membership m : getMemberships(p)) {
+            if (m.getUser() != null
+                    && !currentUser.getUser().getId().equals(m.getUser().getId())) {
+                users.add(new RedmineUser(m.getUser()));
+            }
+        }
+        return users;
+    }
+    
+    public Collection<Group> getGroups(Project p) {
+        ArrayList<Group> groups = new ArrayList<>();
+        for (Membership m : getMemberships(p)) {
+            if (m.getGroup() != null) {
+                groups.add(m.getGroup());
+            }
+        }
+        return groups;
+    }
+    
+    public Collection<AssigneeWrapper> getAssigneeWrappers(Project p) {
+        ArrayList<AssigneeWrapper> assignees = new ArrayList<>();
+        assignees.add(new AssigneeWrapper(currentUser));
+        for (Membership m : getMemberships(p)) {
+            if (m.getUser() != null && !currentUser.getUser().getId().equals(m.getUser().getId())) {
+                assignees.add(new AssigneeWrapper(m.getUser()));
+            } else if ( m.getGroup() != null ) {
+                assignees.add(new AssigneeWrapper(m.getGroup()));
+            }
+        }
+        Collections.sort(assignees);
+        return assignees;
     }
 
     public List<Tracker> getTrackers() {

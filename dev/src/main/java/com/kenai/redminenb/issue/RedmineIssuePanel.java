@@ -8,6 +8,7 @@ import com.kenai.redminenb.util.ListComboBoxModel;
 import com.kenai.redminenb.util.RedmineUtil;
 
 import com.kenai.redminenb.repository.RedmineRepository;
+import com.kenai.redminenb.util.AssigneeWrapper;
 import com.kenai.redminenb.util.AttachmentDisplay;
 import com.kenai.redminenb.util.ExceptionHandler;
 import com.kenai.redminenb.util.ExpandablePanel;
@@ -355,7 +356,11 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                        priorityComboBox.addItem(ip.value);
                        priorityComboBox.setSelectedItem(ip.value);
                    }
-                   assigneeComboBox.setSelectedItem(RedmineUser.fromIssue(issue));
+                   if(issue.getAssignee() == null) {
+                       assigneeComboBox.setSelectedItem(null);
+                   } else {
+                       assigneeComboBox.setSelectedItem(new AssigneeWrapper(issue.getAssignee()));
+                   }
 
                    targetVersionComboBox.setSelectedItem(issue.getTargetVersion());
                    startDateChooser.setDate(issue.getStartDate());
@@ -541,7 +546,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
         assert !SwingUtilities.isEventDispatchThread();
 
         try (SafeAutoCloseable sac = redmineIssue.busy()) {
-            final ListComboBoxModel<RedmineUser> assigneeModel = new ListComboBoxModel<>();
+            final ListComboBoxModel<AssigneeWrapper> assigneeModel = new ListComboBoxModel<>();
             assigneeModel.add(null);
             final ListComboBoxModel<IssueCategory> categoryModel = new ListComboBoxModel<>();
             categoryModel.add(null);
@@ -551,7 +556,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
             final List<CustomFieldDefinition> fieldDefinitions = new ArrayList<>();
 
             if (project != null) {
-                assigneeModel.addAll(redmineIssue.getRepository().getUsers(project));
+                assigneeModel.addAll(redmineIssue.getRepository().getAssigneeWrappers(project));
                 categoryModel.addAll(redmineIssue.getRepository().getIssueCategories(project));
                 versionsModel.addAll(redmineIssue.getRepository().getVersions(project));
                 if (tracker != null) {
@@ -584,7 +589,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                     assigneeComboBox.setModel(assigneeModel);
                     targetVersionComboBox.setModel(versionsModel);
 
-                    if (assigneeModel.getElements().contains(redmineIssue.getRepository().getCurrentUser())) {
+                    if (assigneeModel.getElements().contains(new AssigneeWrapper(redmineIssue.getRepository().getCurrentUser()))) {
                         assignToMeButton.setEnabled(true);
                     } else {
                         assignToMeButton.setEnabled(false);
@@ -746,7 +751,12 @@ public class RedmineIssuePanel extends VerticalScrollPane {
    }
 
    private User getSelectedAssignee() {
-      return assigneeComboBox.getSelectedItem() == null ? null : ((RedmineUser)assigneeComboBox.getSelectedItem()).getUser();
+      AssigneeWrapper wrapper = (AssigneeWrapper) assigneeComboBox.getSelectedItem();
+      if(wrapper == null) {
+          return null;
+      } else {
+          return UserFactory.create(wrapper.getId());
+      }
    }
 
    private Integer getParentTaskId() {
@@ -1679,7 +1689,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
     }//GEN-LAST:event_logtimeSaveButtonActionPerformed
 
     private void assignToMeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_assignToMeButtonActionPerformed
-        assigneeComboBox.setSelectedItem(redmineIssue.getRepository().getCurrentUser());
+        assigneeComboBox.setSelectedItem(new AssigneeWrapper(redmineIssue.getRepository().getCurrentUser()));
     }//GEN-LAST:event_assignToMeButtonActionPerformed
 
     private void versionAddButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_versionAddButtonActionPerformed

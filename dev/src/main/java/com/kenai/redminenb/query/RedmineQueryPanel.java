@@ -43,9 +43,7 @@
 package com.kenai.redminenb.query;
 
 import com.kenai.redminenb.ui.Defaults;
-import com.kenai.redminenb.util.BusyPanel;
 import com.kenai.redminenb.util.ExpandablePanel;
-import com.kenai.redminenb.util.FullSizeLayout;
 import java.awt.BorderLayout;
 
 import java.awt.Color;
@@ -87,7 +85,6 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
-import javax.swing.JLayeredPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -568,7 +565,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.insets = new Insets(2, 5, 5, 5);
         byDetailsPanel.add(versionClear, gridBagConstraints);
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 9;
+        gridBagConstraints.gridx = 8;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.weightx = 1.0;
         byDetailsPanel.add(filler1, gridBagConstraints);
@@ -582,7 +579,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         jScrollPane5.setViewportView(watcherList);
 
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridx = 7;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
@@ -593,7 +590,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         watcherLabel.setLabelFor(watcherList);
         Mnemonics.setLocalizedText(watcherLabel, NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.watcherLabel.text")); // NOI18N
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridx = 7;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(5, 5, 2, 5);
@@ -604,7 +601,7 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         watcherClear.setActionCommand(NbBundle.getMessage(RedmineQueryPanel.class, "RedmineQueryPanel.watcherClear.actionCommand")); // NOI18N
         watcherClear.setFont(watcherClear.getFont().deriveFont(watcherClear.getFont().getStyle() & ~Font.BOLD, watcherClear.getFont().getSize()-2));
         gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridx = 7;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(2, 5, 5, 5);

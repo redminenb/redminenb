@@ -26,6 +26,7 @@ import com.kenai.redminenb.query.RedmineQueryParameter.TextFieldParameter;
 import com.kenai.redminenb.repository.RedmineRepository;
 import com.kenai.redminenb.timetracker.IssueTimeTrackerTopComponent;
 import com.kenai.redminenb.user.RedmineUser;
+import com.kenai.redminenb.util.AssigneeWrapper;
 import com.kenai.redminenb.util.CancelableRunnable;
 import com.kenai.redminenb.util.CancelableRunnableWrapper;
 import com.kenai.redminenb.util.NestedProject;
@@ -567,14 +568,16 @@ public class RedmineQueryController implements QueryController, ActionListener {
                     }
 
                     SortedSet<RedmineUser> userList = new TreeSet<>(RedmineUserComparator.SINGLETON);
+                    SortedSet<AssigneeWrapper> assigneeWrapperList = new TreeSet<>();
                     for (Entry<Integer, NestedProject> entry : repository.getProjects().entrySet()) {
                         userList.addAll(repository.getUsers(entry.getValue().getProject()));
+                        assigneeWrapperList.addAll(repository.getAssigneeWrappers(entry.getValue().getProject()));
                     }
 
                     final List<ParameterValue> assigneeList = new ArrayList<>();
                     assigneeList.add(ParameterValue.NONE_PARAMETERVALUE);
-                    for (RedmineUser redmineUser : userList) {
-                        assigneeList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
+                    for (AssigneeWrapper assigneeWrapper : assigneeWrapperList) {
+                        assigneeList.add(new ParameterValue(assigneeWrapper.getName(), assigneeWrapper.getId()));
                     }
 
                     List<NestedProject> projectList = new ArrayList<>(repository.getProjects().values());

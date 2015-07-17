@@ -50,6 +50,7 @@ import com.taskadapter.redmineapi.bean.SavedQuery;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.TimeEntryActivityFactory;
 import com.taskadapter.redmineapi.bean.Tracker;
+import com.taskadapter.redmineapi.bean.User;
 import com.taskadapter.redmineapi.bean.Version;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -473,10 +474,12 @@ public class RedmineRepository {
     
     public Collection<RedmineUser> getUsers(Project p) {
         ArrayList<RedmineUser> users = new ArrayList<>();
-        users.add(currentUser);
-        for (Membership m : getMemberships(p)) {
-            if (m.getUser() != null
-                    && !currentUser.getUser().getId().equals(m.getUser().getId())) {
+        Collection<Membership> memberships = getMemberships(p);
+        if(currentUser != null) {
+            users.add(currentUser);
+        }
+        for (Membership m: memberships) {
+            if (m.getUser() != null && (! userIsCurrentUser(m.getUser()))) {
                 users.add(new RedmineUser(m.getUser()));
             }
         }
@@ -495,9 +498,12 @@ public class RedmineRepository {
     
     public Collection<AssigneeWrapper> getAssigneeWrappers(Project p) {
         ArrayList<AssigneeWrapper> assignees = new ArrayList<>();
-        assignees.add(new AssigneeWrapper(currentUser));
-        for (Membership m : getMemberships(p)) {
-            if (m.getUser() != null && !currentUser.getUser().getId().equals(m.getUser().getId())) {
+        Collection<Membership> memberships = getMemberships(p);
+        if(currentUser != null) {
+            assignees.add(new AssigneeWrapper(currentUser));
+        }
+        for (Membership m : memberships) {
+            if (m.getUser() != null && (! userIsCurrentUser(m.getUser()))) {
                 assignees.add(new AssigneeWrapper(m.getUser()));
             } else if ( m.getGroup() != null ) {
                 assignees.add(new AssigneeWrapper(m.getGroup()));
@@ -507,6 +513,13 @@ public class RedmineRepository {
         return assignees;
     }
 
+    private boolean userIsCurrentUser(User user) {
+        if(currentUser == null || user == null) {
+            return false;
+        }
+        return currentUser.getUser().getId().equals(user.getId());
+    }
+    
     public List<Tracker> getTrackers() {
         if(trackerCache == null) {
             try {

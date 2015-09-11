@@ -246,7 +246,15 @@
                         } else {
                             value = value.trim() + "";
                         }
-                        for(var i = 0; i < dependencies.length; i++) { if(value != "") { value += ", "; } value += dependencies[i]; } attributes.putValue(entry, value); manifest.write(new java.io.FileOutputStream(filename)); ]]>
+                        for(var i = 0; i < dependencies.length; i++) {
+                            if(value != "") { 
+                                value += ", "; 
+                            }
+                            value += dependencies[i]; 
+                        }
+                        attributes.putValue(entry, value);
+                        manifest.write(new java.io.FileOutputStream(filename));
+                        ]]>
                     </script>
                     <passProjectAsProperty>true</passProjectAsProperty>
                 </configuration>

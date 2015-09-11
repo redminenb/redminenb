@@ -313,6 +313,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                 RedmineManager rm = null;
                 try {
                     rm = getManager();
+                    rm.getUserManager().getCurrentUser();
                     List<NestedProject> projectList = new ArrayList<>(
                             RedmineRepository
                             .convertProjectList(rm.getProjectManager().getProjects())

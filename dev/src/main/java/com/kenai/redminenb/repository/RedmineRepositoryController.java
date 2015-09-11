@@ -206,7 +206,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
     @Override
     public String getErrorMessage() {
-        return errorMessage != null ? "<html>" + errorMessage + "</html>" : errorMessage;
+        return errorMessage;
     }
 
     @Override

@@ -67,7 +67,7 @@ import org.openide.util.NbBundle.Messages;
     "MSG_MissingName=Missing Name",
     "MSG_WrongUrl=Wrong URL format",
     "MSG_MissingUrl=Missing URL",
-    "MSG_MissingUsername=Missing Usernname",
+    "MSG_MissingUsername=Missing Username",
     "MSG_MissingPassword=Missing Password",
     "MSG_MissingAccessKey=Missing Access Key",
     "MSG_MissingProject=No Project is selected",

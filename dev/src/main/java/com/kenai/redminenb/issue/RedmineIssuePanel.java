@@ -947,7 +947,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
         parentIdLabel = new javax.swing.JLabel();
         doneLabel = new javax.swing.JLabel();
         trackerComboBox = new javax.swing.JComboBox();
-        estimateTimeTextField = new JFormattedTextField(NumberFormat.getNumberInstance());
+        estimateTimeTextField = new JFormattedTextField(new NullOrIntegerFormat());
         startDateLabel = new javax.swing.JLabel();
         dueDateLabel = new javax.swing.JLabel();
         statusComboBox = new javax.swing.JComboBox();
@@ -956,7 +956,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
         subjectTextField = new javax.swing.JTextField();
         categoryLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        parentTaskTextField = new JFormattedTextField(NumberFormat.getNumberInstance());
+        parentTaskTextField = new JFormattedTextField(new NullOrIntegerFormat());
         targetVersionComboBox = new javax.swing.JComboBox();
         targetVersionLabel = new javax.swing.JLabel();
         assigneeLabel = new javax.swing.JLabel();

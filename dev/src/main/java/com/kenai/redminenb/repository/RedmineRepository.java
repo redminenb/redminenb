@@ -37,8 +37,10 @@ import com.taskadapter.redmineapi.ProjectManager;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
+import com.taskadapter.redmineapi.TimeEntryManager;
 import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
 import com.taskadapter.redmineapi.bean.Group;
+import com.taskadapter.redmineapi.bean.GroupFactory;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
@@ -479,8 +481,8 @@ public class RedmineRepository {
             users.add(currentUser);
         }
         for (Membership m: memberships) {
-            if (m.getUser() != null && (! userIsCurrentUser(m.getUser()))) {
-                users.add(new RedmineUser(m.getUser()));
+            if (m.getUserId() != null) {
+                users.add(new RedmineUser(m.getUserId(), m.getUserName()));
             }
         }
         return users;
@@ -489,8 +491,10 @@ public class RedmineRepository {
     public Collection<Group> getGroups(Project p) {
         ArrayList<Group> groups = new ArrayList<>();
         for (Membership m : getMemberships(p)) {
-            if (m.getGroup() != null) {
-                groups.add(m.getGroup());
+            if (m.getGroupId() != null) {
+                Group g = GroupFactory.create(m.getGroupId());
+                g.setName(m.getGroupName());
+                groups.add(g);
             }
         }
         return groups;
@@ -500,26 +504,19 @@ public class RedmineRepository {
         ArrayList<AssigneeWrapper> assignees = new ArrayList<>();
         Collection<Membership> memberships = getMemberships(p);
         if(currentUser != null) {
-            assignees.add(new AssigneeWrapper(currentUser));
+            assignees.add(new AssigneeWrapper(currentUser.getId(), currentUser.toString(), true, false));
         }
         for (Membership m : memberships) {
-            if (m.getUser() != null && (! userIsCurrentUser(m.getUser()))) {
-                assignees.add(new AssigneeWrapper(m.getUser()));
-            } else if ( m.getGroup() != null ) {
-                assignees.add(new AssigneeWrapper(m.getGroup()));
+            if (m.getUserId() != null && (currentUser == null || (! m.getUserId().equals(currentUser.getId())))) {
+                assignees.add(new AssigneeWrapper(m.getUserId(), m.getUserName(), false, false));
+            } else if ( m.getGroupId() != null ) {
+                assignees.add(new AssigneeWrapper(m.getGroupId(), m.getGroupName(), false, true));
             }
         }
         Collections.sort(assignees);
         return assignees;
     }
 
-    private boolean userIsCurrentUser(User user) {
-        if(currentUser == null || user == null) {
-            return false;
-        }
-        return currentUser.getUser().getId().equals(user.getId());
-    }
-    
     public List<Tracker> getTrackers() {
         if(trackerCache == null) {
             try {
@@ -534,7 +531,7 @@ public class RedmineRepository {
     public List<TimeEntryActivity> getTimeEntryActivities() {
         if (timeEntryActivityCache == null) {
             try {
-                timeEntryActivityCache = getIssueManager().getTimeEntryActivities();
+                timeEntryActivityCache = getTimeEntryManager().getTimeEntryActivities();
             } catch (RedmineException | RuntimeException ex) {
                 LOG.log(Level.INFO
                         , "Failed to Redmine Time Entry Activities (either API is missing or no permission)"
@@ -581,8 +578,8 @@ public class RedmineRepository {
             try {
                 List<IssueCategory> cats = getIssueManager().getCategories(p.getId());
                 for(IssueCategory cat: cats) {
-                    cat.setProject(null);
-                    cat.setAssignee(null);
+                    cat.setProjectId(null);
+                    cat.setAssigneeId(null);
                 }
                 categoryCache.put(p.getId(), Collections.unmodifiableList(cats));
             } catch (NotFoundException ex) {
@@ -669,7 +666,7 @@ public class RedmineRepository {
                         cfd.getPossibleValues().clear();
                         for (RedmineUser ru : getUsers(proj)) {
                             cfd.getPossibleValues().add(
-                                    ru.getUser().getFullName() + " ["
+                                    ru.toString() + " ["
                                     + ru.getId() + "]");
                         }
                         break;
@@ -770,6 +767,10 @@ public class RedmineRepository {
 
     public MembershipManager getMembershipManager() throws RedmineException {
         return getManager().getMembershipManager();
+    }
+    
+    public TimeEntryManager getTimeEntryManager() throws RedmineException {
+        return getManager().getTimeEntryManager();
     }
     
     public RedmineUser getCurrentUser() {

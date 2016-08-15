@@ -251,7 +251,7 @@ public class RedmineQueryController implements QueryController, ActionListener {
                 }
 
                 for (RedmineUser redmineUser : repository.getUsers(p)) {
-                    watcherList.add(new ParameterValue(redmineUser.getUser().getFullName(), redmineUser.getId()));
+                    watcherList.add(new ParameterValue(redmineUser.toString(), redmineUser.getId()));
                 }
             }
 

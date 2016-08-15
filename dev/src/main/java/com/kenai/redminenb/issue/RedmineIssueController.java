@@ -113,9 +113,9 @@ public class RedmineIssueController implements IssueController {
 
         Issue subIssue = new Issue();
         subIssue.setParentId(issue.getId());
-        subIssue.setAssignee(issue.getAssignee());
+        subIssue.setAssigneeId(issue.getAssigneeId());
         //subIssue.setAuthor(issue.getAuthor());
-        subIssue.setAuthor(redmineIssue.getRepository().getCurrentUser().getUser());
+        subIssue.setAuthorId(redmineIssue.getRepository().getCurrentUser().getId());
         subIssue.setCategory(issue.getCategory());
         subIssue.setPriorityId(issue.getPriorityId());
 

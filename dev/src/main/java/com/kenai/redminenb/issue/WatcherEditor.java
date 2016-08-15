@@ -18,6 +18,7 @@ package com.kenai.redminenb.issue;
 import com.kenai.redminenb.user.RedmineUser;
 import com.taskadapter.redmineapi.IssueManager;
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.ProjectFactory;
 import com.taskadapter.redmineapi.bean.Watcher;
 import java.awt.Dialog;
 import java.awt.Rectangle;
@@ -46,7 +47,7 @@ public class WatcherEditor {
             @Override
             protected Object doInBackground() throws Exception {
                 originalWatchers = new ArrayList<>(redmineIssue.getIssue().getWatchers());
-                users = redmineIssue.getRepository().getUsers(redmineIssue.getIssue().getProject());
+                users = redmineIssue.getRepository().getUsers(ProjectFactory.create(redmineIssue.getIssue().getProjectId()));
                 return null;
             }
 

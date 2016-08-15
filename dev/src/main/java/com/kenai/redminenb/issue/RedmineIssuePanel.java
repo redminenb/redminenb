@@ -16,7 +16,6 @@ import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Tracker;
-import com.taskadapter.redmineapi.bean.User;
 import com.taskadapter.redmineapi.bean.Version;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -43,6 +42,7 @@ import javax.swing.LayoutStyle;
 import org.apache.commons.lang.StringUtils;
 import com.kenai.redminenb.util.LinkButton;
 import com.kenai.redminenb.util.NestedProject;
+import com.kenai.redminenb.util.NullOrIntegerFormat;
 import com.kenai.redminenb.util.SafeAutoCloseable;
 import com.kenai.redminenb.util.VerticalScrollPane;
 import com.taskadapter.redmineapi.RedmineException;
@@ -59,7 +59,6 @@ import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryActivity;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
 import com.taskadapter.redmineapi.bean.TrackerFactory;
-import com.taskadapter.redmineapi.bean.UserFactory;
 import com.taskadapter.redmineapi.bean.VersionFactory;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -328,7 +327,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                        if (issue.getCreatedOn() != null) {
                            createdValueLabel.setText(
                                    RedmineIssue.DATETIME_FORMAT.format(issue.getCreatedOn())
-                                   + " by " + issue.getAuthor().getFullName());
+                                   + " by " + issue.getAuthorName());
                        }
                        if (issue.getUpdatedOn() == null) {
                            updatedLabel.setVisible(false);
@@ -349,17 +348,19 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                    trackerComboBox.setSelectedItem(issue.getTracker());
                    statusComboBox.setSelectedItem(issueStatus.value);
                    categoryComboBox.setSelectedItem(issue.getCategory());
-                   projectComboBox.setSelectedItem(new NestedProject(issue.getProject()));
+                   Project project = ProjectFactory.create(issue.getProjectId());
+                   project.setName(issue.getProjectName());
+                   projectComboBox.setSelectedItem(new NestedProject(project));
 
                    priorityComboBox.setSelectedItem(ip.value);
                    if (priorityComboBox.getSelectedIndex() < 0) {
                        priorityComboBox.addItem(ip.value);
                        priorityComboBox.setSelectedItem(ip.value);
                    }
-                   if(issue.getAssignee() == null) {
+                   if(issue.getAssigneeId() == null) {
                        assigneeComboBox.setSelectedItem(null);
                    } else {
-                       assigneeComboBox.setSelectedItem(new AssigneeWrapper(issue.getAssignee()));
+                       assigneeComboBox.setSelectedItem(new AssigneeWrapper(issue.getAssigneeId(), issue.getAssigneeName()));
                    }
 
                    targetVersionComboBox.setSelectedItem(issue.getTargetVersion());
@@ -528,7 +529,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
            }
        };
        if(issue != null) {
-            initProjectData(true, issue.getProject(), issue.getTracker(), edtUpdate2);
+            initProjectData(true, ProjectFactory.create(issue.getProjectId()), issue.getTracker(), edtUpdate2);
        } else {
            initProjectData(true, null, null, edtUpdate2);
        }
@@ -710,53 +711,51 @@ public class RedmineIssuePanel extends VerticalScrollPane {
    }
    
    private void setIssueData(com.taskadapter.redmineapi.bean.Issue issue) {
-      issue.setUpdateTracking(true);
-      issue.setTracker((Tracker)trackerComboBox.getSelectedItem());
-      issue.setStatusId(((IssueStatus)statusComboBox.getSelectedItem()).getId());
+       issue.setTracker((Tracker) trackerComboBox.getSelectedItem());
+       issue.setStatusId(((IssueStatus) statusComboBox.getSelectedItem()).getId());
 
-      issue.setSubject(subjectTextField.getText());
-      issue.setParentId(getParentTaskId());
-      issue.setDescription(descTextArea.getText());
-      issue.setPriorityId(((IssuePriority) priorityComboBox.getSelectedItem()).getId());
-      issue.setAssignee(getSelectedAssignee());
-      issue.setCategory((IssueCategory)categoryComboBox.getSelectedItem());
-      issue.setTargetVersion(targetVersionComboBox.getSelectedItem() == null ? null : (Version)targetVersionComboBox.getSelectedItem());
-      issue.setStartDate(startDateChooser.getDate());
-      issue.setDueDate(dueDateChooser.getDate());
-      issue.setEstimatedHours(getEstimateTime());
-      issue.setDoneRatio(doneComboBox.getSelectedIndex() * 10);
-      Project p = null;
-      // Workaround for https://github.com/taskadapter/redmine-java-api/pull/163
-      try {
+       issue.setSubject(subjectTextField.getText());
+       issue.setParentId(getParentTaskId());
+       issue.setDescription(descTextArea.getText());
+       issue.setPriorityId(((IssuePriority) priorityComboBox.getSelectedItem()).getId());
+       if (getSelectedAssignee() != null) {
+           issue.setAssigneeId(getSelectedAssignee().getId());
+           issue.setAssigneeName(getSelectedAssignee().getName());
+       } else {
+           issue.setAssigneeId(null);
+           issue.setAssigneeName(null);
+       }
+       issue.setCategory((IssueCategory) categoryComboBox.getSelectedItem());
+       issue.setTargetVersion((Version) targetVersionComboBox.getSelectedItem());
+       issue.setStartDate(startDateChooser.getDate());
+       issue.setDueDate(dueDateChooser.getDate());
+       issue.setEstimatedHours(getEstimateTime());
+       issue.setDoneRatio(doneComboBox.getSelectedIndex() * 10);
+       Project p = null;
+       // Workaround for https://github.com/taskadapter/redmine-java-api/pull/163
+       try {
            p = ((NestedProject) projectComboBox.getSelectedItem()).getProject();
-           Project transfer = ProjectFactory.create(p.getId());
-           transfer.setIdentifier(p.getId().toString());
-           issue.setProject(transfer);
-      } catch (NullPointerException ex) {
-      }
+           issue.setProjectId(p.getId());
+       } catch (NullPointerException ex) {
+       }
 
-      for(CustomFieldComponent cfc: getCustomFields()) {
-          CustomFieldDefinition cfd = cfc.getCustomFieldDefinition();
-          CustomField cf = issue.getCustomFieldById(cfd.getId());
-          if(cf == null) {
-            cf = CustomFieldFactory.create(cfd.getId());
-            issue.addCustomField(cf);
-          }
-          if(cfd.isMultiple()) {
-              cf.setValues(cfc.getValues());
-          } else {
-              cf.setValue(cfc.getValue());
-          }
-      }
+       for (CustomFieldComponent cfc : getCustomFields()) {
+           CustomFieldDefinition cfd = cfc.getCustomFieldDefinition();
+           CustomField cf = issue.getCustomFieldById(cfd.getId());
+           if (cf == null) {
+               cf = CustomFieldFactory.create(cfd.getId());
+               issue.addCustomField(cf);
+           }
+           if (cfd.isMultiple()) {
+               cf.setValues(cfc.getValues());
+           } else {
+               cf.setValue(cfc.getValue());
+           }
+       }
    }
 
-   private User getSelectedAssignee() {
-      AssigneeWrapper wrapper = (AssigneeWrapper) assigneeComboBox.getSelectedItem();
-      if(wrapper == null) {
-          return null;
-      } else {
-          return UserFactory.create(wrapper.getId());
-      }
+   private AssigneeWrapper getSelectedAssignee() {
+      return (AssigneeWrapper) assigneeComboBox.getSelectedItem();
    }
 
    private Integer getParentTaskId() {
@@ -823,7 +822,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
         if(! StringUtils.isBlank(comment)) {
             issue.setNotes(comment);
         }
-        
+
         new SwingWorker() {
 
            @Override
@@ -881,10 +880,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                 priorityComboBox.setModel(new DefaultComboBoxModel(issuePriorities.toArray()));
 
                 assigneeComboBox.setRenderer(new Defaults.RepositoryUserLCR());
-                User prototypeUser = UserFactory.create();
-                prototypeUser.setFirstName("John, some more space,");
-                prototypeUser.setLastName("Doe, and some...");
-                assigneeComboBox.setPrototypeDisplayValue(new RedmineUser(prototypeUser));
+                assigneeComboBox.setPrototypeDisplayValue(new RedmineUser(1, "John, some more space Doe, and some..."));
 
                 categoryComboBox.setRenderer(new Defaults.IssueCategoryLCR());
 
@@ -960,7 +956,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
         subjectTextField = new javax.swing.JTextField();
         categoryLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        parentTaskTextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
+        parentTaskTextField = new JFormattedTextField(NumberFormat.getNumberInstance());
         targetVersionComboBox = new javax.swing.JComboBox();
         targetVersionLabel = new javax.swing.JLabel();
         assigneeLabel = new javax.swing.JLabel();
@@ -1661,7 +1657,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
             @Override
             protected Object doInBackground() throws Exception {
                 try (SafeAutoCloseable sac = redmineIssue.busy()) {
-                    redmineIssue.getRepository().getIssueManager().createTimeEntry(te);
+                    redmineIssue.getRepository().getTimeEntryManager().createTimeEntry(te);
                     redmineIssue.refresh();
                     initIssue(null);
                 }
@@ -1711,7 +1707,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
 
     private void addVersion(Project proj, String versionName) {
         try (SafeAutoCloseable sac = redmineIssue.busy()) {
-            Version v = VersionFactory.create(proj, versionName);
+            Version v = VersionFactory.create(proj.getId(), versionName);
             redmineIssue.getRepository().getProjectManager().createVersion(v);
             final Collection<? extends Version> c = redmineIssue.getRepository().reloadVersions(proj);
             for (Version version : c) {
@@ -1754,7 +1750,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
 
     private void addCategory(Project proj, String categoryName) {
         try (SafeAutoCloseable sac = redmineIssue.busy()) {
-            IssueCategory ic = IssueCategoryFactory.create(proj, categoryName);
+            IssueCategory ic = IssueCategoryFactory.create(proj.getId(), categoryName);
             redmineIssue.getRepository().getIssueManager().createCategory(ic);
             final Collection<? extends IssueCategory> c = redmineIssue.getRepository().reloadIssueCategories(proj);
             for (IssueCategory issueCategory : c) {

@@ -11,23 +11,26 @@ import java.util.Objects;
  */
 public class RedmineUser {
 
-    private final User user;
+    private final int id;
+    private final String username;
+    
     /**
      * true if this user is the current logged in user.
      */
     private final boolean isCurrentUser;
 
-    public RedmineUser(User user) {
-        this(user, false);
-    }
-
     public RedmineUser(User user, boolean isCurrentUser) {
-        this.user = user;
-        this.isCurrentUser = isCurrentUser;
+        this(user.getId(), user.getFullName(), isCurrentUser);
     }
 
-    public User getUser() {
-        return user;
+    public RedmineUser(int id, String username) {
+        this(id, username, false);
+    }
+
+    public RedmineUser(int id, String username, boolean isCurrentUser) {
+        this.id = id;
+        this.username = username;
+        this.isCurrentUser = isCurrentUser;
     }
 
     public boolean isIsCurrentUser() {
@@ -35,12 +38,19 @@ public class RedmineUser {
     }
 
     public Integer getId() {
-        return user.getId();
+        return id;
     }
 
     @Override
     public String toString() {
-        return user.getFullName();
+        return username;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 17 * hash + this.id;
+        return hash;
     }
 
     @Override
@@ -48,27 +58,20 @@ public class RedmineUser {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof RedmineUser)) {
+        if (obj == null) {
             return false;
         }
-        RedmineUser other = (RedmineUser) obj;
-        return (this.user == null && other.user == null)
-                || (this.user != null && other.user != null && Objects.equals(this.user.getId(), other.user.getId()))
-                || false;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 67 * hash + (this.user != null && this.user.getId() != null ? this.user.getId().hashCode() : 0);
-        return hash;
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final RedmineUser other = (RedmineUser) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        return true;
     }
 
     public static RedmineUser fromIssue(com.taskadapter.redmineapi.bean.Issue issue) {
-        return get(issue.getAssignee());
-    }
-
-    public static RedmineUser get(User user) {
-        return user == null ? null : new RedmineUser(user);
+        return new RedmineUser(issue.getAssigneeId(), issue.getAssigneeName());
     }
 }

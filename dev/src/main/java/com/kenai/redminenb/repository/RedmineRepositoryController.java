@@ -328,10 +328,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                     return result;
                 } catch (Throwable ex) {
                     throw new RuntimeException("Failed to connect; " + ex.getMessage(), ex);
-                } finally {
-                    if (rm != null) {
-                        rm.shutdown();
-                    }
                 }
             }
 
@@ -414,10 +410,6 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                     "MSG_REDMINE_ERROR",
                     Jsoup.parse(ex.getLocalizedMessage()).text());
             Redmine.LOG.log(Level.INFO, errorMessage, ex);
-        } finally {
-            if (rm != null) {
-                rm.shutdown();
-            }
         }
     }
 

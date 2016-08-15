@@ -14,6 +14,13 @@ public class AssigneeWrapper implements Identifiable, Comparable<AssigneeWrapper
     private final boolean isCurrentUser;
     private final boolean isGroup;
 
+    public AssigneeWrapper(RedmineUser user) {
+        this.id = user.getId();
+        this.name = user.toString();
+        this.isCurrentUser = false;
+        this.isGroup = false;
+    }
+    
     public AssigneeWrapper(User user) {
         this.id = user.getId();
         this.name = user.getFullName();
@@ -27,19 +34,19 @@ public class AssigneeWrapper implements Identifiable, Comparable<AssigneeWrapper
         this.isCurrentUser = false;
         this.isGroup = true;
     }
-
-    public AssigneeWrapper(RedmineUser ru) {
-        this.id = ru.getUser().getId();
-        this.name = ru.getUser().getFullName();
-        this.isCurrentUser = ru.isIsCurrentUser();
-        this.isGroup = false;
-    }
     
     public AssigneeWrapper(Integer id, String name) {
         this.id = id;
         this.name = name;
         this.isCurrentUser = false;
         this.isGroup = false;
+    }
+    
+    public AssigneeWrapper(Integer id, String name, boolean isCurrentUser, boolean isGroup) {
+        this.id = id;
+        this.name = name;
+        this.isCurrentUser = isCurrentUser;
+        this.isGroup = isGroup;
     }
     
     @Override
@@ -67,13 +74,9 @@ public class AssigneeWrapper implements Identifiable, Comparable<AssigneeWrapper
         }
     }
     
+    @Override
     public boolean equals(Object object) {
-        if(object instanceof RedmineUser) {
-            object = ((RedmineUser) object).getUser();
-        }
-        if(! (object instanceof User 
-                || object instanceof Group 
-                || object instanceof AssigneeWrapper)) {
+        if(object == null || (! (object instanceof Identifiable))) {
             return false;
         }
         return Objects.equals(getId(), ((Identifiable) object).getId());

@@ -31,9 +31,8 @@ public class TableCellRendererUser extends DefaultTableCellRenderer{
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         if(value instanceof RedmineUser) {
-            value = ((RedmineUser) value).getUser();
-        }
-        if(value instanceof User) {
+            value = ((RedmineUser) value).toString();
+        } else if(value instanceof User) {
             User user = (User) value;
             StringBuilder stringValue = new StringBuilder();
             if(user.getFirstName() != null) {

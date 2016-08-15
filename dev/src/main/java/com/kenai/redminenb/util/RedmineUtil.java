@@ -123,7 +123,7 @@ public final class RedmineUtil {
 
         @Override
         public int compare(RedmineUser a, RedmineUser b) {
-            return a.getUser().getFullName().compareTo(b.getUser().getFullName());
+            return a.toString().compareTo(b.toString());
         }
     }
     

@@ -17,7 +17,6 @@
 package com.kenai.redminenb.repository;
 
 import com.taskadapter.redmineapi.RedmineManager;
-import com.taskadapter.redmineapi.TransportConfiguration;
 import com.taskadapter.redmineapi.internal.Transport;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -40,7 +39,7 @@ import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 
 class RedmineManagerFactoryHelper {
 
-    public static TransportConfiguration getTransportConfig() {
+    public static HttpClient getTransportConfig() {
         /**
      * Implement a minimal hostname verifier. This is needed to be able to use
      * hosts with certificates, that don't match the used hostname (VServer).
@@ -91,7 +90,7 @@ class RedmineManagerFactoryHelper {
                     .setSSLSocketFactory(scsf)
                     .build();
 
-            return TransportConfiguration.create(hc, null);
+            return hc;
         } catch (NoSuchAlgorithmException ex) {
             throw new RuntimeException(ex);
         }

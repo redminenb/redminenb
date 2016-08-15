@@ -27,6 +27,7 @@ import com.taskadapter.redmineapi.bean.IssuePriority;
 import com.taskadapter.redmineapi.bean.IssueStatus;
 import com.taskadapter.redmineapi.bean.Journal;
 import com.taskadapter.redmineapi.bean.JournalDetail;
+import com.taskadapter.redmineapi.bean.ProjectFactory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.Version;
 import java.io.StringWriter;
@@ -240,7 +241,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         }
         try {
             Integer id = Integer.valueOf(value);
-            for (IssueCategory ic : repo.getIssueCategories(issue.getIssue().getProject())) {
+            for (IssueCategory ic : repo.getIssueCategories(ProjectFactory.create(issue.getIssue().getProjectId()))) {
                 if (ic.getId().equals(id)) {
                     return ic.getName() + " (ID: " + id.toString() + ")";
                 }
@@ -255,7 +256,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         }
         try {
             Integer id = Integer.valueOf(value);
-            for (Version v : repo.getVersions(issue.getIssue().getProject())) {
+            for (Version v : repo.getVersions(ProjectFactory.create(issue.getIssue().getProjectId()))) {
                 if (v.getId().equals(id)) {
                     return v.getName() + " (ID: " + id.toString() + ")";
                 }
@@ -315,7 +316,7 @@ public class JournalDisplay extends javax.swing.JPanel {
         }
         try {
             Integer id = Integer.valueOf(value);
-            for (AssigneeWrapper ru : repo.getAssigneeWrappers(issue.getIssue().getProject())) {
+            for (AssigneeWrapper ru : repo.getAssigneeWrappers(ProjectFactory.create(issue.getIssue().getProjectId()))) {
                 if (ru.getId().equals(id)) {
                     return ru.getName() + " (ID: " + id.toString() + ")";
                 }

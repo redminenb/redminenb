@@ -18,8 +18,10 @@ package com.kenai.redminenb.query;
 import com.kenai.redminenb.issue.RedmineIssue;
 import com.taskadapter.redmineapi.bean.IssueCategory;
 import com.taskadapter.redmineapi.bean.Project;
+import com.taskadapter.redmineapi.bean.ProjectFactory;
 import com.taskadapter.redmineapi.bean.Tracker;
 import com.taskadapter.redmineapi.bean.User;
+import com.taskadapter.redmineapi.bean.UserFactory;
 import com.taskadapter.redmineapi.bean.Version;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,13 +92,27 @@ public class QueryListModel extends AbstractTableModel{
             case 4:
                 return ri.getIssue().getStatusName();
             case 5:
-                return ri.getIssue().getAssignee();
+                if(ri.getIssue().getAssigneeId() != null) {
+                    User u = UserFactory.create(ri.getIssue().getAssigneeId());
+                    if (ri.getIssue().getAssigneeName() != null) {
+                        u.setFullName(ri.getIssue().getAssigneeName());
+                    }
+                    return u;
+                } else {
+                    return null;
+                }
             case 6:
                 return ri.getIssue().getCategory();
             case 7:
                 return ri.getIssue().getTargetVersion();
             case 8:
-                return ri.getIssue().getProject();
+                if(ri.getIssue().getProjectId() != null) {
+                    Project p = ProjectFactory.create(ri.getIssue().getProjectId());
+                    p.setName(ri.getIssue().getProjectName());
+                    return p;
+                } else {
+                    return null;
+                }
             default:
                 return null;
         }

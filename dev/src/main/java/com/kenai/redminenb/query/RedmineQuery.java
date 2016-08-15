@@ -295,7 +295,7 @@ public final class RedmineQuery {
             // According to the documentation 100 is the maximum  
             m.put("limit", Integer.toString(100));
             m.put("offset", Integer.toString(offset));
-            List<Issue> queryResult = repository.getIssueManager().getIssues(m);
+            List<Issue> queryResult = repository.getIssueManager().getIssues(m).getResults();
             issueArr.addAll(queryResult);
             offset += queryResult.size();
             if(queryResult.isEmpty()) {

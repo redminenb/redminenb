@@ -142,7 +142,7 @@ public class Defaults {
 
             if (value instanceof RedmineUser) {
                 RedmineUser user = (RedmineUser) value;
-                value = user.getUser().getFullName();
+                value = user.toString();
                 isCurrentUser = user.isIsCurrentUser();
                 notNull = true;
             } else if (value instanceof AssigneeWrapper) {

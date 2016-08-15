@@ -193,7 +193,7 @@ public final class IssueTimeTrackerTopComponent extends TopComponent {
             new SwingWorker() {
                 @Override
                 protected Object doInBackground() throws Exception {
-                    issue.getRepository().getIssueManager().createTimeEntry(te);
+                    issue.getRepository().getTimeEntryManager().createTimeEntry(te);
                     issue.refresh();
                     return null;
                 }

@@ -52,7 +52,7 @@ public class WatchersEditorFrame extends javax.swing.JPanel {
         for(RedmineUser ru: users) {
             if(! watcherIds.contains(ru.getId())) {
                 Watcher w = WatcherFactory.create(ru.getId());
-                w.setName(ru.getUser().getFullName());
+                w.setName(ru.toString());
                 potentialWatchers.add(w);
             }
         }

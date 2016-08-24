@@ -187,12 +187,7 @@ public class RedmineConfig {
                 // parameter, that was previously taken from the project settings
                 // this conversion sets the project based on the 
                 if(rqx.getVersion() == 1) {
-                    Project p = null;
-                    try {
-                        p = repository.getProject();
-                    } catch (RedmineException ex) {
-                        //
-                    }
+                    Project p = repository.getProject();
                     if( p != null && (! rqx.getParameters().containsKey("project_id"))) {
                         rqx.getParameters().put("project_id", new ParameterValue[]{
                             new ParameterValue(p.getName(), p.getId())

@@ -113,7 +113,7 @@ public final class RedmineQuery {
             NestedProject np = repository.getProjects().get(p.getId());
             parameters.put("project_id", new ParameterValue[]{
                 new ParameterValue(np.toString(), p.getId())});
-        } catch (RedmineException | NullPointerException ex) {
+        } catch (NullPointerException ex) {
             // Happens when failing to retrieve project/no project set => swallow
         }
     }

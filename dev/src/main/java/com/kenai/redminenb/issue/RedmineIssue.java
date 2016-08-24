@@ -106,7 +106,7 @@ public final class RedmineIssue {
     //
     static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance();
 
-    private com.taskadapter.redmineapi.bean.Issue issue;
+    private com.taskadapter.redmineapi.bean.Issue issue = new com.taskadapter.redmineapi.bean.Issue();
     private RedmineRepository repository;
     private RedmineIssueController controller;
 
@@ -123,6 +123,8 @@ public final class RedmineIssue {
     public RedmineIssue(RedmineRepository repo, String summary, String description) {
         repository = repo;
         support = new PropertyChangeSupport(this);
+        issue.setSubject(summary);
+        issue.setDescription(description);
     }
 
     public RedmineIssue(RedmineRepository repository, com.taskadapter.redmineapi.bean.Issue issue) {

@@ -319,7 +319,7 @@ public class RedmineRepository {
         return info.getUsername();
     }
 
-    public Project getProject() throws RedmineException {
+    public Project getProject() {
         Integer projectId = getProjectID();
         if (projectId != null) {
             NestedProject np = getProjects().get(projectId);

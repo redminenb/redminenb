@@ -66,6 +66,7 @@ public class RedmineIssueController implements IssueController {
                     issuePanel.enableFields(! ((boolean)evt.getNewValue()));
                 } else if (org.netbeans.modules.bugtracking.api.Issue.EVENT_ISSUE_DATA_CHANGED.equals(evt.getPropertyName())) {
                     issuePanel.customFieldValueBackingStore.clear();
+                    issuePanel.initIssue();
                 }
             }
         });

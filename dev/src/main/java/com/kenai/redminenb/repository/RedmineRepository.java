@@ -103,6 +103,7 @@ public class RedmineRepository {
     static final String PROPERTY_ACCESS_KEY = "accessKey";              // NOI18N  
     static final String PROPERTY_PROJECT_ID = "projectId";              // NOI18N
     static final String PROPERTY_FEATURE_WATCHERS = "featureWatchers";  // NOI18N
+    static final String PROPERTY_FEATURE_ATTACHMENTS = "featureDeleteAttachments";  // NOI18N
     
     private static final List<TimeEntryActivity> fallbackTimeActivityEntries;
     
@@ -207,7 +208,7 @@ public class RedmineRepository {
 
     synchronized void setInfoValues(String name, String url, String user, char[] password,
             String accessKey, AuthMode authMode, Integer project, boolean featureWatchers,
-            String httpUser, char[] httpPassword) {
+            String httpUser, char[] httpPassword, boolean featureDeleteAttachments) {
         String id = info != null ? info.getID() : name + System.currentTimeMillis();
         RepositoryInfo ri = new RepositoryInfo(id,
                 RedmineConnector.ID,
@@ -219,6 +220,7 @@ public class RedmineRepository {
                 password,
                 httpPassword);
         ri.putValue(PROPERTY_FEATURE_WATCHERS, Boolean.toString(featureWatchers));
+        ri.putValue(PROPERTY_FEATURE_ATTACHMENTS, Boolean.toString(featureDeleteAttachments));
         ri.putValue(PROPERTY_PROJECT_ID, project == null ? null : String.valueOf(project));
         info = ri;
         setAccessKey(accessKey);
@@ -954,6 +956,18 @@ public class RedmineRepository {
             return false;
         } else {
             return Boolean.parseBoolean(supportsWatchers);
+        }
+    }
+
+    public boolean isFeatureDeleteAttachments() {
+        if (info == null) {
+            return false;
+        }
+        String supportsDeleteFeatures = info.getValue(PROPERTY_FEATURE_ATTACHMENTS);
+        if(supportsDeleteFeatures == null) {
+            return false;
+        } else {
+            return Boolean.parseBoolean(supportsDeleteFeatures);
         }
     }
 

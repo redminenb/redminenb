@@ -12,21 +12,21 @@ import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.SwingWorker;
+import javax.swing.border.EmptyBorder;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
 public class AttachmentDisplay extends DelegatingBaseLineJPanel implements ActionListener {
 
     private static File lastDirectory;
-//    private static final String COMMAND_DELETE = "delete";
+    private static final String COMMAND_DELETE = "delete";
     private static final String COMMAND_DOWNLOAD = "download";
     private final Attachment ad;
     private final RedmineIssue issue;
     private final JLabel leadingLabel = new JLabel();
-//  Delete Button currently commented out, as API show no valid way to remotly
-//  delete an attachment
-//  @todo: Fix this when http://www.redmine.org/issues/14828 is resolved
-//    private final LinkButton deleteButton = new LinkButton();
+    // Delete is only activated if the repository is set to support this
+    // the feature was added to redmine in version 3.3.0
+    private final LinkButton deleteButton = new LinkButton();
     private final LinkButton downloadButton = new LinkButton();
 
     public AttachmentDisplay(RedmineIssue issue, Attachment ad) {
@@ -43,11 +43,14 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
         leadingLabel.setToolTipText(ad.getDescription());
         this.add(leadingLabel);
         this.add(downloadButton);
-//        this.add(deleteButton);
-//        deleteButton.setBorder(null);
-//        deleteButton.setText("delete");
-//        deleteButton.addActionListener(this);
-//        deleteButton.setActionCommand(COMMAND_DELETE);
+        if (issue.getRepository().isFeatureDeleteAttachments()) {
+            deleteButton.setBorder(new EmptyBorder(0, 8, 0, 0));
+            deleteButton.setIcon(new javax.swing.ImageIcon(AttachmentDisplay.class.getResource("/com/kenai/redminenb/resources/user-trash.png")));
+            deleteButton.setToolTipText("delete");
+            deleteButton.addActionListener(this);
+            deleteButton.setActionCommand(COMMAND_DELETE);
+            this.add(deleteButton);
+        }
         downloadButton.setBorder(null);
         downloadButton.setIcon(new javax.swing.ImageIcon(AttachmentDisplay.class.getResource("/com/kenai/redminenb/resources/document-save.png")));
         downloadButton.setToolTipText("download");
@@ -57,12 +60,9 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
 
     @Override
     @SuppressFBWarnings(
-            value="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD", 
+            value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
             justification = "Intended behaviour - if there is a race in lastDirectory reading/writing it is ok as it is only help for user")
     public void actionPerformed(ActionEvent e) {
-//        if (COMMAND_DELETE.equals(e.getActionCommand())) {
-//            throw new NotImplementedException();
-//        }
         if (COMMAND_DOWNLOAD.equals(e.getActionCommand())) {
             JFileChooser fileChooser = new JFileChooser(lastDirectory);
             fileChooser.setDialogTitle("Save attachment");
@@ -93,19 +93,47 @@ public class AttachmentDisplay extends DelegatingBaseLineJPanel implements Actio
                     protected void done() {
                         try {
                             get();
-                        } catch (ExecutionException ex) {
-                            NotifyDescriptor nd = new NotifyDescriptor.Exception(ex.getCause(),
-                                    "Failed to retrieve attachment from issue");
-                            DialogDisplayer.getDefault().notifyLater(nd);
-                        } catch (InterruptedException ex) {
-                            NotifyDescriptor nd = new NotifyDescriptor.Exception(ex,
-                                    "Failed to retrieve attachment from issue");
+                        } catch (ExecutionException | InterruptedException ex) {
+                            NotifyDescriptor nd = new NotifyDescriptor.Message(
+                                    "Failed to retrieve attachment from issue:\n\n" + ex.getMessage(),
+                                    NotifyDescriptor.ERROR_MESSAGE
+                            );
                             DialogDisplayer.getDefault().notifyLater(nd);
                         }
                     }
-                };
-            }
+                }.execute();
 
+            }
+        } else if (COMMAND_DELETE.equals(e.getActionCommand())) {
+            NotifyDescriptor nd = new NotifyDescriptor.Confirmation(
+                    "Are you sure you want to delete the attachment:\n\n" + ad.getFileName(), 
+                    "Delete attachment", 
+                    NotifyDescriptor.OK_CANCEL_OPTION);
+            Object selected = DialogDisplayer.getDefault().notify(nd);
+            if(selected != NotifyDescriptor.OK_OPTION) {
+                return;
+            }
+            new SwingWorker() {
+                @Override
+                protected Object doInBackground() throws Exception {
+                    issue.getRepository().getAttachmentManager().delete(ad.getId());
+                    issue.refresh();
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        get();
+                    } catch (ExecutionException | InterruptedException ex) {
+                        NotifyDescriptor nd = new NotifyDescriptor.Message(
+                                "Failed to delete attachment:\n\n" + ex.getMessage(),
+                                NotifyDescriptor.ERROR_MESSAGE
+                        );
+                        DialogDisplayer.getDefault().notifyLater(nd);
+                    }
+                }
+            }.execute();
         }
     }
 }

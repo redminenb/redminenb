@@ -66,6 +66,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel implements Action
         pwdField.setEnabled(rbCredentials.isSelected());
         
         featureWatchers.setEnabled(fieldsEnabled);
+        featureDeleteAttachments.setEnabled(fieldsEnabled);
         featuresLabel.setEnabled(fieldsEnabled);
         
         connectButton.setEnabled(fieldsEnabled);
@@ -125,7 +126,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel implements Action
         rbAccessKey = new JRadioButton();
         authLabel = new JLabel();
         rbCredentials = new JRadioButton();
-        projectComboBox = new JComboBox<ProjectId>();
+        projectComboBox = new JComboBox<>();
         createNewProjectButton = new LinkButton();
         featuresLabel = new JLabel();
         featureWatchers = new JCheckBox();
@@ -136,6 +137,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel implements Action
         httpPasswordLabel = new JLabel();
         httpUserField = new JTextField();
         httpPwdField = new JPasswordField();
+        featureDeleteAttachments = new JCheckBox();
 
         setNextFocusableComponent(nameTextField);
         setLayout(new GridBagLayout());
@@ -319,7 +321,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel implements Action
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
-        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        gridBagConstraints.insets = new Insets(5, 5, 2, 5);
         add(featureWatchers, gridBagConstraints);
 
         httpAuthEnabled.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.httpAuthEnabled.text")); // NOI18N
@@ -381,6 +383,16 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel implements Action
         gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(2, 5, 5, 5);
         add(httpPwdField, gridBagConstraints);
+
+        featureDeleteAttachments.setSelected(true);
+        featureDeleteAttachments.setText(NbBundle.getMessage(RedmineRepositoryPanel.class, "RedmineRepositoryPanel.featureDeleteAttachments.text")); // NOI18N
+        gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        gridBagConstraints.insets = new Insets(2, 5, 5, 5);
+        add(featureDeleteAttachments, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -389,6 +401,7 @@ public class RedmineRepositoryPanel extends javax.swing.JPanel implements Action
     ButtonGroup buttonGroup1;
     JButton connectButton;
     protected LinkButton createNewProjectButton;
+    JCheckBox featureDeleteAttachments;
     JCheckBox featureWatchers;
     JLabel featuresLabel;
     JLabel hostLabel;

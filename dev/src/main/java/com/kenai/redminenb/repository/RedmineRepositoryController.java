@@ -96,6 +96,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         panel.pwdField.getDocument().addDocumentListener(this);
 
         panel.featureWatchers.addActionListener(this);
+        panel.featureDeleteAttachments.addActionListener(this);
         panel.projectComboBox.addItemListener(this);
         panel.connectButton.addActionListener(this);
         panel.createNewProjectButton.addActionListener(this);
@@ -144,6 +145,10 @@ public class RedmineRepositoryController implements RepositoryController, Docume
 
     private boolean isFeatureWatchers() {
         return panel.featureWatchers.isSelected();
+    }
+    
+    private boolean isFeatureDeleteAttachments() {
+        return panel.featureDeleteAttachments.isSelected();
     }
     
     private String getHttpUser() {
@@ -226,7 +231,8 @@ public class RedmineRepositoryController implements RepositoryController, Docume
                 getProject() == null ? null : getProject().getId(),
                 isFeatureWatchers(),
                 httpUser,
-                httpPassword);
+                httpPassword,
+                isFeatureDeleteAttachments());
     }
 
     @Override
@@ -273,6 +279,7 @@ public class RedmineRepositoryController implements RepositoryController, Docume
         }
         
         panel.featureWatchers.setSelected(repository.isFeatureWatchers());
+        panel.featureDeleteAttachments.setSelected(repository.isFeatureDeleteAttachments());
         
         panel.setFieldsEnabled(true);
     }

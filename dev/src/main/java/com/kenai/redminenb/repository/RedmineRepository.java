@@ -483,7 +483,7 @@ public class RedmineRepository {
             users.add(currentUser);
         }
         for (Membership m: memberships) {
-            if (m.getUserId() != null) {
+            if (m.getUserId() != null && (currentUser == null || (! m.getUserId().equals(currentUser.getId())))) {
                 users.add(new RedmineUser(m.getUserId(), m.getUserName()));
             }
         }

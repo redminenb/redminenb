@@ -87,7 +87,7 @@ public class RedmineIssueController implements IssueController {
                 @Override
                 public void run() {
                     redmineIssue.refresh();
-                    issuePanel.initIssue(null);
+                    issuePanel.initIssue();
                 }
             });
             viewWatchers.setEnabled(redmineIssue.getRepository().isFeatureWatchers());
@@ -184,7 +184,7 @@ public class RedmineIssueController implements IssueController {
                             @Override
                             protected Object doInBackground() throws Exception {
                                 redmineIssue.refresh();
-                                issuePanel.initIssue(null);
+                                issuePanel.initIssue();
                                 return null;
                             }
 
@@ -255,7 +255,7 @@ public class RedmineIssueController implements IssueController {
         if(issuePanel != null) {
             redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
                 public void run() {
-                    issuePanel.initIssue(null);
+                    issuePanel.initIssue();
                 }
             });
         }

@@ -75,6 +75,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import javax.swing.Box.Filler;
 import javax.swing.JFileChooser;
@@ -120,32 +121,33 @@ public class RedmineIssuePanel extends VerticalScrollPane {
    private final List<CustomFieldComponent> customFields = new ArrayList<>();
    Map<Integer,Object> customFieldValueBackingStore = new HashMap<>();
    
-   private final ItemListener projectTrackerListener = new ItemListener() {
-        private boolean running = false;
-       
+   private final AtomicInteger updateRunning = new AtomicInteger(0);
+   
+    private final ItemListener projectTrackerListener = new ItemListener() {
         @Override
         public void itemStateChanged(ItemEvent e) {
-           final NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
-           final Project project;
-           if(np != null) {
-               project = np.getProject();
-           } else {
-               project = null;
-           }
-           final Tracker tracker = (Tracker) trackerComboBox.getSelectedItem();
-           RedmineIssuePanel.this.redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
-                @Override
-                public void run() {
-                    if(running) {
-                        return;
-                    }
-                    running = true;
-                    initProjectData(false, project, tracker, null);
-                    running = false;
+            if (updateRunning.compareAndSet(0, 1)) {
+                final NestedProject np = (NestedProject) projectComboBox.getSelectedItem();
+                final Project project;
+                if (np != null) {
+                    project = np.getProject();
+                } else {
+                    project = null;
                 }
-            });
+                final Tracker tracker = (Tracker) trackerComboBox.getSelectedItem();
+                RedmineIssuePanel.this.redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            initProjectData(false, project, tracker, null);
+                        } finally {
+                            updateRunning.set(0);
+                        }
+                    }
+                });
+            }
         }
-   };
+    };
 
    public RedmineIssuePanel(RedmineIssue redmineIssue) {
       this.redmineIssue = redmineIssue;
@@ -157,11 +159,13 @@ public class RedmineIssuePanel extends VerticalScrollPane {
       logtimeInputPanel.setVisible(false);
       logtimePanel = new ExpandablePanel(logtimeLabel, logtimeInputPanel);
       privateCheckBox.setVisible(false);
+      updateRunning.set(1);
       redmineIssue.getRepository().getRequestProcessor().execute(new Runnable() {
           @Override
           public void run() {
               Runnable edtUpdate = initValues();
-              initIssue(edtUpdate);
+              initIssueUnderUpdateLock(edtUpdate);
+              updateRunning.set(0);
           }
       });
     }
@@ -256,12 +260,22 @@ public class RedmineIssuePanel extends VerticalScrollPane {
       toolbarPopupButton.addActionListener(a);
    }
 
+   final void initIssue() {
+       if(updateRunning.compareAndSet(0, 1)) {
+           try {
+               initIssueUnderUpdateLock(null);
+           } finally {
+               updateRunning.set(0);
+           }
+       }
+   }
+   
    /**
     * Initialize panel data from issue.
     * 
     * @param edtUpdate can be null, if not null is called on the EDT
     */
-   final void initIssue(final Runnable edtUpdate) {
+   private void initIssueUnderUpdateLock(final Runnable edtUpdate) {
       assert ! SwingUtilities.isEventDispatchThread();
        
       final com.taskadapter.redmineapi.bean.Issue issue = this.redmineIssue.getIssue();
@@ -289,7 +303,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                       .get(redmineIssue.getRepository().getProjectID());
       }
       
-      if (redmineIssue.hasParent()) {
+      if (redmineIssue.hasParent() && issue != null) {
           final String parentKey = String.valueOf(issue.getParentId());
           parentIssue.value = RedmineUtil.getIssue(redmineIssue.getRepository(), parentKey);
           if (parentIssue.value == null) {
@@ -453,7 +467,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                                                comment.getText(),
                                                false);
                                        redmineIssue.refresh();
-                                       initIssue(null);
+                                       initIssue();
                                    }
                                });
                            }
@@ -731,7 +745,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
        issue.setDueDate(dueDateChooser.getDate());
        issue.setEstimatedHours(getEstimateTime());
        issue.setDoneRatio(doneComboBox.getSelectedIndex() * 10);
-       Project p = null;
+       Project p;
        // Workaround for https://github.com/taskadapter/redmine-java-api/pull/163
        try {
            p = ((NestedProject) projectComboBox.getSelectedItem()).getProject();
@@ -792,7 +806,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                    Issue issue = rr.getIssueManager().createIssue(inputIssue);
                    redmineIssue.setIssue(issue);
                    redmineIssue.getRepository().getIssueCache().put(redmineIssue);
-                   initIssue(null);
+                   initIssue();
                }
                return null;
            }
@@ -830,7 +844,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                 try (SafeAutoCloseable sac = redmineIssue.busy()) {
                    redmineIssue.getRepository().getIssueManager().update(issue);
                    redmineIssue.refresh();
-                   initIssue(null);
+                   initIssue();
                 }
                 return null;
            }
@@ -869,6 +883,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
         Collections.sort(projects);
 
         return new Runnable() {
+            @Override
             public void run() {
                 trackerComboBox.setRenderer(new Defaults.TrackerLCR());
                 trackerComboBox.setModel(new DefaultComboBoxModel(trackerList.toArray()));
@@ -1637,7 +1652,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
 
     private void logtimeSaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logtimeSaveButtonActionPerformed
         String hoursString = logtimeSpentTextField.getText();
-        float hours = 0;
+        float hours;
         try {
             hours = NumberFormat.getNumberInstance().parse(logtimeSpentTextField.getText())
             .floatValue();
@@ -1659,7 +1674,7 @@ public class RedmineIssuePanel extends VerticalScrollPane {
                 try (SafeAutoCloseable sac = redmineIssue.busy()) {
                     redmineIssue.getRepository().getTimeEntryManager().createTimeEntry(te);
                     redmineIssue.refresh();
-                    initIssue(null);
+                    initIssue();
                 }
                 return null;
             }

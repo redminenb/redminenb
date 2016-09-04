@@ -4,7 +4,7 @@
 
     <groupId>com.kenai.redminenb</groupId>
     <artifactId>redminenb</artifactId>
-    <version>1.12</version>
+    <version>1.12.1-SNAPSHOT</version>
     <packaging>nbm</packaging>
 
     <name>RedmineNB</name>
@@ -236,8 +236,7 @@
                         } else {
                             value = value.trim() + "";
                         }
-                        for(var i = 0; i < dependencies.length; i++) { if(value != "") { value += ", "; } value += dependencies[i]; }
-                        attributes.putValue(entry, value);
+                        for(var i = 0; i < dependencies.length; i++) { if(value != "") { value += ", "; } value += dependencies[i]; } attributes.putValue(entry, value);
                         manifest.write(new java.io.FileOutputStream(filename));
                         ]]>
                     </script>

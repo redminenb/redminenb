@@ -307,7 +307,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         assigneeClear = new LinkButton();
         categoryClear = new LinkButton();
         versionClear = new LinkButton();
-        filler1 = new Box.Filler(new Dimension(0, 0), new Dimension(0, 0), new Dimension(0, 0));
         watcherClear = new LinkButton();
         projectClear = new LinkButton();
         byTextPanel = new JPanel();
@@ -362,6 +361,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(jScrollPane2, gridBagConstraints);
 
@@ -389,6 +390,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(jScrollPane3, gridBagConstraints);
 
@@ -416,6 +419,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(jScrollPane4, gridBagConstraints);
 
@@ -443,6 +448,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(jScrollPane6, gridBagConstraints);
 
@@ -470,6 +477,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(issueTypeScrollPane, gridBagConstraints);
 
@@ -496,6 +505,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(assigneeScrollPane, gridBagConstraints);
 
@@ -564,11 +575,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
         gridBagConstraints.insets = new Insets(2, 5, 5, 5);
         byDetailsPanel.add(versionClear, gridBagConstraints);
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 8;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.weightx = 1.0;
-        byDetailsPanel.add(filler1, gridBagConstraints);
 
         jScrollPane5.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane5.setMinimumSize(new Dimension(100, 120));
@@ -583,6 +589,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(jScrollPane5, gridBagConstraints);
 
@@ -620,6 +628,8 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.125;
         gridBagConstraints.insets = new Insets(0, 5, 0, 5);
         byDetailsPanel.add(jScrollPane7, gridBagConstraints);
 
@@ -1085,7 +1095,6 @@ public class RedmineQueryPanel extends JPanel implements FocusListener {
     final JLabel categoryLabel = new JLabel();
     final JList categoryList = new JList();
     JPanel criteriaPanel;
-    Box.Filler filler1;
     final JButton gotoIssueButton = new JButton();
     final JPanel gotoPanel = new JPanel();
     JPanel innerPanel;
